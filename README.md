@@ -7,7 +7,7 @@ Modules: Back-End Development (BED) | Software Project Management (SPM)
 | Name | Student ID | Role |
 |--------------------|-----------|------------------------------|
 | Lee Kang Zheng     | S10268867 | Project Lead                 |
-| Hayder Zikry       | S10272315 | Project Owner & Scrum Master |
+| Hayder Zikry       | S10272315 | Product Owner & Scrum Master |
 | Muhammad Bin Riadi | S10273446 | Developer                    |
 | Seah Hao Bin       | S10273358 | Developer                    |
 | Dana Tun           | S10274081 | Developer                    |
