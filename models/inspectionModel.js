@@ -83,7 +83,7 @@ async function getInspectionById(inspectionID) {
 }
 
 module.exports = {
-    stallExists, 
-    createInspection, 
+    stallExists,
+    createInspection,
     getInspectionById,
 };
