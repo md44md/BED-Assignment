@@ -45,7 +45,9 @@ INSERT INTO Users (email, passwordHash, role) VALUES
 
 -- ============================================================
 -- SECTION: OPERATOR
--- Operator, HawkerCentre, OperatorAccounts, RentalAgreement
+-- Operator, HawkerCentre
+-- (OperatorAccounts and RentalAgreement also belong to this role,
+--  but are defined further down since they reference Stall)
 -- ============================================================
 
 CREATE TABLE Operator (
@@ -60,7 +62,7 @@ INSERT INTO Operator (userID, firstName, lastName, phone) VALUES
     (10, 'James', 'Tan', '91234567'),
     (11, 'Karen', 'Lim', '92345678'),
     (12, 'Leon',  'Ng',  '93456789');
-------------------------------------------------
+
 CREATE TABLE HawkerCentre (
     centreID   INT IDENTITY(1,1) PRIMARY KEY,
     operatorID INT NOT NULL REFERENCES Operator(operatorID),
@@ -98,7 +100,7 @@ INSERT INTO StallOwner (userID, firstName, lastName, phone) VALUES
     (7, 'Grace', 'Tan',   '97890123'),
     (8, 'Henry', 'Lee',   '98901234'),
     (9, 'Iris',  'Goh',   '99012345');
-------------------------------------------------
+
 CREATE TABLE Stall (
     stallID      INT IDENTITY(1,1) PRIMARY KEY,
     centreID     INT NOT NULL REFERENCES HawkerCentre(centreID),
@@ -119,7 +121,7 @@ INSERT INTO Stall (centreID, stallOwnerID, unitNumber, stallName, description, s
     (2, 4, '#02-22', 'Raj''s Curry Corner',      'Authentic South Indian curry rice',    'busy'),
     (3, 5, '#01-08', 'Mak''s Noodles',           'Handmade noodles with rich broth',     'busy'),
     (3, 6, '#01-12', 'Nasi Lemak Wangi',         'Fragrant coconut rice with sides',     'open');
-------------------------------------------------
+
 CREATE TABLE MenuItem (
     menuItemID  INT IDENTITY(1,1) PRIMARY KEY,
     stallID     INT NOT NULL REFERENCES Stall(stallID),
@@ -310,10 +312,8 @@ CREATE TABLE Orders (
     stallID        INT NOT NULL REFERENCES Stall(stallID),
     queueNumber    INT NOT NULL,
     status         VARCHAR(20) DEFAULT 'pending',
-    -- status can be: 'pending', 'preparing', 'ready', 'completed', 'abandoned'
     paymentMethod  VARCHAR(20) NOT NULL,                  -- Cash / NETS / PayNow
     paymentStatus  VARCHAR(20) DEFAULT 'pending',
-    -- paymentStatus can be: 'pending', 'paid', 'failed'
     subtotal       DECIMAL(10,2) NOT NULL,
     packagingFee   DECIMAL(10,2) DEFAULT 0,
     gstAmount      DECIMAL(10,2) DEFAULT 0,
@@ -322,6 +322,8 @@ CREATE TABLE Orders (
     createdAt      DATETIME DEFAULT GETDATE(),
     updatedAt      DATETIME DEFAULT GETDATE()
 );
+-- status can be: 'pending', 'preparing', 'ready', 'completed', 'abandoned'
+-- paymentStatus can be: 'pending', 'paid', 'failed'
 
 INSERT INTO Orders (customerID, stallID, queueNumber, status, paymentMethod, paymentStatus, subtotal, packagingFee, gstAmount, totalAmount) VALUES
     (1, 1, 42, 'completed', 'PayNow', 'paid',    9.00, 0.00, 0.63,  9.63),
@@ -408,10 +410,10 @@ CREATE TABLE Complaint (
     category    VARCHAR(50) NOT NULL,                     -- Hygiene / Service / Food Quality / Other
     description VARCHAR(2000) NOT NULL,
     status      VARCHAR(20) DEFAULT 'open',
-    -- status can be: 'open', 'underReview', 'resolved', 'closed'
     createdAt   DATETIME DEFAULT GETDATE(),
     resolvedAt  DATETIME
 );
+-- status can be: 'open', 'underReview', 'resolved', 'closed'
 
 INSERT INTO Complaint (customerID, stallID, category, description, status) VALUES
     (1, 3, 'Hygiene',      'Noticed the cooking area was unclean during my visit.', 'underReview'),
@@ -491,11 +493,12 @@ CREATE TABLE HygieneGrade (
     gradeID      INT IDENTITY(1,1) PRIMARY KEY,
     stallID      INT NOT NULL REFERENCES Stall(stallID),
     inspectionID INT NOT NULL REFERENCES Inspection(inspectionID),
-    grade        CHAR(1) NOT NULL,                        -- A, B, C or D
+    grade        CHAR(1) NOT NULL,
     issuedDate   DATE NOT NULL,
     expiryDate   DATE NOT NULL,
     isActive     BIT DEFAULT 1
 );
+-- grade can be: 'A', 'B', 'C', 'D'
 
 -- Stall 3 has a historical grade (from inspectionID 2) and a current grade (from inspectionID 3)
 INSERT INTO HygieneGrade (stallID, inspectionID, grade, issuedDate, expiryDate, isActive) VALUES
