@@ -26,7 +26,16 @@ function requireStallOwner(req, res, next) {
     next();
 }
 
+// Check that the logged-in user is a customer
+function requireCustomer(req, res, next) {
+    if (req.user.role !== "customer") {
+        return res.status(403).json({ error: "Access denied. Customer role required." });
+    }
+    next();
+}
+
 module.exports = {
     verifyToken,
     requireStallOwner,
+    requireCustomer,
 };
