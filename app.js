@@ -25,13 +25,13 @@ app.post("/stallowners/logout", stallOwnerController.logout);
 
 // Start server
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+    console.log(`Server is running on port ${port}`);
 });
 
 // Graceful shutdown
 process.on("SIGINT", async () => {
-  console.log("Server is gracefully shutting down...");
-  await sql.close();
-  console.log("Database connection closed.");
-  process.exit(0);
+    console.log("Server is gracefully shutting down...");
+    await sql.close();
+    console.log("Database connection closed.");
+    process.exit(0);
 });
