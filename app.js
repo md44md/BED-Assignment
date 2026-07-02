@@ -10,6 +10,8 @@ const stallOwnerController = require("./controllers/stallOwnerController");
 const { validateRegister, validateLogin } = require("./middlewares/stallOwnerValidation");
 const customerController = require("./controllers/customerController");
 const { validateRegister: validateCustomerRegister, validateLogin: validateCustomerLogin } = require("./middlewares/customerValidation");
+const officerController = require("./controllers/officerController");
+const { validateLogin: validateOfficerLogin } = require("./middlewares/officerValidation");
 
 // Initialize Express app
 const app = express();
@@ -29,6 +31,10 @@ app.post("/stallowners/logout", stallOwnerController.logout);
 app.post("/customers/register", validateCustomerRegister, customerController.register);
 app.post("/customers/login", validateCustomerLogin, customerController.login);
 app.post("/customers/logout", customerController.logout);
+
+// Routes for officer auth
+app.post("/officers/login", validateOfficerLogin, officerController.login);
+app.post("/officers/logout", officerController.logout);
 
 // Start server
 app.listen(port, () => {

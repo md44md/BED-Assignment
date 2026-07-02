@@ -34,8 +34,17 @@ function requireCustomer(req, res, next) {
     next();
 }
 
+// Check that the logged-in user is a NEA Officer
+function requireOfficer(req, res, next) {
+    if (req.user.role !== "neaOfficer") {
+        return res.status(403).json({ error: "Access denied. NEA Officer role required." });
+    }
+    next();
+}
+
 module.exports = {
     verifyToken,
     requireStallOwner,
     requireCustomer,
+    requireOfficer,
 };
