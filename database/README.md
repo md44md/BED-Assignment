@@ -15,31 +15,32 @@
    - Create all tables with constraints
    - Insert sample data for testing
 
-Tables                      | Created
--------------------------------------------------------------------------
-Table                        | Description
-Users                        | Base authentication for all roles
-Operator                  | Hawker centre operator profile
-HawkerCentre        | Hawker centre information
-StallOwner              | Vendor profile
-Stall                          | Individual food stalls
-MenuItem               | Food items per stall
-MenuItemCuisine  | Menu item to cuisine mapping (cuisineName VARCHAR)
-Promotion               | Stall promotions
-OperatorAccounts | Operator-to-stall assignment tracking
-RentalAgreement   | Stall lease records
-Customer                | Patron profile
-Cart / CartItem       | Customer shopping cart
-Orders / OrderItem | Customer orders with price snapshots
-Payment                   | Payment records
-Feedback                 | Customer ratings and comments
-MenuItemLike         | Customer likes on menu items
-Complaint                | Formal complaints linked to stalls
-Notification              | In-app notifications
-LoyaltyAccount       | Customer loyalty points
-NEAOfficer               | NEA inspection officer profile
-Inspection                | NEA inspection records
-HygieneGrade         | Hygiene grades issued to stalls
+
+| Table | Description |
+|--------------------|-----------|
+| Users | Base authentication for all roles |
+| Operator | Hawker centre operator profile |
+| HawkerCentre | Hawker centre information |
+| StallOwner | Vendor profile |
+| Stall | Individual food stalls |
+| MenuItem | Food items per stall
+| MenuItemCuisine | Menu item to cuisine mapping (cuisineName VARCHAR)
+| Promotion | Stall promotions
+| OperatorAccounts | Operator-to-stall assignment tracking
+| RentalAgreement | Stall lease records
+| Customer | Patron profile
+| Cart / CartItem | Customer shopping cart
+| Orders / OrderItem | Customer orders with price snapshots
+| Payment | Payment records
+| Feedback | Customer ratings and comments
+| MenuItemLike | Customer likes on menu items
+| Complaint | Formal complaints linked to stalls
+| Notification | In-app notifications
+| LoyaltyAccount | Customer loyalty points
+| NEAOfficer | NEA inspection officer profile
+| Inspection | NEA inspection records
+| HygieneGrade | Hygiene grades issued to stalls
+
 
 Sample Data Included
 
