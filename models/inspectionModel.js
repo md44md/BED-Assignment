@@ -1,6 +1,7 @@
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
 
+// Check if a stallID exists
 async function stallExists(stallID) {
     let connection;
     try {
@@ -24,6 +25,7 @@ async function stallExists(stallID) {
     }
 }
 
+// Insert a completed inspection record for a stall, logged by the given officer
 async function createInspection(stallID, officerID, score, remarks, inspectionDate) {
     let connection;
     try {
@@ -55,6 +57,7 @@ async function createInspection(stallID, officerID, score, remarks, inspectionDa
     }
 }
 
+// Get a single inspection by its ID (used to confirm a logged inspection)
 async function getInspectionById(inspectionID) {
     let connection;
     try {
@@ -79,4 +82,8 @@ async function getInspectionById(inspectionID) {
     }
 }
 
-module.exports = { stallExists, createInspection, getInspectionById };
+module.exports = {
+    stallExists, 
+    createInspection, 
+    getInspectionById,
+};
