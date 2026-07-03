@@ -25,22 +25,23 @@ CREATE TABLE Users (
     isActive     BIT DEFAULT 1
 );
 
+-- Seeded plaintext passwords (for testing login only): <Name>123! e.g. Alice123!, Bob123!, ...
 INSERT INTO Users (email, passwordHash, role) VALUES
-    ('alice@email.com',    'hash_alice',    'customer'),
-    ('bob@email.com',      'hash_bob',      'customer'),
-    ('charlie@email.com',  'hash_charlie',  'customer'),
-    ('diana@email.com',    'hash_diana',    'stallOwner'),
-    ('evan@email.com',     'hash_evan',     'stallOwner'),
-    ('fiona@email.com',    'hash_fiona',    'stallOwner'),
-    ('grace@email.com',    'hash_grace',    'stallOwner'),
-    ('henry@email.com',    'hash_henry',    'stallOwner'),
-    ('iris@email.com',     'hash_iris',     'stallOwner'),
-    ('james@email.com',    'hash_james',    'operator'),
-    ('karen@email.com',    'hash_karen',    'operator'),
-    ('leon@email.com',     'hash_leon',     'operator'),
-    ('mary@email.com',     'hash_mary',     'neaOfficer'),
-    ('nathan@email.com',   'hash_nathan',   'neaOfficer'),
-    ('olivia@email.com',   'hash_olivia',   'neaOfficer');
+    ('alice@email.com',    '$2b$10$YAl2JoMRHkVW7gluIob.dud5p0qUF9NYhAfmKCVZWhLT4Fe0/vkf.',    'customer'),
+    ('bob@email.com',      '$2b$10$mGWEMGP5RFXX91gWDIHmrObpmif0SskOQf1fiagFzL45HZ6kZdycG',    'customer'),
+    ('charlie@email.com',  '$2b$10$SCetqPCvbMaQbCVqZ43/qO.izJAR9JEGVrALUob5uAYJ5cZ8aQIne',    'customer'),
+    ('diana@email.com',    '$2b$10$PKoakfHAkOXyZKHvlCroWuqB9yAH12/Sd.yHKD5tO35DJR2ZD6i4a',    'stallOwner'),
+    ('evan@email.com',     '$2b$10$IIa7RL/wVDQQ6fms5mXTs.1kfolRErcUNGbKtM15vtAy2RB22q4XG',    'stallOwner'),
+    ('fiona@email.com',    '$2b$10$LQvb6i4MMQsBKIqujTSzo.2yfWhz9S02wINP.UR/oLLJ0LosNzXCa',    'stallOwner'),
+    ('grace@email.com',    '$2b$10$oOV/5m5PiOJOhENgWTx0nO4DNhajmUBNzEBAS2UjyXkT0bOfEw/rK',    'stallOwner'),
+    ('henry@email.com',    '$2b$10$OJTkOkXM4h1MzOApWPxfouJxcFOVoEhACN4j14Uj1RmheYCx49urK',    'stallOwner'),
+    ('iris@email.com',     '$2b$10$xk5/yyYlrBI7dyJPB2MNFO4DQBRR9kIEFfm3Np0psnYACVMZJZLVi',    'stallOwner'),
+    ('james@email.com',    '$2b$10$BLXKpziO91lZtPePDihwYeItZJTUX7iZfarOzah36w.7WADQJ3.SO',    'operator'),
+    ('karen@email.com',    '$2b$10$PCbVU52JDNpJCH61cQcCo.KApXT4vuL25Dr8vL0b.zRrO3un6W4Z2',    'operator'),
+    ('leon@email.com',     '$2b$10$X84pNif9n20vaq5AAsTwOubp7JiKOqHllJq6mHNBAP8QhshCNmhGy',    'operator'),
+    ('mary@email.com',     '$2b$10$mG.4EUWsMNn5M6zZqe3OgetpzkzpwAYGNEq9bdAoJ7g.x.CITTd.i',    'neaOfficer'),
+    ('nathan@email.com',   '$2b$10$PJMG1ArBZPDlR4XIZgHiqOVpdKeLW6EeuRCyqOxuomsOju9iFSBRG',    'neaOfficer'),
+    ('olivia@email.com',   '$2b$10$9FC3jS7v/INpxMS4L70tSuVtK5do/fG73eI6k0HkZC22bLzzBGile',    'neaOfficer');
 
 
 -- ============================================================
