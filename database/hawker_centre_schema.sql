@@ -8,7 +8,7 @@ USE HawkerCentreDatabase;
 GO
 
 CREATE USER hawker_admin FOR LOGIN bed_user;
-ALTER ROLE db_owner ADD MEMBER bed_user;
+ALTER ROLE db_owner ADD MEMBER hawker_admin;
 GO
 
 -- ============================================================
