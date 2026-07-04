@@ -16,6 +16,8 @@ const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection } = require("./middlewares/inspectionValidation");
 const orderController = require("./controllers/orderController");
 const { validateSubmitOrder } = require("./middlewares/orderValidation");
+const hygieneGradeController = require("./controllers/hygieneGradeController");
+const { validateIssueGrade, validateUpdateGrade } = require("./middlewares/hygieneGradeValidation");
 const { verifyToken, requireOfficer, requireCustomer } = require("./middlewares/auth");
 
 // Initialize Express app
@@ -46,6 +48,14 @@ app.post("/inspections", verifyToken, requireOfficer, validateLogInspection, ins
 
 // Routes for orders
 app.post("/orders", verifyToken, requireCustomer, validateSubmitOrder, orderController.submitOrder);
+
+// Routes for hygiene grades
+// Public: customers viewing a stall's hygiene grades (no auth)
+app.get("/stalls/:stallID/hygiene-grades", hygieneGradeController.getStallGrades);
+// Officer only: issue, update and revoke grades
+app.post("/hygiene-grades", verifyToken, requireOfficer, validateIssueGrade, hygieneGradeController.issueGrade);
+app.put("/hygiene-grades/:gradeID", verifyToken, requireOfficer, validateUpdateGrade, hygieneGradeController.updateGrade);
+app.delete("/hygiene-grades/:gradeID", verifyToken, requireOfficer, hygieneGradeController.deleteGrade);
 
 // Start server
 app.listen(port, () => {
