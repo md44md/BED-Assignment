@@ -28,6 +28,10 @@ function verifyJWT(req, res, next) {
 
             // Customer order routes
             "POST /orders": ["customer"],
+
+            // Customer feedback routes
+            "POST /feedback": ["customer"],
+            "POST /feedback/edit": ["customer"],
         };
 
         const requestedEndpoint = `${req.method} ${req.url}`;
