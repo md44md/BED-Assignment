@@ -16,6 +16,8 @@ const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection } = require("./middlewares/inspectionValidation");
 const orderController = require("./controllers/orderController");
 const { validateSubmitOrder } = require("./middlewares/orderValidation");
+const feedbackController = require("./controllers/feedbackController");
+const { validateSubmitFeedback, validateEditFeedback } = require("./middlewares/feedbackValidation");
 const { verifyJWT } = require("./middlewares/auth");
 
 // Initialize Express app
@@ -46,6 +48,10 @@ app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.
 
 // Routes for orders
 app.post("/orders", verifyJWT, validateSubmitOrder, orderController.submitOrder);
+
+// Routes for feedback
+app.post("/feedback", verifyJWT, validateSubmitFeedback, feedbackController.submitFeedback);
+app.post("/feedback/edit", verifyJWT, validateEditFeedback, feedbackController.editFeedback);
 
 // Start server
 app.listen(port, () => {
