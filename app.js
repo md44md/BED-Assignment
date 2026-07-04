@@ -16,7 +16,7 @@ const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection } = require("./middlewares/inspectionValidation");
 const orderController = require("./controllers/orderController");
 const { validateSubmitOrder } = require("./middlewares/orderValidation");
-const { verifyToken, requireOfficer, requireCustomer } = require("./middlewares/auth");
+const { verifyJWT } = require("./middlewares/auth");
 
 // Initialize Express app
 const app = express();
@@ -42,10 +42,10 @@ app.post("/officers/login", validateOfficerLogin, officerController.login);
 app.post("/officers/logout", officerController.logout);
 
 // Routes for officer inspections
-app.post("/inspections", verifyToken, requireOfficer, validateLogInspection, inspectionController.logInspection);
+app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.logInspection);
 
 // Routes for orders
-app.post("/orders", verifyToken, requireCustomer, validateSubmitOrder, orderController.submitOrder);
+app.post("/orders", verifyJWT, validateSubmitOrder, orderController.submitOrder);
 
 // Start server
 app.listen(port, () => {
