@@ -9,13 +9,14 @@ async function register(req, res) {
 
         // Check if email is already registered
         const existingUser = await stallOwnerModel.getUserByEmail(email);
-            if (existingUser) {
+        if (existingUser) {
             return res.status(409).json({ error: "Email is already registered." });
         }
 
         // Hash the password before storing
-        const passwordHash = await bcrypt.hash(password, 10);
-
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
+        
         // Insert into Users table, get back the new userID
         const userID = await stallOwnerModel.createUser(email, passwordHash);
 

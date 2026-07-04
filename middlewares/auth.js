@@ -1,50 +1,55 @@
 const jwt = require("jsonwebtoken");
 
-// Verify JWT token from Authorization header
-function verifyToken(req, res, next) {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1]; // Expects: Bearer <token>
+function verifyJWT(req, res, next) {
+    // Extract token from Authorization header (format: "Bearer <token>")
+    const token =
+        req.headers.authorization && req.headers.authorization.split(" ")[1];
 
     if (!token) {
-        return res.status(401).json({ error: "Access denied. No token provided." });
+        return res.status(401).json({ message: "Unauthorized" });
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(403).json({ error: "Invalid or expired token." });
+            return res.status(403).json({ message: "Forbidden" });
         }
-        req.user = decoded; // { userID, stallOwnerID, role }
+
+        // Define which roles are allowed for each endpoint
+        // This will grow as you add more protected routes
+        const authorizedRoles = {
+            // Stall owner menu management routes (to be added next feature)
+            "POST /menuitems": ["stallOwner"],
+            "PUT /menuitems/[0-9]+": ["stallOwner"],
+            "DELETE /menuitems/[0-9]+": ["stallOwner"],
+            "GET /menuitems": ["stallOwner"],
+
+            // NEA officer inspection routes
+            "POST /inspections": ["neaOfficer"],
+
+            // Customer order routes
+            "POST /orders": ["customer"],
+        };
+
+        const requestedEndpoint = `${req.method} ${req.url}`;
+        const userRole = decoded.role;
+
+        const authorizedRole = Object.entries(authorizedRoles).find(
+            ([endpoint, roles]) => {
+                // Convert the endpoint string into a regex so we can
+                // match dynamic segments like /menuitems/1, /menuitems/2, etc.
+                const regex = new RegExp(`^${endpoint}$`);
+                return regex.test(requestedEndpoint) && roles.includes(userRole);
+            }
+        );
+
+        if (!authorizedRole) {
+            return res.status(403).json({ message: "Forbidden" });
+        }
+
+        // Attach the decoded token data to req.user so controllers can use it
+        req.user = decoded;
         next();
     });
 }
 
-// Check that the logged-in user is a stallOwner
-function requireStallOwner(req, res, next) {
-    if (req.user.role !== "stallOwner") {
-        return res.status(403).json({ error: "Access denied. StallOwner role required." });
-    }
-    next();
-}
-
-// Check that the logged-in user is a customer
-function requireCustomer(req, res, next) {
-    if (req.user.role !== "customer") {
-        return res.status(403).json({ error: "Access denied. Customer role required." });
-    }
-    next();
-}
-
-// Check that the logged-in user is a NEA Officer
-function requireOfficer(req, res, next) {
-    if (req.user.role !== "neaOfficer") {
-        return res.status(403).json({ error: "Access denied. NEA Officer role required." });
-    }
-    next();
-}
-
-module.exports = {
-    verifyToken,
-    requireStallOwner,
-    requireCustomer,
-    requireOfficer,
-};
+module.exports = { verifyJWT };
