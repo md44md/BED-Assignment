@@ -18,6 +18,8 @@ const orderController = require("./controllers/orderController");
 const { validateSubmitOrder } = require("./middlewares/orderValidation");
 const feedbackController = require("./controllers/feedbackController");
 const { validateSubmitFeedback, validateEditFeedback } = require("./middlewares/feedbackValidation");
+const menuItemController = require("./controllers/menuItemController");
+const { validateMenuItem, validateMenuItemId } = require("./middlewares/menuItemValidation")
 const { verifyJWT } = require("./middlewares/auth");
 
 // Initialize Express app
@@ -52,6 +54,12 @@ app.post("/orders", verifyJWT, validateSubmitOrder, orderController.submitOrder)
 // Routes for feedback
 app.post("/feedback", verifyJWT, validateSubmitFeedback, feedbackController.submitFeedback);
 app.post("/feedback/edit", verifyJWT, validateEditFeedback, feedbackController.editFeedback);
+
+// Routes for menu management
+app.get("/menuitems", verifyJWT, menuItemController.getMenuItems);
+app.post("/menuitems", verifyJWT, validateMenuItem, menuItemController.createMenuItem);
+app.put("/menuitems/:id", verifyJWT, validateMenuItemId, validateMenuItem, menuItemController.updateMenuItem);
+app.delete("/menuitems/:id", verifyJWT, validateMenuItemId, menuItemController.deleteMenuItem);
 
 // Start server
 app.listen(port, () => {
