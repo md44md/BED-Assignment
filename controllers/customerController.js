@@ -10,13 +10,13 @@ async function register(req, res) {
         // Check if email is already registered
         const existingUser = await customerModel.getUserByEmail(email);
         if (existingUser) {
-            return res.status(409).json({ message: "Email is already registered." });
+            return res.status(409).json({ error: "Email is already registered." });
         }
 
         // Hash the password before storing
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
-
+        
         // Insert into Users table, get back the new userID
         const userID = await customerModel.createUser(email, passwordHash);
 
@@ -34,7 +34,7 @@ async function register(req, res) {
         });
     } catch (error) {
         console.error("Controller error:", error);
-        res.status(500).json({ message: "Error registering account." });
+        res.status(500).json({ error: "Error registering account." });
     }
 }
 
@@ -46,18 +46,18 @@ async function login(req, res) {
         // Check if account exists
         const user = await customerModel.getUserByEmail(email);
         if (!user) {
-            return res.status(404).json({ message: "Account not found." });
+            return res.status(404).json({ error: "Account not found." });
         }
 
         // Check if account is active
         if (!user.isActive) {
-            return res.status(403).json({ message: "Account is disabled." });
+            return res.status(403).json({ error: "Account is disabled." });
         }
 
         // Compare submitted password against stored hash
         const isMatch = await bcrypt.compare(password, user.passwordHash);
         if (!isMatch) {
-            return res.status(401).json({ message: "Invalid credentials." });
+            return res.status(401).json({ error: "Invalid credentials." });
         }
 
         // Get customerID to embed in token
@@ -80,7 +80,7 @@ async function login(req, res) {
         });
     } catch (error) {
         console.error("Controller error:", error);
-        res.status(500).json({ message: "Error logging in." });
+        res.status(500).json({ error: "Error logging in." });
     }
 }
 
