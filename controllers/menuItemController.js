@@ -35,8 +35,9 @@ async function getMenuItemById(req, res) {
 // Post /menuitems
 async function createMenuItem(req, res) {
     try {
+        const stall = await menuItemModel.getStallByOwnerID(req.user.stallOwnerID);
         if (!stall) {
-            return res.status(404).json({ error: "No stall found for this account." });
+            return res.status(404).json({ message: "No stall found for this account." });
         }
 
         const newMenuItem = await menuItemModel.createMenuItem(stall.stallID, req.body);
