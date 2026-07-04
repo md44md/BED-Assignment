@@ -106,7 +106,7 @@ async function getGradesByStall(stallID) {
         const request = connection.request();
         request.input("stallID", sql.Int, stallID);
         const result = await request.query(query);
-        return result.recordset; // array; an empty array is a valid answer
+        return result.recordset; // array; an empty array can be returned if no grades exist for the stall
     } catch (error) {
         console.error("Database error:", error);
         throw error;
