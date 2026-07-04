@@ -22,6 +22,12 @@ function verifyJWT(req, res, next) {
             "PUT /menuitems/[0-9]+": ["stallOwner"],
             "DELETE /menuitems/[0-9]+": ["stallOwner"],
             "GET /menuitems": ["stallOwner"],
+
+            // NEA officer inspection routes
+            "POST /inspections": ["neaOfficer"],
+
+            // Customer order routes
+            "POST /orders": ["customer"],
         };
 
         const requestedEndpoint = `${req.method} ${req.url}`;
