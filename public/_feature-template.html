@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+     TEAM TEMPLATE — copy this file to build your own feature page.
+
+     HOW TO USE:
+       1. Copy & rename this file, e.g.  public/feedback.html
+       2. Change the <title> and the header brand text below.
+       3. Build your form + results area inside the <section class="panel">.
+       4. Wire your API routes in the <script> at the bottom (see the TODOs).
+       5. Delete the parts you don't need (e.g. the login block if your
+          feature is public and needs no auth).
+
+     Everything uses the shared stylesheet (css/hygiene-grades.css) so all
+     team pages look consistent. Reusable CSS classes you can use:
+       .panel .panel__title .panel__lead
+       .form-row .form-grid .field .field__label .input
+       .btn .btn--primary .btn--secondary .btn--danger .btn--ghost .btn--sm
+       .message (.message--success / --error / --info)
+       .results .empty .tag .hint
+     NOTE: this is a temporary template — remove it before final submission.
+     ============================================================================ -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- TODO: rename to your feature -->
+    <title>My Feature — Hawker Centre System</title>
+    <link rel="stylesheet" href="/css/hygiene-grades.css" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand__text">
+                <!-- TODO: your feature name + subtitle -->
+                <span class="brand__title">My Feature</span>
+                <span class="brand__subtitle">Singapore Hawker Centre Management System</span>
+            </div>
+        </div>
+        <a class="session-btn" href="/">← Home</a>
+    </header>
+
+    <main class="layout">
+        <section class="panel" aria-labelledby="feature-heading">
+            <div class="panel__head">
+                <h2 id="feature-heading" class="panel__title">My feature</h2>
+                <p class="panel__lead">Short description of what this page does.</p>
+            </div>
+
+            <!-- ============ EXAMPLE FORM (replace fields with your own) ============ -->
+            <form id="feature-form" class="form-grid" novalidate>
+                <div class="field">
+                    <label class="field__label" for="field-a">Field A</label>
+                    <input id="field-a" class="input" type="text" required />
+                </div>
+                <div class="field">
+                    <label class="field__label" for="field-b">Field B</label>
+                    <input id="field-b" class="input" type="number" min="1" />
+                </div>
+                <button type="submit" class="btn btn--primary">Submit</button>
+            </form>
+
+            <!-- Feedback + results areas -->
+            <div id="feature-message" class="message" role="status" aria-live="polite" hidden></div>
+            <div id="feature-results" class="results"></div>
+
+            <button id="load-btn" type="button" class="btn btn--secondary" style="margin-top:16px">Load items</button>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>My Feature module · Singapore Hawker Centre Management System</p>
+    </footer>
+
+    <script>
+        "use strict";
+
+        // Small DOM helper
+        const $ = (sel) => document.querySelector(sel);
+
+        // ---- Reusable helpers (safe to copy into a separate .js file) --------
+
+        // If your feature needs officer/customer login, store the JWT after a
+        // successful POST /<role>/login and send it with { auth: true } below.
+        const TOKEN_KEY = "hawker_token";
+
+        // Wrapper around fetch: sends/parses JSON and throws the server's error message.
+        async function api(path, { method = "GET", body, auth = false } = {}) {
+            const headers = {};
+            if (body !== undefined) headers["Content-Type"] = "application/json";
+            if (auth) {
+                const token = localStorage.getItem(TOKEN_KEY);
+                if (!token) throw new Error("Please log in first.");
+                headers["Authorization"] = "Bearer " + token;
+            }
+            let res;
+            try {
+                res = await fetch(path, {
+                    method,
+                    headers,
+                    body: body !== undefined ? JSON.stringify(body) : undefined,
+                });
+            } catch {
+                throw new Error("Could not reach the server. Is it running?");
+            }
+            let data = {};
+            try { data = await res.json(); } catch { /* no JSON body */ }
+            if (!res.ok) {
+                throw new Error(data.error || data.message || ("Request failed (" + res.status + ")."));
+            }
+            return data;
+        }
+
+        function showMessage(el, type, text) {
+            el.className = "message message--" + type;   // type: success | error | info
+            el.textContent = text;
+            el.hidden = false;
+        }
+        function clearMessage(el) { el.hidden = true; el.textContent = ""; }
+
+        // ---- Example handlers (replace with your feature's logic) ------------
+
+        // GET example — load a list and render it
+        async function loadItems() {
+            const results = $("#feature-results");
+            const msg = $("#feature-message");
+            clearMessage(msg);
+            results.innerHTML = "";
+            try {
+                // TODO: point at your real GET route
+                const data = await api("/your-route");
+                const items = data.items || [];
+                if (items.length === 0) {
+                    results.innerHTML = '<div class="empty">Nothing to show yet.</div>';
+                    return;
+                }
+                // TODO: render your items
+                results.innerHTML = items
+                    .map((it) => '<div class="empty">' + JSON.stringify(it) + "</div>")
+                    .join("");
+            } catch (err) {
+                showMessage(msg, "error", err.message);
+            }
+        }
+
+        // POST example — submit the form
+        async function submitForm(event) {
+            event.preventDefault();
+            const msg = $("#feature-message");
+            clearMessage(msg);
+
+            const payload = {
+                // TODO: build your request body from the form fields
+                fieldA: $("#field-a").value.trim(),
+                fieldB: Number($("#field-b").value),
+            };
+
+            const btn = event.submitter;
+            btn.disabled = true;
+            try {
+                // TODO: point at your real POST route; add { auth: true } if it needs login
+                const data = await api("/your-route", { method: "POST", body: payload });
+                showMessage(msg, "success", data.message || "Saved successfully.");
+                $("#feature-form").reset();
+                loadItems();
+            } catch (err) {
+                showMessage(msg, "error", err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ---- Wire it up ------------------------------------------------------
+        document.addEventListener("DOMContentLoaded", () => {
+            $("#feature-form").addEventListener("submit", submitForm);
+            $("#load-btn").addEventListener("click", loadItems);
+        });
+    </script>
+</body>
+</html>
