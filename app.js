@@ -18,7 +18,11 @@ const orderController = require("./controllers/orderController");
 const { validateSubmitOrder } = require("./middlewares/orderValidation");
 const hygieneGradeController = require("./controllers/hygieneGradeController");
 const { validateIssueGrade, validateUpdateGrade } = require("./middlewares/hygieneGradeValidation");
-const { verifyToken, requireOfficer, requireCustomer } = require("./middlewares/auth");
+const feedbackController = require("./controllers/feedbackController");
+const { validateSubmitFeedback, validateEditFeedback } = require("./middlewares/feedbackValidation");
+const menuItemController = require("./controllers/menuItemController");
+const { validateMenuItem, validateMenuItemId } = require("./middlewares/menuItemValidation")
+const { verifyJWT } = require("./middlewares/auth");
 
 // Initialize Express app
 const app = express();
@@ -44,18 +48,28 @@ app.post("/officers/login", validateOfficerLogin, officerController.login);
 app.post("/officers/logout", officerController.logout);
 
 // Routes for officer inspections
-app.post("/inspections", verifyToken, requireOfficer, validateLogInspection, inspectionController.logInspection);
+app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.logInspection);
 
 // Routes for orders
-app.post("/orders", verifyToken, requireCustomer, validateSubmitOrder, orderController.submitOrder);
+app.post("/orders", verifyJWT, validateSubmitOrder, orderController.submitOrder);
+
+// Routes for feedback
+app.post("/feedback", verifyJWT, validateSubmitFeedback, feedbackController.submitFeedback);
+app.post("/feedback/edit", verifyJWT, validateEditFeedback, feedbackController.editFeedback);
+
+// Routes for menu management
+app.get("/menuitems", verifyJWT, menuItemController.getMenuItems);
+app.post("/menuitems", verifyJWT, validateMenuItem, menuItemController.createMenuItem);
+app.put("/menuitems/:id", verifyJWT, validateMenuItemId, validateMenuItem, menuItemController.updateMenuItem);
+app.delete("/menuitems/:id", verifyJWT, validateMenuItemId, menuItemController.deleteMenuItem);
 
 // Routes for hygiene grades
 // Public: customers viewing a stall's hygiene grades (no auth)
 app.get("/stalls/:stallID/hygiene-grades", hygieneGradeController.getStallGrades);
 // Officer only: issue, update and revoke grades
-app.post("/hygiene-grades", verifyToken, requireOfficer, validateIssueGrade, hygieneGradeController.issueGrade);
-app.put("/hygiene-grades/:gradeID", verifyToken, requireOfficer, validateUpdateGrade, hygieneGradeController.updateGrade);
-app.delete("/hygiene-grades/:gradeID", verifyToken, requireOfficer, hygieneGradeController.deleteGrade);
+app.post("/hygiene-grades", verifyJWT, validateIssueGrade, hygieneGradeController.issueGrade);
+app.put("/hygiene-grades/:gradeID", verifyJWT, validateUpdateGrade, hygieneGradeController.updateGrade);
+app.delete("/hygiene-grades/:gradeID", verifyJWT, hygieneGradeController.deleteGrade);
 
 // Start server
 app.listen(port, () => {
