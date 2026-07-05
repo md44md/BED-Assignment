@@ -33,6 +33,7 @@ async function getStallByOwnerID(stallOwnerID) {
 async function getMenuItemsByStallID(stallID) {
     let connection;
     try {
+        connection = await sql.connect(dbConfig);
         const query = "SELECT menuItemID, stallID, name, description, price, category, isAvailable, isLowStock, imageURL FROM MenuItem WHERE stallID = @stallID";
         const request = connection.request();
         request.input("stallID", sql.Int, stallID);
