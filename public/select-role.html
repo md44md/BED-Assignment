@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HCMS - Select Your Role</title>
+    <link rel="stylesheet" href="/css/common.css" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand__text">
+                <span class="brand__title">Hawker Centre Management System</span>
+                <span class="brand__subtitle">Role Selection</span>
+            </div>
+        </div>
+        <a class="session-btn" href="/index.html">← Home</a>
+    </header>
+
+    <main class="layout layout--narrow">
+        <section class="panel" aria-labelledby="role-heading">
+            <div class="panel__head">
+                <h2 id="role-heading" class="panel__title">Select Your Role</h2>
+                <p class="panel__lead">Choose how you'd like to sign in.</p>
+            </div>
+
+            <div class="home-grid">
+                <!-- ============================================================
+                     Placeholders for now: point each href at the
+                     matching login page once those flows are built.
+                     ============================================================ -->
+                <span class="home-card home-card--disabled" aria-disabled="true">
+                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
+                    <span class="home-card__title">Customer</span>
+                    <span class="home-card__desc">Placeholder</span>
+                    <span class="home-card__cta">Coming soon</span>
+                </span>
+
+                <span class="home-card home-card--disabled" aria-disabled="true">
+                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
+                    <span class="home-card__title">Stall Owner</span>
+                    <span class="home-card__desc">PlaceHolder</span>
+                    <span class="home-card__cta">Coming soon</span>
+                </span>
+
+                <span class="home-card home-card--disabled" aria-disabled="true">
+                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
+                    <span class="home-card__title">Operator</span>
+                    <span class="home-card__desc">Placeholder</span>
+                    <span class="home-card__cta">Coming soon</span>
+                </span>
+
+                <!-- NEA Officer — log in only (accounts are created by an admin) -->
+                <a class="home-card" href="/officer-login.html">
+                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
+                    <span class="home-card__title">NEA Officer</span>
+                    <span class="home-card__desc">
+                        Conduct Hygiene Inspections. Issue and manage stall hygiene grades.
+                    </span>
+                    <span class="home-card__cta">Log in →</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Hawker Centre Management System · Role Selection</p>
+    </footer>
+</body>
+</html>

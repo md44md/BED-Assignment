@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HCMS - NEA Officer Login</title>
+    <link rel="stylesheet" href="/css/common.css" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand__text">
+                <span class="brand__title">Hawker Centre Management System</span>
+                <span class="brand__subtitle">NEA Officer Login</span>
+            </div>
+        </div>
+        <a class="session-btn" href="/select-role.html">← Roles</a>
+    </header>
+
+    <main class="layout layout--narrow">
+        <section class="panel" aria-labelledby="login-heading">
+            <div class="panel__head">
+                <h2 id="login-heading" class="panel__title">NEA Officer - Log In</h2>
+                <p class="panel__lead">
+                    Restricted access for NEA officers. Accounts are created by an
+                    administrator, so there is no sign-up here.
+                </p>
+            </div>
+
+            <form id="login-form" class="form-grid" novalidate>
+                <div class="field field--full">
+                    <label class="field__label" for="login-email">Officer email</label>
+                    <input id="login-email" class="input" type="email" autocomplete="username"
+                           placeholder="officer@email.com" required />
+                </div>
+                <div class="field field--full">
+                    <label class="field__label" for="login-password">Password</label>
+                    <input id="login-password" class="input" type="password" autocomplete="current-password"
+                           placeholder="••••••••" required />
+                </div>
+                <div class="field field--full">
+                    <button type="submit" class="btn btn--primary">Log in</button>
+                </div>
+            </form>
+
+            <p class="hint">Demo officer account: <code>mary@email.com</code> / <code>Mary123!</code></p>
+            <div id="login-message" class="message" role="status" aria-live="polite" hidden></div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Hawker Centre Management System · NEA Officer Role Access</p>
+    </footer>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/officer-login.js"></script>
+</body>
+</html>

@@ -10,13 +10,20 @@
        5. Delete the parts you don't need (e.g. the login block if your
           feature is public and needs no auth).
 
-     Everything uses the shared stylesheet (css/hygiene-grades.css) so all
-     team pages look consistent. Reusable CSS classes you can use:
+     Everything uses the shared stylesheet (css/common.css) so all team pages
+     look consistent. Reusable CSS classes you can use:
        .panel .panel__title .panel__lead
        .form-row .form-grid .field .field__label .input
        .btn .btn--primary .btn--secondary .btn--danger .btn--ghost .btn--sm
+       .home-grid .home-card              (card grids, e.g. menus / pickers)
        .message (.message--success / --error / --info)
        .results .empty .tag .hint
+
+     SHARED JS: instead of the inline helpers below you can add
+       <script src="/js/common.js"></script>
+     before your own script to reuse api(), showMessage(), the session
+     helpers (getToken/saveSession/clearSession) and grade rendering.
+
      NOTE: this is a temporary template — remove it before final submission.
      ============================================================================ -->
 <html lang="en">
@@ -24,25 +31,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- TODO: rename to your feature -->
-    <title>My Feature — Hawker Centre System</title>
-    <link rel="stylesheet" href="/css/hygiene-grades.css" />
+    <title>HCMS - My Feature</title>
+    <link rel="stylesheet" href="/css/common.css" />
 </head>
 <body>
     <header class="site-header">
         <div class="brand">
             <div class="brand__text">
-                <!-- TODO: your feature name + subtitle -->
-                <span class="brand__title">My Feature</span>
-                <span class="brand__subtitle">Singapore Hawker Centre Management System</span>
+                <!-- TODO: keep the system title, change the subtitle to your feature -->
+                <span class="brand__title">Hawker Centre Management System</span>
+                <span class="brand__subtitle">My Feature</span>
             </div>
         </div>
-        <a class="session-btn" href="/">← Home</a>
+        <a class="session-btn" href="/index.html">← Home</a>
     </header>
 
     <main class="layout">
         <section class="panel" aria-labelledby="feature-heading">
             <div class="panel__head">
-                <h2 id="feature-heading" class="panel__title">My feature</h2>
+                <h2 id="feature-heading" class="panel__title">My Feature</h2>
                 <p class="panel__lead">Short description of what this page does.</p>
             </div>
 
@@ -68,7 +75,7 @@
     </main>
 
     <footer class="site-footer">
-        <p>My Feature module · Singapore Hawker Centre Management System</p>
+        <p>Hawker Centre Management System · My Feature</p>
     </footer>
 
     <script>
@@ -77,7 +84,7 @@
         // Small DOM helper
         const $ = (sel) => document.querySelector(sel);
 
-        // ---- Reusable helpers (safe to copy into a separate .js file) --------
+        // ---- Reusable helpers (or delete these and use /js/common.js instead) ----
 
         // If your feature needs officer/customer login, store the JWT after a
         // successful POST /<role>/login and send it with { auth: true } below.

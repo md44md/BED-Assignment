@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HCMS - NEA Officer Console</title>
+    <link rel="stylesheet" href="/css/common.css" />
+    <!-- Keep the page hidden until the auth guard confirms a session, so an
+         unauthenticated visitor never sees a flash of the console. -->
+    <style>body.auth-pending { visibility: hidden; }</style>
+</head>
+<body class="auth-pending">
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand__text">
+                <span class="brand__title">Hawker Centre Management System</span>
+                <span class="brand__subtitle">NEA Officer Console</span>
+            </div>
+        </div>
+        <!-- The whole pill is the log-out button -->
+        <button id="logout-btn" type="button" class="session-btn">
+            <span class="session-btn__dot" aria-hidden="true"></span>
+            <span id="session-email"></span>
+            <span class="session-btn__label">· Log out</span>
+        </button>
+    </header>
+
+    <main class="layout">
+        <section class="panel" aria-labelledby="console-heading">
+            <div class="panel__head">
+                <h2 id="console-heading" class="panel__title">NEA Officer Console</h2>
+                <p class="panel__lead">Log an inspection result, issue a hygiene grade, or correct/revoke existing grades.</p>
+            </div>
+
+            <div class="tabs" role="tablist">
+                <button class="tab is-active" role="tab" data-tab="inspect" aria-selected="true">Log inspection</button>
+                <button class="tab" role="tab" data-tab="issue" aria-selected="false">Issue a grade</button>
+                <button class="tab" role="tab" data-tab="manage" aria-selected="false">Manage grades</button>
+            </div>
+
+            <!-- Log inspection tab -->
+            <div id="inspect-tab" class="tab-panel" role="tabpanel">
+                <form id="inspect-form" class="form-grid" novalidate>
+                    <div class="field">
+                        <label class="field__label" for="inspect-stall">Stall</label>
+                        <select id="inspect-stall" class="input" required></select>
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="inspect-score">Score (0–100)</label>
+                        <input id="inspect-score" class="input" type="number" min="0" max="100" step="1"
+                               placeholder="e.g. 88" required />
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="inspect-date">Inspection date</label>
+                        <input id="inspect-date" class="input" type="date" />
+                        <p class="field__help">Defaults to today if left blank. Cannot be in the future.</p>
+                    </div>
+                    <div class="field field--full">
+                        <label class="field__label" for="inspect-remarks">Remarks</label>
+                        <textarea id="inspect-remarks" class="input" rows="3" maxlength="2000"
+                                  placeholder="Observations from the inspection…" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn--primary">Log inspection</button>
+                </form>
+                <div id="inspect-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="inspect-result" class="results"></div>
+            </div>
+
+            <!-- Issue tab -->
+            <div id="issue-tab" class="tab-panel" role="tabpanel" hidden>
+                <form id="issue-form" class="form-grid" novalidate>
+                    <div class="field">
+                        <label class="field__label" for="issue-stall">Stall</label>
+                        <select id="issue-stall" class="input" required></select>
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="issue-inspection">Inspection ID</label>
+                        <input id="issue-inspection" class="input" type="number" min="1" step="1"
+                               list="completed-inspections" placeholder="e.g. 1" required />
+                        <!-- Populated from inspections logged in this session (see officer-dashboard.js).
+                             Officers can also type an existing inspection ID directly. -->
+                        <datalist id="completed-inspections"></datalist>
+                        <p class="field__help">Must reference a <strong>completed</strong> inspection for the chosen stall. Log it in the <strong>Log inspection</strong> tab to get its ID.</p>
+                    </div>
+                    <div class="field field--full">
+                        <span class="field__label">Grade</span>
+                        <div class="grade-choices" role="radiogroup" aria-label="Grade">
+                            <label class="grade-choice grade--A"><input type="radio" name="grade" value="A" required /><span>A</span></label>
+                            <label class="grade-choice grade--B"><input type="radio" name="grade" value="B" /><span>B</span></label>
+                            <label class="grade-choice grade--C"><input type="radio" name="grade" value="C" /><span>C</span></label>
+                            <label class="grade-choice grade--D"><input type="radio" name="grade" value="D" /><span>D</span></label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn--primary">Issue grade</button>
+                </form>
+                <div id="issue-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="issue-result" class="results"></div>
+            </div>
+
+            <!-- Manage tab -->
+            <div id="manage-tab" class="tab-panel" role="tabpanel" hidden>
+                <form id="manage-form" class="form-row" novalidate>
+                    <div class="field field--grow">
+                        <label class="field__label" for="manage-stall">Stall</label>
+                        <select id="manage-stall" class="input" required></select>
+                    </div>
+                    <button type="submit" class="btn btn--secondary">Load grades</button>
+                </form>
+                <div id="manage-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="manage-results" class="results"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Hawker Centre Management System · NEA Officer Console</p>
+        <p class="site-footer__muted">Grades are issued following on-site inspections.</p>
+    </footer>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/officer-dashboard.js"></script>
+</body>
+</html>
