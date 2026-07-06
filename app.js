@@ -66,6 +66,8 @@ app.delete("/menuitems/:id", verifyJWT, validateMenuItemId, menuItemController.d
 
 // Public: list all stalls (used by the front-end stall picker, no auth)
 app.get("/stalls", stallController.getStalls);
+// Stall owner only: toggle own stall's status (open/busy/closed)
+app.put("/stalls/status", verifyJWT, stallController.updateStallStatus);
 
 // Routes for hygiene grades
 // Public: customers viewing a stall's hygiene grades (no auth)
