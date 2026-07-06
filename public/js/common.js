@@ -15,9 +15,8 @@
 /* ---------- Session (shared by every role) ----------
    One logged-in user per browser. Any role's login page (officer, customer,
    stall owner, operator) calls saveSession() after a successful
-   POST /<role>/login, and every page reads the same token — so these helpers
-   are role-neutral, not officer-specific. Pass the role to saveSession() if a
-   page needs to know who is signed in. */
+   POST /<role>/login, and every page reads the same token. Pass the role to 
+   saveSession() if a page needs to know who is signed in. */
 
 const TOKEN_KEY = "hcms_token";
 const EMAIL_KEY = "hcms_email";
