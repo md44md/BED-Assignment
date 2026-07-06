@@ -1,0 +1,77 @@
+/* ============================================================
+   Menu Management — supplementary stylesheet.
+   Loaded alongside the shared css/hygiene-grades.css; only adds
+   classes that file doesn't already define, so it stays safe to
+   use next to the other team pages.
+   ============================================================ */
+
+/* Category colours, same pattern as the shared --grade-* variables */
+:root {
+    --cat-main: #047857;
+    --cat-drink: #0369a1;
+    --cat-dessert: #be185d;
+    --cat-snack: #b45309;
+    --cat-add-on: #6d28d9;
+}
+
+.category--main { --cc: var(--cat-main); }
+.category--drink { --cc: var(--cat-drink); }
+.category--dessert { --cc: var(--cat-dessert); }
+.category--snack { --cc: var(--cat-snack); }
+.category--add-on { --cc: var(--cat-add-on); }
+
+.category-tag {
+    display: inline-block;
+    font-size: .72rem; font-weight: 700; text-transform: capitalize;
+    letter-spacing: .02em; padding: 3px 9px; border-radius: 999px;
+    background: color-mix(in srgb, var(--cc, var(--text-muted)) 12%, white);
+    color: var(--cc, var(--text-muted));
+    border: 1px solid var(--cc, var(--border));
+}
+
+/* Toolbar above the results grid */
+.menu-toolbar { margin-top: 18px; display: flex; justify-content: flex-end; }
+
+/* ---------- Menu item cards ---------- */
+.item-card {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-left: 6px solid var(--cc, var(--border));
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+}
+.item-card--unavailable { opacity: .68; }
+
+.item-card__body { flex: 1 1 auto; min-width: 0; }
+.item-card__row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.item-card__title { font-weight: 700; font-size: 1.05rem; }
+.item-card__price { font-weight: 700; color: var(--brand-dark); margin-left: auto; }
+.item-card__desc { color: var(--text-muted); font-size: .88rem; margin-top: 6px; }
+.item-card__meta { color: var(--text-muted); font-size: .8rem; margin-top: 6px; }
+.item-card__actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+
+.tag--available { background: var(--success-tint); color: var(--success); border: 1px solid var(--success); }
+.tag--unavailable { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+.tag--low-stock { background: #fffbeb; color: #b45309; border: 1px solid #b45309; }
+
+/* Inline edit form inside a card */
+.item-edit-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 4px;
+}
+.item-edit-form .field--full { grid-column: 1 / -1; }
+.item-edit-form .checkbox-field {
+    display: flex; align-items: center; gap: 8px;
+    font-size: .88rem; color: var(--text);
+}
+.item-edit-form .checkbox-field input { width: 16px; height: 16px; }
+.item-edit-form__actions { grid-column: 1 / -1; display: flex; gap: 8px; }
+
+@media (max-width: 560px) {
+    .item-edit-form { grid-template-columns: 1fr; }
+    .item-card { flex-direction: column; }
+    .item-card__price { margin-left: 0; }
+}
