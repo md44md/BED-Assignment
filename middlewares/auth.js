@@ -29,6 +29,9 @@ function verifyJWT(req, res, next) {
             // NEA officer inspection routes
             "POST /inspections": ["neaOfficer"],
 
+            // Customer cart routes
+            "POST /cart/items": ["customer"],
+
             // Customer order routes
             "POST /orders": ["customer"],
 

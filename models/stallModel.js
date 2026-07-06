@@ -31,6 +31,35 @@ async function getAllStalls() {
     }
 }
 
+// Check if a stall exists, return its basic info (used for public menu browsing)
+async function getStallById(stallID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = "SELECT stallID, stallName, description, status FROM Stall WHERE stallID = @stallID";
+        const request = connection.request();
+        request.input("stallID", sql.Int, stallID);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset[0];
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 // Get stall belonging to a stall owner
 async function getStallByOwnerID(stallOwnerID) {
     let connection;
@@ -89,6 +118,7 @@ async function updateStallStatus(stallID, status) {
 
 module.exports = {
     getAllStalls,
+    getStallById,
     getStallByOwnerID,
     updateStallStatus,
 };
