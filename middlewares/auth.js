@@ -23,6 +23,9 @@ function verifyJWT(req, res, next) {
             "DELETE /menuitems/[0-9]+": ["stallOwner"],
             "GET /menuitems": ["stallOwner"],
 
+            // Stall owner status toggle route
+            "PUT /stalls/status": ["stallOwner"],
+
             // NEA officer inspection routes
             "POST /inspections": ["neaOfficer"],
 
