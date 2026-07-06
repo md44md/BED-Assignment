@@ -32,6 +32,11 @@ function verifyJWT(req, res, next) {
             // Customer feedback routes
             "POST /feedback": ["customer"],
             "POST /feedback/edit": ["customer"],
+
+            // NEA officer hygiene grade routes
+            "POST /hygiene-grades": ["neaOfficer"],
+            "PUT /hygiene-grades/[0-9]+": ["neaOfficer"],
+            "DELETE /hygiene-grades/[0-9]+": ["neaOfficer"],
         };
 
         const requestedEndpoint = `${req.method} ${req.url}`;

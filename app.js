@@ -16,6 +16,9 @@ const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection } = require("./middlewares/inspectionValidation");
 const orderController = require("./controllers/orderController");
 const { validateSubmitOrder } = require("./middlewares/orderValidation");
+const hygieneGradeController = require("./controllers/hygieneGradeController");
+const { validateIssueGrade, validateUpdateGrade } = require("./middlewares/hygieneGradeValidation");
+const stallController = require("./controllers/stallController");
 const feedbackController = require("./controllers/feedbackController");
 const { validateSubmitFeedback, validateEditFeedback } = require("./middlewares/feedbackValidation");
 const menuItemController = require("./controllers/menuItemController");
@@ -60,6 +63,17 @@ app.get("/menuitems", verifyJWT, menuItemController.getMenuItems);
 app.post("/menuitems", verifyJWT, validateMenuItem, menuItemController.createMenuItem);
 app.put("/menuitems/:id", verifyJWT, validateMenuItemId, validateMenuItem, menuItemController.updateMenuItem);
 app.delete("/menuitems/:id", verifyJWT, validateMenuItemId, menuItemController.deleteMenuItem);
+
+// Public: list all stalls (used by the front-end stall picker, no auth)
+app.get("/stalls", stallController.getStalls);
+
+// Routes for hygiene grades
+// Public: customers viewing a stall's hygiene grades (no auth)
+app.get("/stalls/:stallID/hygiene-grades", hygieneGradeController.getStallGrades);
+// Officer only: issue, update and revoke grades
+app.post("/hygiene-grades", verifyJWT, validateIssueGrade, hygieneGradeController.issueGrade);
+app.put("/hygiene-grades/:gradeID", verifyJWT, validateUpdateGrade, hygieneGradeController.updateGrade);
+app.delete("/hygiene-grades/:gradeID", verifyJWT, hygieneGradeController.deleteGrade);
 
 // Start server
 app.listen(port, () => {

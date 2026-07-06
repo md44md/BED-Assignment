@@ -1,0 +1,328 @@
+/* ============================================================
+   NEA Hygiene Grades — stylesheet
+   Palette is NEA-inspired (emerald green). Light & dark aware.
+   ============================================================ */
+
+:root {
+    --brand: #047857;
+    --brand-dark: #065f46;
+    --brand-tint: #ecfdf5;
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --danger: #dc2626;
+    --danger-tint: #fef2f2;
+    --success: #15803d;
+    --success-tint: #f0fdf4;
+    --radius: 14px;
+    --radius-sm: 9px;
+    --shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 8px 24px rgba(15, 23, 42, .06);
+
+    /* Grade colours (used for badges, dots and choices) */
+    --grade-A: #15803d;
+    --grade-B: #4d7c0f;
+    --grade-C: #b45309;
+    --grade-D: #b91c1c;
+
+    /* Always render in light mode, including native form controls */
+    color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
+
+/* Blurred photo background. A light wash keeps text over it readable; the
+   scale(1.06) hides the soft blurred edges. Falls back to --bg if it can't load. */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+        linear-gradient(rgba(244, 246, 248, .72), rgba(244, 246, 248, .72)),
+        url("/images/hawker-centre-bg.jpg")
+        center / cover no-repeat;
+    filter: blur(7px);
+    transform: scale(1.06);
+}
+
+/* ---------- Header ---------- */
+.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 18px 24px;
+    background: linear-gradient(120deg, var(--brand-dark), var(--brand));
+    color: #fff;
+    box-shadow: var(--shadow);
+}
+
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand__text { display: flex; flex-direction: column; }
+.brand__title { font-size: 1.25rem; font-weight: 700; letter-spacing: -.01em; }
+.brand__subtitle { font-size: .8rem; opacity: .85; }
+
+/* The session indicator is a single button — click anywhere on it to log out.
+   Also reused as the "Back to app" link on the credit page. */
+.session-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font: inherit; font-weight: 600; font-size: .85rem;
+    color: #fff; cursor: pointer; text-decoration: none;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, .55);
+    border-radius: 999px;
+    padding: 8px 16px;
+    transition: background .15s;
+}
+.session-btn:hover { background: rgba(255, 255, 255, .16); }
+.session-btn:active { transform: translateY(1px); }
+.session-btn__dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #4ade80; box-shadow: 0 0 0 3px rgba(74, 222, 128, .3);
+}
+.session-btn__label { opacity: .85; }
+
+/* ---------- Layout ---------- */
+.layout {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 20px 48px;
+    display: grid;
+    gap: 24px;
+}
+
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 26px;
+}
+.panel__head { margin-bottom: 20px; }
+.panel__title { margin: 0 0 6px; font-size: 1.3rem; letter-spacing: -.02em; }
+.panel__lead { margin: 0; color: var(--text-muted); font-size: .95rem; }
+
+/* ---------- Forms ---------- */
+.form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: end;
+}
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field--grow { flex: 1 1 220px; }
+.field--full { grid-column: 1 / -1; }
+.field__label { font-size: .82rem; font-weight: 600; color: var(--text-muted); }
+.field__help { margin: 2px 0 0; font-size: .78rem; color: var(--text-muted); }
+
+.input {
+    width: 100%;
+    padding: 10px 12px;
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: border-color .15s, box-shadow .15s;
+}
+.input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-tint);
+}
+
+/* Grade radio choices */
+.grade-choices { display: flex; gap: 10px; flex-wrap: wrap; }
+.grade-choice {
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    width: 54px; height: 54px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 1.4rem; font-weight: 800;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all .15s;
+    user-select: none;
+}
+.grade-choice input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.grade-choice:hover { border-color: var(--text-muted); }
+.grade-choice.grade--A:has(input:checked) { border-color: var(--grade-A); color: #fff; background: var(--grade-A); }
+.grade-choice.grade--B:has(input:checked) { border-color: var(--grade-B); color: #fff; background: var(--grade-B); }
+.grade-choice.grade--C:has(input:checked) { border-color: var(--grade-C); color: #fff; background: var(--grade-C); }
+.grade-choice.grade--D:has(input:checked) { border-color: var(--grade-D); color: #fff; background: var(--grade-D); }
+.grade-choice:has(input:focus-visible) { box-shadow: 0 0 0 3px var(--brand-tint); }
+
+/* ---------- Buttons ---------- */
+.btn {
+    font: inherit; font-weight: 600;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform .05s, background .15s, opacity .15s;
+    white-space: nowrap;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn--primary { background: var(--brand); color: #fff; }
+.btn--primary:hover:not(:disabled) { background: var(--brand-dark); }
+.btn--secondary { background: var(--brand-tint); color: var(--brand-dark); border-color: var(--brand); }
+.btn--secondary:hover:not(:disabled) { background: #d1fae5; }
+.btn--ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.5); }
+.btn--ghost:hover { background: rgba(255,255,255,.15); }
+.btn--danger { background: var(--danger); color: #fff; }
+.btn--danger:hover:not(:disabled) { background: #b91c1c; }
+.btn--sm { padding: 5px 12px; font-size: .82rem; }
+
+/* ---------- Legend ---------- */
+.legend {
+    display: flex; flex-wrap: wrap; gap: 8px 18px;
+    list-style: none; margin: 18px 0 0; padding: 14px 0 0;
+    border-top: 1px dashed var(--border);
+    font-size: .82rem; color: var(--text-muted);
+}
+.legend li { display: flex; align-items: center; gap: 7px; }
+.grade-dot {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 6px;
+    color: #fff; font-weight: 800; font-size: .8rem;
+}
+
+/* ---------- Grade colours (shared) ---------- */
+.grade--A { --gc: var(--grade-A); }
+.grade--B { --gc: var(--grade-B); }
+.grade--C { --gc: var(--grade-C); }
+.grade--D { --gc: var(--grade-D); }
+.grade-dot.grade--A { background: var(--grade-A); }
+.grade-dot.grade--B { background: var(--grade-B); }
+.grade-dot.grade--C { background: var(--grade-C); }
+.grade-dot.grade--D { background: var(--grade-D); }
+
+/* ---------- Messages ---------- */
+.message {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    font-size: .9rem;
+    border: 1px solid transparent;
+}
+.message--error { background: var(--danger-tint); color: var(--danger); border-color: var(--danger); }
+.message--success { background: var(--success-tint); color: var(--success); border-color: var(--success); }
+.message--info { background: var(--brand-tint); color: var(--brand-dark); border-color: var(--brand); }
+
+/* ---------- Results / grade cards ---------- */
+.results { margin-top: 18px; display: grid; gap: 14px; }
+
+.grade-card {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-left: 6px solid var(--gc, var(--border));
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+}
+.grade-card--current { box-shadow: 0 0 0 2px var(--gc); }
+
+.grade-badge {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+    width: 64px; height: 64px;
+    border-radius: 12px;
+    background: var(--gc, var(--text-muted));
+    color: #fff; font-size: 2rem; font-weight: 800;
+}
+.grade-card__body { flex: 1 1 auto; min-width: 0; }
+.grade-card__row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.grade-card__title { font-weight: 700; font-size: 1.05rem; }
+.grade-card__meta { color: var(--text-muted); font-size: .85rem; margin-top: 4px; }
+.grade-card__actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.grade-card__actions .input { width: auto; padding: 6px 10px; }
+
+.tag {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .04em; padding: 3px 8px; border-radius: 999px;
+}
+.tag--current { background: var(--success-tint); color: var(--success); border: 1px solid var(--success); }
+.tag--historical { background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); }
+.tag--expired { background: var(--danger-tint); color: var(--danger); border: 1px solid var(--danger); }
+
+.empty {
+    padding: 22px; text-align: center; color: var(--text-muted);
+    border: 1px dashed var(--border); border-radius: var(--radius-sm); font-size: .92rem;
+}
+
+/* ---------- Tabs ---------- */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab {
+    font: inherit; font-weight: 600;
+    background: none; border: none; cursor: pointer;
+    padding: 10px 16px; color: var(--text-muted);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tab.is-active { color: var(--brand); border-bottom-color: var(--brand); }
+
+/* ---------- Hints / footer ---------- */
+.hint { margin: 12px 0 0; font-size: .82rem; color: var(--text-muted); }
+.hint code {
+    background: var(--bg); padding: 2px 6px; border-radius: 5px;
+    border: 1px solid var(--border); font-size: .82em;
+}
+
+/* ---------- Credit page ---------- */
+.credit-subheading {
+    margin: 8px 0 12px; font-size: 1rem; color: var(--brand-dark);
+    text-transform: uppercase; letter-spacing: .05em;
+}
+.reference-list { list-style: none; margin: 0; padding: 0; }
+.reference {
+    /* APA hanging indent: first line flush, wrapped lines indented */
+    padding-left: 2.5em; text-indent: -2.5em;
+    margin-bottom: 12px; font-size: .95rem; line-height: 1.6;
+}
+.reference a { color: var(--brand); word-break: break-all; }
+.credit-figure { margin: 0 0 18px; }
+.credit-figure img {
+    display: block; width: 100%; max-height: 240px; object-fit: cover;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+}
+.credit-figure figcaption { margin-top: 8px; }
+
+.site-footer {
+    max-width: 620px;
+    margin: 8px auto 40px;
+    padding: 16px 26px;
+    text-align: center;
+    font-size: .82rem;
+    color: var(--text-muted);
+    /* Frosted panel so the text stays readable over the photo background */
+    background: rgba(255, 255, 255, .78);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+.site-footer p { margin: 2px 0; }
+.site-footer__muted { opacity: .85; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 560px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-row { align-items: stretch; }
+    .form-row .btn { width: 100%; }
+}
