@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HCMS - Stall Owner Dashboard</title>
+    <link rel="stylesheet" href="/css/common.css" />
+    <!-- Keep the page hidden until the auth guard confirms a session, so an
+         unauthenticated visitor never sees a flash of the dashboard. -->
+    <style>body.auth-pending { visibility: hidden; }</style>
+</head>
+<body class="auth-pending">
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand__text">
+                <span class="brand__title">Hawker Centre Management System</span>
+                <span class="brand__subtitle">Stall Owner Dashboard</span>
+            </div>
+        </div>
+        <!-- The whole pill is the log-out button -->
+        <button id="logout-btn" type="button" class="session-btn">
+            <span class="session-btn__dot" aria-hidden="true"></span>
+            <span id="session-email"></span>
+            <span class="session-btn__label">· Log out</span>
+        </button>
+    </header>
+
+    <main class="layout">
+        <section class="panel" aria-labelledby="dashboard-heading">
+            <div class="panel__head">
+                <h2 id="dashboard-heading" class="panel__title">Welcome back</h2>
+                <p class="panel__lead">Manage your stall from here.</p>
+            </div>
+
+            <!-- Add more cards here as the remaining features are built. -->
+            <div class="home-grid">
+                <a class="home-card" href="/stallowner-items.html">
+                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
+                    <span class="home-card__title">Menu Items</span>
+                    <span class="home-card__desc">
+                        Add, edit, and remove your stall's menu items.
+                    </span>
+                    <span class="home-card__cta">Open →</span>
+                </a>
+
+                <span class="home-card home-card--disabled" aria-disabled="true">
+                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
+                    <span class="home-card__title">Rental Agreements</span>
+                    <span class="home-card__desc">View your active and past rental agreements.</span>
+                    <span class="home-card__cta">Coming soon</span>
+                </span>
+
+                <span class="home-card home-card--disabled" aria-disabled="true">
+                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
+                    <span class="home-card__title">Complaints</span>
+                    <span class="home-card__desc">View and respond to customer complaints.</span>
+                    <span class="home-card__cta">Coming soon</span>
+                </span>
+
+                <span class="home-card home-card--disabled" aria-disabled="true">
+                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
+                    <span class="home-card__title">Sales Analytics</span>
+                    <span class="home-card__desc">Track your stall's sales performance over time.</span>
+                    <span class="home-card__cta">Coming soon</span>
+                </span>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Hawker Centre Management System · Stall Owner Dashboard</p>
+    </footer>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/stallowner-dashboard.js"></script>
+</body>
+</html>
