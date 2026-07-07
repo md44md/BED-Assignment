@@ -74,6 +74,15 @@ body::before {
 .brand__title { font-size: 1.25rem; font-weight: 700; letter-spacing: -.01em; }
 .brand__subtitle { font-size: .8rem; opacity: .85; }
 
+.back-link {
+    display: inline-flex; align-items: center;
+    font-size: .85rem; font-weight: 600;
+    color: #fff; text-decoration: none;
+    opacity: .85;
+    transition: opacity .15s;
+}
+.back-link:hover { opacity: 1; }
+
 /* The session indicator is a single button - click anywhere on it to log out.
    Also reused as the "Back to app" link on the credit page. */
 .session-btn {
@@ -430,9 +439,91 @@ a.home-card:active { transform: translateY(1px); }
 }
 .home-card--disabled .home-card__cta { color: var(--text-muted); }
 
+/* ---------- Menu toolbar (stallowner-items) ---------- */
+.menu-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* ---------- Menu item cards (stallowner-items) ---------- */
+.item-card {
+    display: flex;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    transition: border-color .15s, box-shadow .15s;
+}
+.item-card--unavailable {
+    opacity: .65;
+    background: var(--bg);
+}
+.item-card__body { flex: 1 1 auto; min-width: 0; }
+.item-card__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+.item-card__title { font-weight: 700; font-size: 1.05rem; }
+.item-card__desc { color: var(--text-muted); font-size: .9rem; margin-top: 4px; }
+.item-card__meta { color: var(--text-muted); font-size: .8rem; margin-top: 4px; }
+.item-card__price { font-weight: 700; color: var(--brand-dark); margin-left: auto; font-size: 1rem; }
+.item-card__actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+/* ---------- Inline edit form (stallowner-items) ---------- */
+.item-edit-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+    align-items: start;
+}
+.item-edit-form__actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 8px;
+}
+
+/* Checkbox + label field used inside the edit form */
+.checkbox-field {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+.checkbox-field input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+
+/* ---------- Category tag chips (stallowner-items) ---------- */
+.category-tag {
+    font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .04em; padding: 3px 8px; border-radius: 999px;
+    background: var(--bg); color: var(--text-muted); border: 1px solid var(--border);
+}
+/* Per-category accent colours */
+.category-tag.category--main      { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.category-tag.category--drink     { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+.category-tag.category--dessert   { background: #fdf4ff; color: #7e22ce; border-color: #e9d5ff; }
+.category-tag.category--snack     { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+.category-tag.category--add-on    { background: #fefce8; color: #854d0e; border-color: #fef08a; }
+
+/* ---------- Availability / stock tags (stallowner-items) ---------- */
+.tag--available   { background: var(--success-tint); color: var(--success); border: 1px solid var(--success); }
+.tag--unavailable { background: var(--danger-tint);  color: var(--danger);  border: 1px solid var(--danger); }
+.tag--low-stock   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 560px) {
     .form-grid { grid-template-columns: 1fr; }
     .form-row { align-items: stretch; }
     .form-row .btn { width: 100%; }
+    .item-edit-form { grid-template-columns: 1fr; }
 }
