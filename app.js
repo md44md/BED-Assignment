@@ -23,6 +23,7 @@ const feedbackController = require("./controllers/feedbackController");
 const { validateSubmitFeedback, validateEditFeedback } = require("./middlewares/feedbackValidation");
 const menuItemController = require("./controllers/menuItemController");
 const { validateMenuItem, validateMenuItemId } = require("./middlewares/menuItemValidation")
+const rentalAgreementController = require("./controllers/rentalAgreementController");
 const { verifyJWT } = require("./middlewares/auth");
 
 // Initialize Express app
@@ -63,6 +64,9 @@ app.get("/menuitems", verifyJWT, menuItemController.getMenuItems);
 app.post("/menuitems", verifyJWT, validateMenuItem, menuItemController.createMenuItem);
 app.put("/menuitems/:id", verifyJWT, validateMenuItemId, validateMenuItem, menuItemController.updateMenuItem);
 app.delete("/menuitems/:id", verifyJWT, validateMenuItemId, menuItemController.deleteMenuItem);
+
+// Route for viewing rental agreements
+app.get("/rental-agreements", verifyJWT, rentalAgreementController.getRentalAgreements);
 
 // Public: list all stalls (used by the front-end stall picker, no auth)
 app.get("/stalls", stallController.getStalls);
