@@ -14,6 +14,8 @@ const officerController = require("./controllers/officerController");
 const { validateLogin: validateOfficerLogin } = require("./middlewares/officerValidation");
 const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection } = require("./middlewares/inspectionValidation");
+const cartController = require("./controllers/cartController");
+const { validateAddItem } = require("./middlewares/cartValidation");
 const orderController = require("./controllers/orderController");
 const { validateSubmitOrder } = require("./middlewares/orderValidation");
 const hygieneGradeController = require("./controllers/hygieneGradeController");
@@ -51,6 +53,9 @@ app.post("/officers/logout", officerController.logout);
 // Routes for officer inspections
 app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.logInspection);
 
+// Routes for customer cart
+app.post("/cart/items", verifyJWT, validateAddItem, cartController.addItemToCart);
+
 // Routes for orders
 app.post("/orders", verifyJWT, validateSubmitOrder, orderController.submitOrder);
 
@@ -66,6 +71,8 @@ app.delete("/menuitems/:id", verifyJWT, validateMenuItemId, menuItemController.d
 
 // Public: list all stalls (used by the front-end stall picker, no auth)
 app.get("/stalls", stallController.getStalls);
+// Public: browse a stall's menu (no auth)
+app.get("/stalls/:stallID/menu", stallController.getStallMenu);
 // Stall owner only: toggle own stall's status (open/busy/closed)
 app.put("/stalls/status", verifyJWT, stallController.updateStallStatus);
 

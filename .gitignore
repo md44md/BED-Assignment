@@ -1,3 +1,7 @@
+# Postman local workspace files
+.postman/
+postman/
+
 # Logs
 logs
 *.log
