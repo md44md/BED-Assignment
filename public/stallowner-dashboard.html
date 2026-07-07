@@ -28,41 +28,81 @@
     <main class="layout">
         <section class="panel" aria-labelledby="dashboard-heading">
             <div class="panel__head">
-                <h2 id="dashboard-heading" class="panel__title">Welcome back</h2>
-                <p class="panel__lead">Manage your stall from here.</p>
+                <h2 id="dashboard-heading" class="panel__title">Stall Owner Dashboard</h2>
+                <p class="panel__lead">Manage your stall's menu, view rental agreements, respond to complaints, and track sales.</p>
             </div>
 
-            <!-- Add more cards here as the remaining features are built. -->
-            <div class="home-grid">
-                <a class="home-card" href="/menu-items.html">
-                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
-                    <span class="home-card__title">Menu Items</span>
-                    <span class="home-card__desc">
-                        Add, edit, and remove your stall's menu items.
-                    </span>
-                    <span class="home-card__cta">Open →</span>
-                </a>
+            <div class="tabs" role="tablist">
+                <button class="tab is-active" role="tab" data-tab="menu" aria-selected="true">Menu Items</button>
+                <button class="tab" role="tab" data-tab="rentals" aria-selected="false">Rental Agreements</button>
+                <button class="tab" role="tab" data-tab="complaints" aria-selected="false">Complaints</button>
+                <button class="tab" role="tab" data-tab="analytics" aria-selected="false">Sales Analytics</button>
+            </div>
 
-                <span class="home-card home-card--disabled" aria-disabled="true">
-                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
-                    <span class="home-card__title">Rental Agreements</span>
-                    <span class="home-card__desc">View your active and past rental agreements.</span>
-                    <span class="home-card__cta">Coming soon</span>
-                </span>
+            <!-- Menu Items tab -->
+            <div id="menu-tab" class="tab-panel" role="tabpanel">
+                <!-- Add item form -->
+                <form id="add-form" class="form-grid" novalidate>
+                    <div class="field">
+                        <label class="field__label" for="add-name">Item name</label>
+                        <input id="add-name" class="input" type="text" maxlength="255" required />
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="add-price">Price ($)</label>
+                        <input id="add-price" class="input" type="number" min="0.01" step="0.01" required />
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="add-category">Category</label>
+                        <select id="add-category" class="input" required>
+                            <option value="main">Main</option>
+                            <option value="drink">Drink</option>
+                            <option value="dessert">Dessert</option>
+                            <option value="snack">Snack</option>
+                            <option value="add-on">Add-on</option>
+                        </select>
+                    </div>
+                    <div class="field field--full">
+                        <label class="field__label" for="add-description">Description (optional)</label>
+                        <input id="add-description" class="input" type="text" maxlength="1000" />
+                    </div>
+                    <button type="submit" class="btn btn--primary">Add item</button>
+                </form>
 
-                <span class="home-card home-card--disabled" aria-disabled="true">
-                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
-                    <span class="home-card__title">Complaints</span>
-                    <span class="home-card__desc">View and respond to customer complaints.</span>
-                    <span class="home-card__cta">Coming soon</span>
-                </span>
+                <div id="add-message" class="message" role="status" aria-live="polite" hidden></div>
 
-                <span class="home-card home-card--disabled" aria-disabled="true">
-                    <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
-                    <span class="home-card__title">Sales Analytics</span>
-                    <span class="home-card__desc">Track your stall's sales performance over time.</span>
-                    <span class="home-card__cta">Coming soon</span>
-                </span>
+                <div class="menu-toolbar">
+                    <button id="refresh-btn" type="button" class="btn btn--secondary btn--sm">Refresh list</button>
+                </div>
+
+                <div id="menu-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="menu-results" class="results"></div>
+            </div>
+
+            <!-- Rental Agreements tab -->
+            <div id="rentals-tab" class="tab-panel" role="tabpanel" hidden>
+                <div class="empty">
+                    <p><strong>Rental Agreements</strong></p>
+                    <p>View your active and past rental agreements.</p>
+                    <p class="field__help">This feature is coming soon.</p>
+                </div>
+            </div>
+
+            <!-- Complaints tab -->
+            <div id="complaints-tab" class="tab-panel" role="tabpanel" hidden>
+                <div class="empty">
+                    <p><strong>Complaints</strong></p>
+                    <p>View and respond to customer complaints.</p>
+                    <p class="field__help">This feature is coming soon.</p>
+                </div>
+            </div>
+
+            <!-- Sales Analytics tab -->
+            <div id="analytics-tab" class="tab-panel" role="tabpanel" hidden>
+                <div class="empty">
+                    <p><strong>Sales Analytics</strong></p>
+                    <p>Track your stall's sales performance over time.</p>
+                    <p class="field__help">This feature is coming soon.</p>
+                </div>
             </div>
         </section>
     </main>
