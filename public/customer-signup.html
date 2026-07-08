@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HCMS - Customer Sign Up</title>
+    <link rel="stylesheet" href="/css/common.css" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand__text">
+                <span class="brand__title">Hawker Centre Management System</span>
+                <span class="brand__subtitle">Customer Sign Up</span>
+            </div>
+        </div>
+        <a class="session-btn" href="/select-role.html">← Roles</a>
+    </header>
+
+    <main class="layout layout--narrow">
+        <section class="panel" aria-labelledby="signup-heading">
+            <div class="panel__head">
+                <h2 id="signup-heading" class="panel__title">Customer - Sign Up</h2>
+                <p class="panel__lead">
+                    Create an account to browse stalls, order food, and leave feedback.
+                </p>
+            </div>
+
+            <form id="signup-form" class="form-grid" novalidate>
+                <div class="field field--full">
+                    <label class="field__label" for="signup-email">Email</label>
+                    <input id="signup-email" class="input" type="email" autocomplete="username"
+                           placeholder="customer@email.com" required />
+                </div>
+                <div class="field">
+                    <label class="field__label" for="signup-firstname">First name</label>
+                    <input id="signup-firstname" class="input" type="text" autocomplete="given-name"
+                           placeholder="Alice" required />
+                </div>
+                <div class="field">
+                    <label class="field__label" for="signup-lastname">Last name</label>
+                    <input id="signup-lastname" class="input" type="text" autocomplete="family-name"
+                           placeholder="Tan" required />
+                </div>
+                <div class="field field--full">
+                    <label class="field__label" for="signup-phone">Phone (optional)</label>
+                    <input id="signup-phone" class="input" type="tel" autocomplete="tel"
+                           placeholder="81234567" />
+                </div>
+                <div class="field field--full">
+                    <label class="field__label" for="signup-password">Password</label>
+                    <input id="signup-password" class="input" type="password" autocomplete="new-password"
+                           placeholder="••••••••" required />
+                    <p class="field__help">At least 8 characters.</p>
+                </div>
+                <div class="field field--full">
+                    <label class="field__label" for="signup-confirm-password">Confirm password</label>
+                    <input id="signup-confirm-password" class="input" type="password" autocomplete="new-password"
+                           placeholder="••••••••" required />
+                </div>
+                <div class="field field--full">
+                    <button type="submit" class="btn btn--primary">Sign up</button>
+                </div>
+            </form>
+
+            <p class="hint">Already have an account? <a href="/customer-login.html">Log in here</a>.</p>
+            <div id="signup-message" class="message" role="status" aria-live="polite" hidden></div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Hawker Centre Management System · Customer Role Access</p>
+    </footer>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/customer-signup.js"></script>
+</body>
+</html>
