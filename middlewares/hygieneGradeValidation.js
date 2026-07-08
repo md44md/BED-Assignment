@@ -32,21 +32,25 @@ const updateGradeSchema = Joi.object({
 
 // Middleware: validate issue-grade request body
 function validateIssueGrade(req, res, next) {
-    const { error } = issueGradeSchema.validate(req.body, { abortEarly: false });
+    const { error, value } = issueGradeSchema.validate(req.body, { abortEarly: false });
     if (error) {
         const errorMessage = error.details.map((detail) => detail.message).join(", ");
         return res.status(400).json({ error: errorMessage });
     }
+    // Apply Joi's normalised values (e.g. grade uppercased to A/B/C/D)
+    req.body = value;
     next();
 }
 
 // Middleware: validate update-grade request body
 function validateUpdateGrade(req, res, next) {
-    const { error } = updateGradeSchema.validate(req.body, { abortEarly: false });
+    const { error, value } = updateGradeSchema.validate(req.body, { abortEarly: false });
     if (error) {
         const errorMessage = error.details.map((detail) => detail.message).join(", ");
         return res.status(400).json({ error: errorMessage });
     }
+    // Apply Joi's normalised values (e.g. grade uppercased to A/B/C/D)
+    req.body = value;
     next();
 }
 
