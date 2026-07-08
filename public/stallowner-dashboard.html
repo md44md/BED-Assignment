@@ -17,7 +17,6 @@
                 <span class="brand__subtitle">Stall Owner Dashboard</span>
             </div>
         </div>
-        <!-- The whole pill is the log-out button -->
         <button id="logout-btn" type="button" class="session-btn">
             <span class="session-btn__dot" aria-hidden="true"></span>
             <span id="session-email"></span>
@@ -80,11 +79,14 @@
 
             <!-- Rental Agreements tab -->
             <div id="rentals-tab" class="tab-panel" role="tabpanel" hidden>
-                <div class="empty">
-                    <p><strong>Rental Agreements</strong></p>
-                    <p>View your active and past rental agreements.</p>
-                    <p class="field__help">This feature is coming soon.</p>
+                <p class="panel__lead">Your active lease for each stall you own, so you can plan ahead and avoid a lapse.</p>
+
+                <div class="form-row">
+                    <button id="rentals-refresh-btn" type="button" class="btn btn--secondary btn--sm">Refresh</button>
                 </div>
+
+                <div id="rentals-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="rentals-results" class="results"></div>
             </div>
 
             <!-- Complaints tab -->

@@ -47,16 +47,20 @@ function handleTabClick(event) {
     $("#complaints-tab").hidden = target !== "complaints";
     $("#analytics-tab").hidden = target !== "analytics";
     if (target === "menu") loadMenuItems();
+    if (target === "rentals") loadRentalAgreements();
 }
 
 /* ---------- Small helpers specific to menu items ---------- */
 
-function formatPrice(price) {
-    return `$${Number(price).toFixed(2)}`;
-}
-
 function isTruthy(flag) {
     return flag === true || flag === 1;
+}
+
+// Days between today and a date string (positive = still in the future).
+function daysUntil(dateStr) {
+    const target = new Date(dateStr);
+    const today = new Date(new Date().toDateString());
+    return Math.round((target - today) / (1000 * 60 * 60 * 24));
 }
 
 /* ---------- Menu item rendering ---------- */
@@ -80,7 +84,7 @@ function renderItemCard(item) {
                 <span class="category-tag category--${item.category}">${item.category}</span>
                 ${availTag}
                 ${lowStockTag}
-                <span class="item-card__price">${formatPrice(item.price)}</span>
+                <span class="item-card__price">${formatCurrency(item.price)}</span>
             </div>
             <div class="item-card__title">${item.name}</div>
             ${item.description ? `<div class="item-card__desc">${item.description}</div>` : ""}
@@ -151,7 +155,7 @@ async function handleAdd(event) {
     }
 }
 
-/* ---------- Edit / delete / toggle-availability (delegated) ---------- */
+/* ---------- Edit / delete / toggle-availability ---------- */
 
 function showEditForm(card, item) {
     const body = card.querySelector(".item-card__body");
@@ -306,6 +310,60 @@ async function handleResultsClick(event) {
     }
 }
 
+/* ---------- Rental Agreements ---------- */
+const EXPIRY_WARNING_DAYS = 30; // flag leases ending within this many days
+
+// Build one rental agreement card reusing item card styles
+function renderRentalCard(agreement) {
+    const daysLeft = daysUntil(agreement.endDate);
+    const expiringSoon = daysLeft >= 0 && daysLeft <= EXPIRY_WARNING_DAYS;
+
+    let tag;
+    if (daysLeft < 0) tag = '<span class="tag tag--expired">Overdue for renewal</span>';
+    else if (expiringSoon) tag = `<span class="tag tag--expired">Expiring in ${daysLeft}d</span>`;
+    else tag = '<span class="tag tag--current">Active</span>';
+
+    const card = document.createElement("article");
+    card.className = "item-card";
+    card.innerHTML = `
+        <div class="item-card__body">
+            <div class="item-card__row">
+                <span class="item-card__title">${agreement.stallName} (${agreement.unitNumber})</span>
+                ${tag}
+            </div>
+            <div class="item-card__meta">${agreement.centreName} · ${agreement.centreAddress}</div>
+            <div class="item-card__meta">
+                Lease: ${formatDate(agreement.startDate)} – ${formatDate(agreement.endDate)} · ${formatCurrency(agreement.monthlyRent)}/month
+            </div>
+            <div class="item-card__meta">Agreement ID ${agreement.agreementID}</div>
+        </div>
+    `;
+    return card;
+}
+
+function renderRentalList(container, agreements) {
+    container.innerHTML = "";
+    if (!agreements || agreements.length === 0) {
+        container.innerHTML = `<div class="empty">No active rental agreement on file yet. Contact your hawker centre operator if this looks wrong.</div>`;
+        return;
+    }
+    for (const agreement of agreements) {
+        container.appendChild(renderRentalCard(agreement));
+    }
+}
+
+async function loadRentalAgreements() {
+    const msg = $("#rentals-message");
+    const results = $("#rentals-results");
+    clearMessage(msg);
+    try {
+        const data = await api("/rental-agreements", { auth: true });
+        renderRentalList(results, data.rentalAgreements);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
 /* ---------- Init ---------- */
 
 function init() {
@@ -329,6 +387,7 @@ function init() {
     $("#add-form").addEventListener("submit", handleAdd);
     $("#refresh-btn").addEventListener("click", loadMenuItems);
     $("#menu-results").addEventListener("click", handleResultsClick);
+    $("#rentals-refresh-btn").addEventListener("click", loadRentalAgreements);
     
     $("#logout-btn").addEventListener("click", handleLogout);
 

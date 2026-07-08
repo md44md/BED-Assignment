@@ -58,6 +58,10 @@ function formatDate(value) {
     return d.toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function formatCurrency(value) {
+    return `$${Number(value).toFixed(2)}`;
+}
+
 function isExpired(expiryDate) {
     const d = new Date(expiryDate);
     return !isNaN(d) && d < new Date(new Date().toDateString());
