@@ -62,6 +62,19 @@ async function submitOrder(req, res) {
     }
 }
 
+// GET /orders
+async function getMyOrders(req, res) {
+    try {
+        // req.user.customerID is set by verifyJWT from the logged-in customer's token
+        const orders = await orderModel.getOrdersByCustomer(req.user.customerID);
+        res.json(orders);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving orders." });
+    }
+}
+
 module.exports = {
     submitOrder,
+    getMyOrders,
 };
