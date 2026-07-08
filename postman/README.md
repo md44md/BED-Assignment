@@ -5,13 +5,18 @@ Screenshots demonstrating that each completed feature works, tested via Postman.
 
 ## Screenshots
 
-Each feature has its own subfolder under [`screenshots/`](./screenshots/) to keep things tidy:
+Screenshots are organised by team member first, then by feature, so each person's
+testing evidence stays together under [`screenshots/`](./screenshots/):
 
 ```
 screenshots/
-  feature1-officer-auth/     Login / logout (this feature)
-  feature2-.../
-  feature3-.../
+  hayder-zikry/
+    feature1-officer-auth/     Login / logout
+  lee-kang-zheng/
+  muhammad-bin-riadi/
+  seah-hao-bin/
+  dana-tun/
 ```
 
+Each member adds their own `<feature>/` subfolder under their name.
 Name each screenshot by its test case, e.g. `01-login-success.png`, `02-wrong-password.png`, …
