@@ -170,9 +170,71 @@ async function submitOrder(cart, items, paymentMethod, subtotal, packagingFee, g
     }
 }
 
+// Get a customer's past orders, each with its line items (most recent first)
+async function getOrdersByCustomer(customerID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+
+        // Fetch the orders themselves, newest first, with the stall name for display
+        const ordersRequest = connection.request();
+        ordersRequest.input("customerID", sql.Int, customerID);
+        const ordersResult = await ordersRequest.query(`
+            SELECT o.orderID, o.stallID, s.stallName, o.queueNumber, o.status,
+                   o.paymentMethod, o.paymentStatus, o.subtotal, o.packagingFee,
+                   o.gstAmount, o.totalAmount, o.createdAt
+            FROM Orders o
+            JOIN Stall s ON o.stallID = s.stallID
+            WHERE o.customerID = @customerID
+            ORDER BY o.createdAt DESC
+        `);
+
+        const orders = ordersResult.recordset;
+        if (orders.length === 0) {
+            return [];
+        }
+
+        // Fetch all line items for those orders in one query, then group them per order
+        const itemsRequest = connection.request();
+        itemsRequest.input("customerID", sql.Int, customerID);
+        const itemsResult = await itemsRequest.query(`
+            SELECT oi.orderItemID, oi.orderID, oi.menuItemID, oi.itemName,
+                   oi.unitPrice, oi.quantity, oi.addons, oi.itemTotal
+            FROM OrderItem oi
+            JOIN Orders o ON oi.orderID = o.orderID
+            WHERE o.customerID = @customerID
+        `);
+
+        const itemsByOrder = {};
+        for (const item of itemsResult.recordset) {
+            if (!itemsByOrder[item.orderID]) {
+                itemsByOrder[item.orderID] = [];
+            }
+            itemsByOrder[item.orderID].push(item);
+        }
+
+        return orders.map((order) => ({
+            ...order,
+            items: itemsByOrder[order.orderID] || [],
+        }));
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getCartById,
     getCartItemsForOrder,
     getNextQueueNumber,
     submitOrder,
+    getOrdersByCustomer,
 };
