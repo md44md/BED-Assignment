@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HCMS - Customer Home</title>
+    <link rel="stylesheet" href="/css/common.css" />
+    <!-- Keep the page hidden until the auth guard confirms a session, so an
+         unauthenticated visitor never sees a flash of the home page. -->
+    <style>body.auth-pending { visibility: hidden; }</style>
+</head>
+<body class="auth-pending">
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand__text">
+                <span class="brand__title">Hawker Centre Management System</span>
+                <span class="brand__subtitle">Customer Home</span>
+            </div>
+        </div>
+        <!-- The whole pill is the log-out button -->
+        <button id="logout-btn" type="button" class="session-btn">
+            <span class="session-btn__dot" aria-hidden="true"></span>
+            <span id="session-email"></span>
+            <span class="session-btn__label">· Log out</span>
+        </button>
+    </header>
+
+    <main class="layout">
+        <section class="panel" aria-labelledby="home-heading">
+            <div class="panel__head">
+                <h2 id="home-heading" class="panel__title">Welcome back!</h2>
+                <p class="panel__lead">
+                    Stall browsing, ordering and feedback are coming soon to this page.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Hawker Centre Management System · Customer Role Access</p>
+    </footer>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/customer-home.js"></script>
+</body>
+</html>
