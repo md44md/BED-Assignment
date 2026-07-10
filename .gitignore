@@ -1,6 +1,10 @@
 # Postman local workspace files
 .postman/
 postman/
+!postman/screenshots/
+!postman/screenshots/**
+!postman/.features-test_cases.md
+!postman/README.md
 
 # Logs
 logs
