@@ -131,6 +131,10 @@ body::before {
     gap: 16px;
     align-items: end;
 }
+/* The [hidden] attribute is otherwise overridden by the display:flex/grid
+   rules above (author styles beat the UA default [hidden] { display:none }). */
+.form-row[hidden],
+.form-grid[hidden] { display: none; }
 /* Top-align fields where one column has helper text under it (e.g. the
    inspection-ID hint in the Officer Dashboard), so the inputs themselves
    line up instead of the taller field pushing its neighbour's input down. */
@@ -519,6 +523,45 @@ a.home-card:active { transform: translateY(1px); }
 .tag--available   { background: var(--success-tint); color: var(--success); border: 1px solid var(--success); }
 .tag--unavailable { background: var(--danger-tint);  color: var(--danger);  border: 1px solid var(--danger); }
 .tag--low-stock   { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+
+/* ---------- Header actions (multiple buttons/links on the right) ---------- */
+.header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- Quantity input (menu browsing) ---------- */
+.qty-input { width: 64px; text-align: center; padding: 6px 8px; }
+
+/* ---------- Cart (customer-cart page) ---------- */
+.cart-stall {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px dashed var(--border);
+}
+.cart-stall:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.cart-stall__title { font-weight: 700; font-size: 1.05rem; }
+.cart-stall__items { margin-top: 10px; }
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+.cart-item:last-child { border-bottom: none; }
+.cart-item__body { flex: 1 1 auto; min-width: 0; }
+.cart-item__title { font-weight: 700; }
+.cart-item__meta { color: var(--text-muted); font-size: .85rem; margin-top: 2px; }
+.cart-item__price { font-weight: 700; color: var(--brand-dark); white-space: nowrap; }
+
+.cart-stall__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+.cart-stall__subtotal { font-weight: 700; font-size: 1.05rem; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 560px) {

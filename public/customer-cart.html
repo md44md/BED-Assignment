@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HCMS - Customer Home</title>
+    <title>HCMS - My Cart</title>
     <link rel="stylesheet" href="/css/common.css" />
     <!-- Keep the page hidden until the auth guard confirms a session, so an
-         unauthenticated visitor never sees a flash of the home page. -->
+         unauthenticated visitor never sees a flash of the cart. -->
     <style>body.auth-pending { visibility: hidden; }</style>
 </head>
 <body class="auth-pending">
@@ -14,12 +14,11 @@
         <div class="brand">
             <div class="brand__text">
                 <span class="brand__title">Hawker Centre Management System</span>
-                <span class="brand__subtitle">Customer Home</span>
+                <span class="brand__subtitle">My Cart</span>
             </div>
         </div>
         <div class="header-actions">
-            <a class="session-btn" href="/customer-cart.html">🛒 Cart</a>
-            <!-- The whole pill is the log-out button -->
+            <a class="session-btn" href="/customer-home.html">← Stalls</a>
             <button id="logout-btn" type="button" class="session-btn">
                 <span class="session-btn__dot" aria-hidden="true"></span>
                 <span id="session-email"></span>
@@ -29,16 +28,14 @@
     </header>
 
     <main class="layout">
-        <section class="panel" aria-labelledby="home-heading">
+        <section class="panel" aria-labelledby="cart-heading">
             <div class="panel__head">
-                <h2 id="home-heading" class="panel__title">Welcome back!</h2>
-                <p class="panel__lead">
-                    Pick a stall to browse its menu and add items to your cart.
-                </p>
+                <h2 id="cart-heading" class="panel__title">My Cart</h2>
+                <p class="panel__lead">Review your items before checking out. One order is placed per stall.</p>
             </div>
 
-            <div id="home-message" class="message" role="status" aria-live="polite" hidden></div>
-            <div id="stall-grid" class="home-grid"></div>
+            <div id="cart-message" class="message" role="status" aria-live="polite" hidden></div>
+            <div id="cart-results" class="results"></div>
         </section>
     </main>
 
@@ -47,6 +44,6 @@
     </footer>
 
     <script src="/js/common.js"></script>
-    <script src="/js/customer-home.js"></script>
+    <script src="/js/customer-cart.js"></script>
 </body>
 </html>
