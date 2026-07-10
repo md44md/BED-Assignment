@@ -122,6 +122,37 @@ async function getFeedbackById(feedbackID) {
     }
 }
 
+// Get all of a customer's own feedback, with the stall name joined in
+async function getFeedbackByCustomer(customerID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT f.feedbackID, f.stallID, s.stallName, f.orderID, f.rating, f.comments, f.createdAt
+            FROM Feedback f
+            JOIN Stall s ON s.stallID = f.stallID
+            WHERE f.customerID = @customerID
+            ORDER BY f.createdAt DESC
+        `;
+        const request = connection.request();
+        request.input("customerID", sql.Int, customerID);
+        const result = await request.query(query);
+
+        return result.recordset;
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 // Update the rating/comments on an existing feedback row
 async function updateFeedback(feedbackID, rating, comments) {
     let connection;
@@ -152,5 +183,6 @@ module.exports = {
     getFeedbackByCustomerAndStall,
     createFeedback,
     getFeedbackById,
+    getFeedbackByCustomer,
     updateFeedback,
 };
