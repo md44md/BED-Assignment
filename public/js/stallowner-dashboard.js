@@ -364,6 +364,42 @@ async function loadRentalAgreements() {
     }
 }
 
+/* ---------- Stall status toggle ---------- */
+
+// Maps each status to an existing tag colour so it reuses the same visual
+// language as availability/hygiene tags elsewhere in the app.
+const STATUS_TAG_CLASS = {
+    open: "tag--available",
+    busy: "tag--low-stock",
+    closed: "tag--unavailable",
+};
+
+function updateStallStatusTag(status) {
+    const tag = $("#stall-status-tag");
+    tag.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    tag.className = `tag ${STATUS_TAG_CLASS[status] || "tag--historical"}`;
+}
+
+async function handleStallStatusClick(event) {
+    const btn = event.target.closest("button[data-status]");
+    if (!btn) return;
+    const status = btn.dataset.status;
+    const msg = $("#stall-status-message");
+    clearMessage(msg);
+
+    const buttons = document.querySelectorAll("#stall-status-row button[data-status]");
+    buttons.forEach((b) => (b.disabled = true));
+    try {
+        const data = await api("/stalls/status", { method: "PUT", body: { status }, auth: true });
+        updateStallStatusTag(data.stall.status);
+        showMessage(msg, "success", data.message || "Stall status updated.");
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        buttons.forEach((b) => (b.disabled = false));
+    }
+}
+
 /* ---------- Init ---------- */
 
 function init() {
@@ -388,7 +424,8 @@ function init() {
     $("#refresh-btn").addEventListener("click", loadMenuItems);
     $("#menu-results").addEventListener("click", handleResultsClick);
     $("#rentals-refresh-btn").addEventListener("click", loadRentalAgreements);
-    
+    $("#stall-status-row").addEventListener("click", handleStallStatusClick);
+
     $("#logout-btn").addEventListener("click", handleLogout);
 
     // Load menu items for the default tab

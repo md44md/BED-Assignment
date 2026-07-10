@@ -29,6 +29,15 @@
             <div class="panel__head">
                 <h2 id="dashboard-heading" class="panel__title">Stall Owner Dashboard</h2>
                 <p class="panel__lead">Manage your stall's menu, view rental agreements, respond to complaints, and track sales.</p>
+
+                <div id="stall-status-row" class="form-row">
+                    <span class="field__label">Stall status:</span>
+                    <span id="stall-status-tag" class="tag tag--historical">Not set</span>
+                    <button type="button" class="btn btn--secondary btn--sm" data-status="open">Mark open</button>
+                    <button type="button" class="btn btn--secondary btn--sm" data-status="busy">Mark busy</button>
+                    <button type="button" class="btn btn--danger btn--sm" data-status="closed">Mark closed</button>
+                </div>
+                <div id="stall-status-message" class="message" role="status" aria-live="polite" hidden></div>
             </div>
 
             <div class="tabs" role="tablist">
