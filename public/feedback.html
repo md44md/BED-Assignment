@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HCMS - Stall Feedback</title>
+    <link rel="stylesheet" href="/css/common.css" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand__text">
+                <span class="brand__title">Hawker Centre Management System</span>
+                <span class="brand__subtitle">Stall Feedback</span>
+            </div>
+        </div>
+        <a class="session-btn" href="/index.html">← Home</a>
+    </header>
+
+    <main class="layout layout--narrow">
+        <section class="panel" aria-labelledby="submit-heading">
+            <div class="panel__head">
+                <h2 id="submit-heading" class="panel__title">Rate a Stall</h2>
+                <p class="panel__lead">Pick one of your completed orders and share a rating and comment.</p>
+            </div>
+
+            <form id="submit-form" class="form-grid" novalidate>
+                <div class="field field--full">
+                    <label class="field__label" for="submit-order">Completed order</label>
+                    <select id="submit-order" class="input" required></select>
+                </div>
+                <div class="field">
+                    <label class="field__label" for="submit-rating">Rating</label>
+                    <select id="submit-rating" class="input" required>
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Poor</option>
+                        <option value="1">1 - Terrible</option>
+                    </select>
+                </div>
+                <div class="field field--full">
+                    <label class="field__label" for="submit-comments">Comments (optional)</label>
+                    <textarea id="submit-comments" class="input" maxlength="2000" rows="3"></textarea>
+                </div>
+                <div class="field field--full">
+                    <button type="submit" class="btn btn--primary">Submit review</button>
+                </div>
+            </form>
+
+            <div id="submit-message" class="message" role="status" aria-live="polite" hidden></div>
+        </section>
+
+        <section class="panel" aria-labelledby="edit-heading">
+            <div class="panel__head">
+                <h2 id="edit-heading" class="panel__title">Edit a Review</h2>
+                <p class="panel__lead">Already reviewed a stall? Update your rating or comment here.</p>
+            </div>
+
+            <form id="edit-form" class="form-grid" novalidate>
+                <div class="field field--full">
+                    <label class="field__label" for="edit-feedback-id">Your review</label>
+                    <select id="edit-feedback-id" class="input" required></select>
+                </div>
+                <div class="field">
+                    <label class="field__label" for="edit-rating">Rating</label>
+                    <select id="edit-rating" class="input" required>
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Poor</option>
+                        <option value="1">1 - Terrible</option>
+                    </select>
+                </div>
+                <div class="field field--full">
+                    <label class="field__label" for="edit-comments">Comments (optional)</label>
+                    <textarea id="edit-comments" class="input" maxlength="2000" rows="3"></textarea>
+                </div>
+                <div class="field field--full">
+                    <button type="submit" class="btn btn--secondary">Update review</button>
+                </div>
+            </form>
+
+            <div id="edit-message" class="message" role="status" aria-live="polite" hidden></div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Hawker Centre Management System · Stall Feedback</p>
+    </footer>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/feedback.js"></script>
+</body>
+</html>
