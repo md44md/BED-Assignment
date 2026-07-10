@@ -61,6 +61,7 @@ app.delete("/cart/items/:cartItemID", verifyJWT, validateCartItemId, cartControl
 
 // Routes for orders
 app.post("/orders", verifyJWT, validateSubmitOrder, orderController.submitOrder);
+app.get("/orders", verifyJWT, orderController.getMyOrders);
 
 // Routes for feedback
 app.post("/feedback", verifyJWT, validateSubmitFeedback, feedbackController.submitFeedback);
