@@ -403,7 +403,8 @@ async function handleStallStatusClick(event) {
 /* ---------- Init ---------- */
 
 function init() {
-    // Auth guard: this page is stall-owner-only.
+    // Auth guard: this page is stallowner-only. A logged-in customer or
+    // officer must not land here, so check the role, not just for any session.
     if (!isLoggedIn() || getRole() !== "stallOwner") {
         goToLogin();
         return;

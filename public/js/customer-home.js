@@ -53,8 +53,9 @@ async function loadStallGrid() {
 /* ---------- Init ---------- */
 
 function init() {
-    // Auth guard: this page is customer-only.
-    if (!isLoggedIn()) {
+    // Auth guard: this page is customer-only. A logged-in officer or stall
+    // owner must not land here, so check the role, not just for any session.
+    if (!isLoggedIn() || getRole() !== "customer") {
         goToLogin();
         return;
     }
