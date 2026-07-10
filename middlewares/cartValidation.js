@@ -33,6 +33,18 @@ function validateAddItem(req, res, next) {
     next();
 }
 
+// Middleware to validate the :cartItemID route param
+function validateCartItemId(req, res, next) {
+    const id = parseInt(req.params.cartItemID);
+
+    if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ error: "Invalid cart item ID. ID must be a positive number" });
+    }
+
+    next();
+}
+
 module.exports = {
     validateAddItem,
+    validateCartItemId,
 };

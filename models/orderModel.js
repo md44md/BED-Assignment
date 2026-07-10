@@ -92,7 +92,7 @@ async function getNextQueueNumber(stallID) {
 }
 
 // Insert Orders + OrderItem + Payment and clear the cart, all in one transaction
-async function submitOrder(cart, items, paymentMethod, subtotal, packagingFee, gstAmount, totalAmount, queueNumber) {
+async function submitOrder(cart, items, paymentMethod, subtotal, packagingFee, gstAmount, totalAmount, queueNumber, billingInfo) {
     let connection;
     let transaction;
     try {
@@ -130,12 +130,20 @@ async function submitOrder(cart, items, paymentMethod, subtotal, packagingFee, g
             `);
         }
 
+        // For NETS, keep only a masked reference (cardholder name + last 4 digits).
+        // The full card number and CVV are never persisted.
+        const transactionRef =
+            paymentMethod === "NETS" && billingInfo
+                ? `NETS-${billingInfo.cardHolderName}-**** ${billingInfo.cardNumber.slice(-4)}`
+                : null;
+
         const paymentRequest = new sql.Request(transaction);
         paymentRequest.input("orderID", sql.Int, orderID);
         paymentRequest.input("method", sql.VarChar(20), paymentMethod);
+        paymentRequest.input("transactionRef", sql.VarChar(255), transactionRef);
         await paymentRequest.query(`
-            INSERT INTO Payment (orderID, method, status)
-            VALUES (@orderID, @method, 'pending')
+            INSERT INTO Payment (orderID, method, status, transactionRef)
+            VALUES (@orderID, @method, 'pending', @transactionRef)
         `);
 
         const clearItemsRequest = new sql.Request(transaction);

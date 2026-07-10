@@ -15,7 +15,7 @@ const { validateLogin: validateOfficerLogin } = require("./middlewares/officerVa
 const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection } = require("./middlewares/inspectionValidation");
 const cartController = require("./controllers/cartController");
-const { validateAddItem } = require("./middlewares/cartValidation");
+const { validateAddItem, validateCartItemId } = require("./middlewares/cartValidation");
 const orderController = require("./controllers/orderController");
 const { validateSubmitOrder } = require("./middlewares/orderValidation");
 const hygieneGradeController = require("./controllers/hygieneGradeController");
@@ -55,7 +55,9 @@ app.post("/officers/logout", officerController.logout);
 app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.logInspection);
 
 // Routes for customer cart
+app.get("/cart", verifyJWT, cartController.getCart);
 app.post("/cart/items", verifyJWT, validateAddItem, cartController.addItemToCart);
+app.delete("/cart/items/:cartItemID", verifyJWT, validateCartItemId, cartController.removeItem);
 
 // Routes for orders
 app.post("/orders", verifyJWT, validateSubmitOrder, orderController.submitOrder);
