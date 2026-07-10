@@ -24,7 +24,10 @@ async function submitFeedback(req, res) {
         // Check the customer hasn't already reviewed this stall
         const existingFeedback = await feedbackModel.getFeedbackByCustomerAndStall(order.customerID, order.stallID);
         if (existingFeedback) {
-            return res.status(409).json({ error: "You have already reviewed this stall. Use POST /feedback/edit to update your review." });
+            return res.status(409).json({
+                error: "You have already reviewed this stall. You can edit your existing review instead.",
+                feedbackID: existingFeedback.feedbackID,
+            });
         }
 
         const feedbackID = await feedbackModel.createFeedback(order.customerID, order.stallID, orderID, rating, comments);
@@ -64,7 +67,19 @@ async function editFeedback(req, res) {
     }
 }
 
+// GET /feedback
+async function getMyFeedback(req, res) {
+    try {
+        const feedback = await feedbackModel.getFeedbackByCustomer(req.user.customerID);
+        res.json(feedback);
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving feedback." });
+    }
+}
+
 module.exports = {
     submitFeedback,
     editFeedback,
+    getMyFeedback,
 };
