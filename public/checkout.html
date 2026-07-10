@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HCMS - Checkout</title>
+    <link rel="stylesheet" href="/css/common.css" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand__text">
+                <span class="brand__title">Hawker Centre Management System</span>
+                <span class="brand__subtitle">Checkout</span>
+            </div>
+        </div>
+        <a class="session-btn" href="/index.html">← Home</a>
+    </header>
+
+    <main class="layout layout--narrow">
+        <section class="panel" aria-labelledby="cart-heading">
+            <div class="panel__head">
+                <h2 id="cart-heading" class="panel__title">Your Cart</h2>
+                <p class="panel__lead">Pick which cart you'd like to check out.</p>
+            </div>
+
+            <div id="cart-message" class="message" role="status" aria-live="polite" hidden></div>
+            <div id="cart-list" class="results"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="checkout-heading">
+            <div class="panel__head">
+                <h2 id="checkout-heading" class="panel__title">Submit Your Order</h2>
+                <p class="panel__lead">Choose a payment method to place your order.</p>
+            </div>
+
+            <form id="checkout-form" class="form-grid" novalidate>
+                <div class="field field--full">
+                    <span class="field__label">Payment method</span>
+                    <div class="form-row">
+                        <label class="field" style="flex-direction:row; align-items:center; gap:6px;">
+                            <input type="radio" name="payment-method" value="Cash" required /> Cash
+                        </label>
+                        <label class="field" style="flex-direction:row; align-items:center; gap:6px;">
+                            <input type="radio" name="payment-method" value="NETS" /> NETS
+                        </label>
+                        <label class="field" style="flex-direction:row; align-items:center; gap:6px;">
+                            <input type="radio" name="payment-method" value="PayNow" /> PayNow
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Shown when NETS or PayNow is selected. Cosmetic only - no real payment
+                     gateway is integrated (see ticket assumptions: "records the method and
+                     status only"), so this doesn't actually charge anyone. -->
+                <div id="qr-placeholder" class="field field--full" hidden style="align-items:center; text-align:center; gap:10px;">
+                    <img id="qr-placeholder-img" src="" alt="" hidden style="width:260px; height:260px; object-fit:contain; border:1px solid var(--border); border-radius:var(--radius-sm); background:#fff; padding:10px;" />
+                    <div id="qr-placeholder-box" hidden style="width:260px; height:260px; border:2px dashed var(--border); border-radius:var(--radius-sm); align-items:center; justify-content:center; font-size:4rem; background:var(--bg);" aria-hidden="true">▦</div>
+                    <p id="qr-placeholder-text" class="hint" style="margin:0;"></p>
+                </div>
+
+                <div class="field field--full">
+                    <button type="submit" class="btn btn--primary">Place order</button>
+                </div>
+            </form>
+
+            <div id="checkout-message" class="message" role="status" aria-live="polite" hidden></div>
+            <div id="checkout-confirmation" class="results"></div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Hawker Centre Management System · Checkout</p>
+    </footer>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/checkout.js"></script>
+</body>
+</html>
