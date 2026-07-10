@@ -1,4 +1,5 @@
 const sql = require("mssql");
+const crypto = require("crypto");
 const dbConfig = require("../dbConfig");
 
 // Get a cart by its ID (used to confirm ownership before checkout)
@@ -92,7 +93,7 @@ async function getNextQueueNumber(stallID) {
 }
 
 // Insert Orders + OrderItem + Payment and clear the cart, all in one transaction
-async function submitOrder(cart, items, paymentMethod, subtotal, packagingFee, gstAmount, totalAmount, queueNumber, billingInfo) {
+async function submitOrder(cart, items, paymentMethod, subtotal, packagingFee, gstAmount, totalAmount, queueNumber) {
     let connection;
     let transaction;
     try {
@@ -130,11 +131,11 @@ async function submitOrder(cart, items, paymentMethod, subtotal, packagingFee, g
             `);
         }
 
-        // For NETS, keep only a masked reference (cardholder name + last 4 digits).
-        // The full card number and CVV are never persisted.
+        // NETS/PayNow are recorded via a simulated transaction reference (no real
+        // payment gateway is integrated here - see ticket assumptions). Cash has none.
         const transactionRef =
-            paymentMethod === "NETS" && billingInfo
-                ? `NETS-${billingInfo.cardHolderName}-**** ${billingInfo.cardNumber.slice(-4)}`
+            paymentMethod === "NETS" || paymentMethod === "PayNow"
+                ? `${paymentMethod.toUpperCase()}-${crypto.randomBytes(4).toString("hex").toUpperCase()}`
                 : null;
 
         const paymentRequest = new sql.Request(transaction);
