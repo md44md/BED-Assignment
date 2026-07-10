@@ -563,6 +563,45 @@ a.home-card:active { transform: translateY(1px); }
 }
 .cart-stall__subtotal { font-weight: 700; font-size: 1.05rem; }
 
+/* ---------- Past orders ---------- */
+.order-card {
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+}
+.order-card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.order-card__title { font-weight: 700; font-size: 1.05rem; }
+.order-card__meta { color: var(--text-muted); font-size: .85rem; margin-top: 2px; }
+
+.order-summary {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+    display: grid;
+    gap: 4px;
+}
+.order-summary__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: .9rem;
+    color: var(--text-muted);
+}
+.order-summary__row--total {
+    margin-top: 4px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+}
+.order-summary__row--total span:last-child { color: var(--brand-dark); }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 560px) {
     .form-grid { grid-template-columns: 1fr; }
