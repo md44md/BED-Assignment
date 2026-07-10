@@ -149,10 +149,105 @@ async function updateCartItemQuantity(cartItemID, quantity) {
     }
 }
 
+// Get every cart belonging to a customer, with items joined to their menu info
+async function getCartsByCustomer(customerID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT c.cartID, c.stallID, s.stallName,
+                   ci.cartItemID, ci.menuItemID, ci.quantity, ci.notes,
+                   mi.name, mi.price, mi.category, mi.imageURL, mi.isAvailable
+            FROM Cart c
+            JOIN Stall s ON s.stallID = c.stallID
+            LEFT JOIN CartItem ci ON ci.cartID = c.cartID
+            LEFT JOIN MenuItem mi ON mi.menuItemID = ci.menuItemID
+            WHERE c.customerID = @customerID
+            ORDER BY c.cartID, ci.cartItemID
+        `;
+        const request = connection.request();
+        request.input("customerID", sql.Int, customerID);
+        const result = await request.query(query);
+        return result.recordset;
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Get a cart item along with its parent cart's owner (used to check ownership before deleting)
+async function getCartItemWithOwner(cartItemID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT ci.cartItemID, ci.cartID, c.customerID
+            FROM CartItem ci
+            JOIN Cart c ON c.cartID = ci.cartID
+            WHERE ci.cartItemID = @cartItemID
+        `;
+        const request = connection.request();
+        request.input("cartItemID", sql.Int, cartItemID);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset[0];
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Remove a single item from a cart
+async function removeCartItem(cartItemID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = "DELETE FROM CartItem WHERE cartItemID = @cartItemID";
+        const request = connection.request();
+        request.input("cartItemID", sql.Int, cartItemID);
+        const result = await request.query(query);
+        return result.rowsAffected[0] > 0;
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getCartByCustomerAndStall,
     createCart,
     getCartItem,
     addCartItem,
     updateCartItemQuantity,
+    getCartsByCustomer,
+    getCartItemWithOwner,
+    removeCartItem,
 };

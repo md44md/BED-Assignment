@@ -20,6 +20,36 @@ function handleLogout() {
     window.location.href = LOGIN_URL;
 }
 
+/* ---------- Stall browsing ---------- */
+
+function renderStallGrid(stallList) {
+    const grid = $("#stall-grid");
+    grid.innerHTML = "";
+    if (!stallList || stallList.length === 0) {
+        grid.innerHTML = '<div class="empty">No stalls are available right now.</div>';
+        return;
+    }
+    for (const stall of stallList) {
+        const card = document.createElement("a");
+        card.className = "home-card";
+        card.href = `/customer-menu.html?stallID=${stall.stallID}`;
+        card.innerHTML = `
+            <span class="home-card__badge home-card__badge--placeholder" aria-hidden="true"></span>
+            <span class="home-card__title">${stall.stallName}</span>
+            <span class="home-card__desc">${stall.centreName || ""} · Unit ${stall.unitNumber}</span>
+            <span class="home-card__cta">View menu →</span>
+        `;
+        grid.appendChild(card);
+    }
+}
+
+async function loadStallGrid() {
+    const msg = $("#home-message");
+    clearMessage(msg);
+    const stallList = await loadStalls([], (err) => showMessage(msg, "error", err.message));
+    renderStallGrid(stallList);
+}
+
 /* ---------- Init ---------- */
 
 function init() {
@@ -38,6 +68,8 @@ function init() {
 
     // Wire up actions.
     $("#logout-btn").addEventListener("click", handleLogout);
+
+    loadStallGrid();
 }
 
 document.addEventListener("DOMContentLoaded", init);
