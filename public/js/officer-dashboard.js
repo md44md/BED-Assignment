@@ -238,8 +238,9 @@ function handleTabClick(event) {
 /* ---------- Init ---------- */
 
 function init() {
-    // Auth guard: this page is officer-only.
-    if (!isLoggedIn()) {
+    // Auth guard: this page is officer-only. A logged-in customer or stall
+    // owner must not land here, so check the role, not just for any session.
+    if (!isLoggedIn() || getRole() !== "neaOfficer") {
         goToLogin();
         return;
     }
