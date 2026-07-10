@@ -66,6 +66,7 @@ app.get("/orders", verifyJWT, orderController.getMyOrders);
 // Routes for feedback
 app.post("/feedback", verifyJWT, validateSubmitFeedback, feedbackController.submitFeedback);
 app.post("/feedback/edit", verifyJWT, validateEditFeedback, feedbackController.editFeedback);
+app.get("/feedback", verifyJWT, feedbackController.getMyFeedback);
 
 // Routes for menu management
 app.get("/menuitems", verifyJWT, menuItemController.getMenuItems);
