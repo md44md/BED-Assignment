@@ -3,7 +3,7 @@ const orderModel = require("../models/orderModel");
 // POST /orders
 async function submitOrder(req, res) {
     try {
-        const { cartID, paymentMethod, billingInfo } = req.body;
+        const { cartID, paymentMethod } = req.body;
 
         // Check the cart exists
         const cart = await orderModel.getCartById(cartID);
@@ -47,8 +47,7 @@ async function submitOrder(req, res) {
             packagingFee,
             gstAmount,
             totalAmount,
-            queueNumber,
-            billingInfo
+            queueNumber
         );
 
         res.status(201).json({
