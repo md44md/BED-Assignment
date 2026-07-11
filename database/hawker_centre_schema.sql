@@ -327,9 +327,9 @@ CREATE TABLE Orders (
 -- paymentStatus can be: 'pending', 'paid', 'failed'
 
 INSERT INTO Orders (customerID, stallID, queueNumber, status, paymentMethod, paymentStatus, subtotal, packagingFee, gstAmount, totalAmount) VALUES
-    (1, 1, 42, 'completed', 'PayNow', 'paid',    9.00, 0.00, 0.63,  9.63),
-    (2, 3, 17, 'completed', 'NETS',   'paid',    5.50, 0.50, 0.42,  6.42),
-    (3, 5,  5, 'preparing', 'Cash',   'pending', 5.00, 0.00, 0.35,  5.35);
+    (1, 1, 42, 'completed', 'PayNow', 'paid',    9.00, 0.00, 0.81,  9.81),
+    (2, 3, 17, 'completed', 'NETS',   'paid',    5.50, 0.50, 0.54,  6.54),
+    (3, 5,  5, 'preparing', 'Cash',   'pending', 5.00, 0.00, 0.45,  5.45);
 
 CREATE TABLE OrderItem (
     orderItemID INT IDENTITY(1,1) PRIMARY KEY,
