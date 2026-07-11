@@ -2,8 +2,9 @@
   "name": "bed-assignment",
   "version": "1.0.0",
   "description": "AY2026 Semester 1 | Diploma in Information Technology  \r Modules: Back-End Development (BED) | Software Project Management (SPM)",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
