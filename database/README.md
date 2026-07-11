@@ -11,7 +11,7 @@
 3. Open hawker_centre_schema.sql
 4. Click Execute (or press F5)
 5. The script will:
-   - Create the HawkerCentreDB database
+   - Create the HawkerCentreDatabase database
    - Create all tables with constraints
    - Insert sample data for testing
 
