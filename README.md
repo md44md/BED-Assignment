@@ -37,7 +37,32 @@ customers, stall owners, operators, and NEA officers.
    all tables, and insert sample data
 
 ### Running the App
-*(To be updated in Sprint 2 once app.js is set up)*
+1. Install dependencies:
+   ```
+   npm install
+   ```
+2. Copy `.env.example` to `.env` and fill in your values (DB credentials,
+   `JWT_SECRET`, etc.):
+   ```
+   cp .env.example .env
+   ```
+3. Set up the database by running `database/hawker_centre_schema.sql` in SSMS
+   (see [Database Setup](#database-setup) above).
+4. Start the server:
+   ```
+   npm start
+   ```
+5. The app runs on `http://localhost:3000` (or the `PORT` set in `.env`).
 
 ## Project Structure
-*(To be updated as development progresses)*
+```
+BED-Assignment/
+├── app.js               # Express app entry point and route definitions
+├── dbConfig.js          # SQL Server connection config (reads from .env)
+├── controllers/         # Request handlers (business logic per feature)
+├── models/              # Database access (SQL queries per table)
+├── middlewares/         # JWT auth and Joi validation
+├── database/            # Schema creation script + sample data
+├── public/              # Front-end (HTML, CSS, client-side JS)
+└── postman/             # API test evidence (screenshots + test cases)
+```

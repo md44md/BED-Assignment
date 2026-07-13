@@ -32,7 +32,7 @@ async function submitOrder(req, res) {
         const rawSubtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
         const subtotal = Math.round(rawSubtotal * 100) / 100;
         const packagingFee = 0;
-        const gstAmount = Math.round((subtotal + packagingFee) * 0.07 * 100) / 100;
+        const gstAmount = Math.round((subtotal + packagingFee) * 0.09 * 100) / 100;
         const totalAmount = Math.round((subtotal + packagingFee + gstAmount) * 100) / 100;
 
         // Get the next queue number for this stall
