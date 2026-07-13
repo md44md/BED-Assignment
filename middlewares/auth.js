@@ -6,12 +6,12 @@ function verifyJWT(req, res, next) {
         req.headers.authorization && req.headers.authorization.split(" ")[1];
 
     if (!token) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ error: "Unauthorized" });
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(403).json({ message: "Forbidden" });
+            return res.status(403).json({ error: "Forbidden" });
         }
 
         // Define which roles are allowed for each endpoint
@@ -65,7 +65,7 @@ function verifyJWT(req, res, next) {
         );
 
         if (!authorizedRole) {
-            return res.status(403).json({ message: "Forbidden" });
+            return res.status(403).json({ error: "Forbidden" });
         }
 
         // Attach the decoded token data to req.user so controllers can use it
