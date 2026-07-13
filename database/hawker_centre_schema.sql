@@ -482,12 +482,17 @@ CREATE TABLE Inspection (
 );
 -- status can be: 'scheduled', 'completed', 'cancelled'
 
--- Stall 3 has two completed inspections to support the historical HygieneGrade below
+-- Stall 3 has two completed inspections to support the historical HygieneGrade below.
+-- The remaining stalls each have one completed inspection backing their current grade.
 INSERT INTO Inspection (stallID, officerID, scheduledDate, inspectionDate, score, remarks, status) VALUES
     (1, 1, '2025-05-10', '2025-05-10', 88, 'Generally clean, minor grease buildup on exhaust hood.', 'completed'),
     (3, 2, '2024-05-15', '2024-05-15', 91, 'Excellent hygiene standards across the board.',           'completed'),
     (3, 2, '2025-05-15', '2025-05-15', 74, 'Food storage temperature not maintained properly.',       'completed'),
-    (5, 3, '2025-06-20', NULL,          NULL, NULL,                                                   'scheduled');
+    (5, 3, '2025-06-20', NULL,          NULL, NULL,                                                   'scheduled'),
+    (2, 1, '2025-05-12', '2025-05-12', 90, 'Well-maintained prep area, proper food handling observed.', 'completed'),  -- inspectionID 5
+    (4, 2, '2025-05-18', '2025-05-18', 82, 'Satisfactory overall, reminded staff on glove usage.',      'completed'),  -- inspectionID 6
+    (5, 3, '2025-05-22', '2025-05-22', 95, 'Immaculate stall, exemplary hygiene practices.',            'completed'),  -- inspectionID 7
+    (6, 1, '2025-05-25', '2025-05-25', 68, 'Some cleanliness lapses at wash station, needs improvement.', 'completed');  -- inspectionID 8
 
 -- Hygiene grade issued after an inspection
 CREATE TABLE HygieneGrade (
@@ -501,8 +506,13 @@ CREATE TABLE HygieneGrade (
 );
 -- grade can be: 'A', 'B', 'C', 'D'
 
--- Stall 3 has a historical grade (from inspectionID 2) and a current grade (from inspectionID 3)
+-- Stall 3 has a historical grade (from inspectionID 2) and a current grade (from inspectionID 3).
+-- Every stall (1-6) has exactly one active grade so the officer/customer views always show a grade.
 INSERT INTO HygieneGrade (stallID, inspectionID, grade, issuedDate, expiryDate, isActive) VALUES
     (1, 1, 'A', '2025-05-10', '2026-05-10', 1),
     (3, 2, 'A', '2024-05-15', '2025-05-15', 0),  -- previous grade, now inactive
-    (3, 3, 'B', '2025-05-15', '2026-05-15', 1);
+    (3, 3, 'B', '2025-05-15', '2026-05-15', 1),
+    (2, 5, 'A', '2025-05-12', '2026-05-12', 1),
+    (4, 6, 'B', '2025-05-18', '2026-05-18', 1),
+    (5, 7, 'A', '2025-05-22', '2026-05-22', 1),
+    (6, 8, 'C', '2025-05-25', '2026-05-25', 1);
