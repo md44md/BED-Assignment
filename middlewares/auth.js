@@ -46,6 +46,10 @@ function verifyJWT(req, res, next) {
             "POST /feedback/edit": ["customer"],
             "GET /feedback": ["customer"],
 
+            // Customer complaint routes
+            "POST /complaint": ["customer"],
+            "GET /complaint": ["customer"],
+
             // NEA officer hygiene grade routes
             "POST /hygiene-grades": ["neaOfficer"],
             "PUT /hygiene-grades/[0-9]+": ["neaOfficer"],
