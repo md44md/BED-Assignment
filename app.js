@@ -12,6 +12,8 @@ const customerController = require("./controllers/customerController");
 const { validateRegister: validateCustomerRegister, validateLogin: validateCustomerLogin } = require("./middlewares/customerValidation");
 const officerController = require("./controllers/officerController");
 const { validateLogin: validateOfficerLogin } = require("./middlewares/officerValidation");
+const operatorController = require("./controllers/operatorController");
+const { validateLogin: validateOperatorLogin } = require("./middlewares/officerValidation");
 const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection } = require("./middlewares/inspectionValidation");
 const cartController = require("./controllers/cartController");
@@ -52,6 +54,10 @@ app.post("/customers/logout", customerController.logout);
 // Routes for officer auth
 app.post("/officers/login", validateOfficerLogin, officerController.login);
 app.post("/officers/logout", officerController.logout);
+
+// Routes for operator auth
+app.post("/operators/login", validateOperatorLogin, operatorController.login);
+app.post("/operators/logout", operatorController.logout);
 
 // Routes for officer inspections
 app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.logInspection);
