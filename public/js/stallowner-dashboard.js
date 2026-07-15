@@ -400,6 +400,29 @@ async function handleStallStatusClick(event) {
     }
 }
 
+/* ---------- Delete account ---------- */
+
+async function handleDeleteAccount() {
+    const confirmed = window.confirm("Are you sure you want to delete your account? This cannot be undone.");
+    if (!confirmed) return;
+
+    const msg = $("#delete-account-message");
+    clearMessage(msg);
+    const btn = $("#delete-account-btn");
+    btn.disabled = true;
+    try {
+        const data = await api("/stallowners/account", { method: "DELETE", auth: true });
+        showMessage(msg, "success", data.message || "Account deleted successfully.");
+        setTimeout(() => {
+            clearSession();
+            window.location.href = LOGIN_URL;
+        }, 1500);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+        btn.disabled = false;
+    }
+}
+
 /* ---------- Init ---------- */
 
 function init() {
@@ -426,6 +449,7 @@ function init() {
     $("#menu-results").addEventListener("click", handleResultsClick);
     $("#rentals-refresh-btn").addEventListener("click", loadRentalAgreements);
     $("#stall-status-row").addEventListener("click", handleStallStatusClick);
+    $("#delete-account-btn").addEventListener("click", handleDeleteAccount);
 
     $("#logout-btn").addEventListener("click", handleLogout);
 
