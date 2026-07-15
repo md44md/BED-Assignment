@@ -116,9 +116,36 @@ async function getCustomerByUserID(userID) {
     }
 }
 
+// Soft delete: mark both the Users and Customer rows inactive
+async function deactivateAccount(userID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Users SET isActive = 0 WHERE userID = @userID;
+            UPDATE Customer SET isActive = 0 WHERE userID = @userID;
+        `;
+        const request = connection.request();
+        request.input("userID", sql.Int, userID);
+        await request.query(query);
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getUserByEmail,
     createUser,
     createCustomer,
     getCustomerByUserID,
+    deactivateAccount,
 };
