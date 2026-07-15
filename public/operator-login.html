@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HCMS - Stall Owner Login</title>
+    <title>HCMS - Operator Login</title>
     <link rel="stylesheet" href="/css/common.css" />
 </head>
 <body>
@@ -11,7 +11,7 @@
         <div class="brand">
             <div class="brand__text">
                 <span class="brand__title">Hawker Centre Management System</span>
-                <span class="brand__subtitle">Stall Owner Login</span>
+                <span class="brand__subtitle">Operator Login</span>
             </div>
         </div>
         <a class="session-btn" href="/select-role.html">← Roles</a>
@@ -20,17 +20,18 @@
     <main class="layout layout--narrow">
         <section class="panel" aria-labelledby="login-heading">
             <div class="panel__head">
-                <h2 id="login-heading" class="panel__title">Stall Owner - Log In</h2>
+                <h2 id="login-heading" class="panel__title">Operator - Log In</h2>
                 <p class="panel__lead">
-                    Restricted access for Stall Owners.
+                    Restricted access for operators. Accounts are created by an
+                    administrator, so there is no sign-up here.
                 </p>
             </div>
 
             <form id="login-form" class="form-grid" novalidate>
                 <div class="field field--full">
-                    <label class="field__label" for="login-email">Stall Owner email</label>
+                    <label class="field__label" for="login-email">Operator email</label>
                     <input id="login-email" class="input" type="email" autocomplete="username"
-                           placeholder="stallowner@email.com" required />
+                           placeholder="operator@email.com" required />
                 </div>
                 <div class="field field--full">
                     <label class="field__label" for="login-password">Password</label>
@@ -42,17 +43,16 @@
                 </div>
             </form>
 
-            <p class="hint">Don't have an account? <a href="/stallowner-signup.html">Sign up here</a>.</p>
-            <p class="hint">Demo stall owner account: <code>diana@email.com</code> / <code>Diana123!</code></p>
+            <p class="hint">Demo operator account: <code>james@email.com</code> / <code>James123!</code></p>
             <div id="login-message" class="message" role="status" aria-live="polite" hidden></div>
         </section>
     </main>
 
     <footer class="site-footer">
-        <p>Hawker Centre Management System · Stall Owner Role Access</p>
+        <p>Hawker Centre Management System · Operator Role Access</p>
     </footer>
 
     <script src="/js/common.js"></script>
-    <script src="/js/stallowner-login.js"></script>
+    <script src="/js/operator-login.js"></script>
 </body>
 </html>
