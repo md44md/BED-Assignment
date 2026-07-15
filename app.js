@@ -30,6 +30,7 @@ const { validateCreateComplaint } = require("./middlewares/complaintValidation")
 const menuItemController = require("./controllers/menuItemController");
 const { validateMenuItem, validateMenuItemId } = require("./middlewares/menuItemValidation")
 const rentalAgreementController = require("./controllers/rentalAgreementController");
+const queueController = require("./controllers/queueController");
 const { verifyJWT } = require("./middlewares/auth");
 
 // Initialize Express app
@@ -97,6 +98,11 @@ app.get("/stalls", stallController.getStalls);
 app.get("/stalls/:stallID/menu", stallController.getStallMenu);
 // Stall owner only: toggle own stall's status (open/busy/closed)
 app.put("/stalls/status", verifyJWT, stallController.updateStallStatus);
+
+// Routes for stall owner queue management
+// Stall owner only: view current queue and advance it (serve current customer)
+app.get("/stallowners/queue", verifyJWT, queueController.getQueue);
+app.post("/stallowners/queue/advance", verifyJWT, queueController.advanceQueue);
 
 // Routes for hygiene grades
 // Public: customers viewing a stall's hygiene grades (no auth)
