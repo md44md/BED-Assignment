@@ -7,13 +7,10 @@ dotenv.config();
 
 // controllers and middlewares
 const stallOwnerController = require("./controllers/stallOwnerController");
-const { validateRegister, validateLogin } = require("./middlewares/stallOwnerValidation");
 const customerController = require("./controllers/customerController");
-const { validateRegister: validateCustomerRegister, validateLogin: validateCustomerLogin } = require("./middlewares/customerValidation");
 const officerController = require("./controllers/officerController");
-const { validateLogin: validateOfficerLogin } = require("./middlewares/officerValidation");
 const operatorController = require("./controllers/operatorController");
-const { validateLogin: validateOperatorLogin } = require("./middlewares/officerValidation");
+const { validateRegister, validateLogin } = require("./middlewares/userValidation");
 const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection } = require("./middlewares/inspectionValidation");
 const cartController = require("./controllers/cartController");
@@ -47,16 +44,16 @@ app.post("/stallowners/login", validateLogin, stallOwnerController.login);
 app.post("/stallowners/logout", stallOwnerController.logout);
 
 // Routes for customer auth
-app.post("/customers/register", validateCustomerRegister, customerController.register);
-app.post("/customers/login", validateCustomerLogin, customerController.login);
+app.post("/customers/register", validateRegister, customerController.register);
+app.post("/customers/login", validateLogin, customerController.login);
 app.post("/customers/logout", customerController.logout);
 
 // Routes for officer auth
-app.post("/officers/login", validateOfficerLogin, officerController.login);
+app.post("/officers/login", validateLogin, officerController.login);
 app.post("/officers/logout", officerController.logout);
 
 // Routes for operator auth
-app.post("/operators/login", validateOperatorLogin, operatorController.login);
+app.post("/operators/login", validateLogin, operatorController.login);
 app.post("/operators/logout", operatorController.logout);
 
 // Routes for officer inspections
