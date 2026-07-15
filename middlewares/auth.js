@@ -50,6 +50,9 @@ function verifyJWT(req, res, next) {
             "POST /complaint": ["customer"],
             "GET /complaint": ["customer"],
 
+            // Customer account deletion
+            "DELETE /customers/account": ["customer"],
+
             // NEA officer hygiene grade routes
             "POST /hygiene-grades": ["neaOfficer"],
             "PUT /hygiene-grades/[0-9]+": ["neaOfficer"],
