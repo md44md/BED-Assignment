@@ -29,6 +29,9 @@ function verifyJWT(req, res, next) {
             // Stall owner status toggle route
             "PUT /stalls/status": ["stallOwner"],
 
+            // Stall owner account deletion
+            "DELETE /stallowners/account": ["stallOwner"],
+
             // NEA officer inspection routes
             "POST /inspections": ["neaOfficer"],
 
