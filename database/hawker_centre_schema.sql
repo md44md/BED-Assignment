@@ -425,11 +425,15 @@ INSERT INTO Complaint (customerID, stallID, category, description, status) VALUE
 CREATE TABLE Notification (
     notificationID INT IDENTITY(1,1) PRIMARY KEY,
     customerID     INT NOT NULL REFERENCES Customer(customerID),
+    orderID        INT REFERENCES Orders(orderID),      -- queue notifications link to the order
+    channel        VARCHAR(20) DEFAULT 'inApp',         -- 'inApp' | 'email'
     title          VARCHAR(255) NOT NULL,
     message        VARCHAR(1000) NOT NULL,
+    status         VARCHAR(20) DEFAULT 'sent',          -- 'sent' | 'failed' (third-party delivery result)
     isRead         BIT DEFAULT 0,
     createdAt      DATETIME DEFAULT GETDATE()
 );
+-- channel can be: 'inApp', 'email'   |   status can be: 'sent', 'failed'
 
 INSERT INTO Notification (customerID, title, message, isRead) VALUES
     (1, 'New Promotion!',      'Tian Tian is offering 10% off on weekdays this month.', 1),
