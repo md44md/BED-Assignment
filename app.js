@@ -43,11 +43,13 @@ app.use(express.static(path.join(__dirname, "public")));
 app.post("/stallowners/register", validateRegister, stallOwnerController.register);
 app.post("/stallowners/login", validateLogin, stallOwnerController.login);
 app.post("/stallowners/logout", stallOwnerController.logout);
+app.delete("/stallowners/account", verifyJWT, stallOwnerController.deleteAccount);
 
 // Routes for customer auth
 app.post("/customers/register", validateCustomerRegister, customerController.register);
 app.post("/customers/login", validateCustomerLogin, customerController.login);
 app.post("/customers/logout", customerController.logout);
+app.delete("/customers/account", verifyJWT, customerController.deleteAccount);
 
 // Routes for officer auth
 app.post("/officers/login", validateOfficerLogin, officerController.login);
