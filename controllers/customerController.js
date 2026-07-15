@@ -90,8 +90,20 @@ async function logout(req, res) {
     res.status(200).json({ message: "Logout successful. Please discard your token." });
 }
 
+// DELETE /customers/account
+async function deleteAccount(req, res) {
+    try {
+        await customerModel.deactivateAccount(req.user.userID);
+        res.status(200).json({ message: "Account deleted successfully." });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error deleting account." });
+    }
+}
+
 module.exports = {
     register,
     login,
     logout,
+    deleteAccount,
 };
