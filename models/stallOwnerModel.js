@@ -116,9 +116,33 @@ async function getStallOwnerByUserID(userID) {
     }
 }
 
+// Soft delete: mark the Users row inactive (StallOwner has no isActive column of its own)
+async function deactivateAccount(userID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = "UPDATE Users SET isActive = 0 WHERE userID = @userID";
+        const request = connection.request();
+        request.input("userID", sql.Int, userID);
+        await request.query(query);
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getUserByEmail,
     createUser,
     createStallOwner,
     getStallOwnerByUserID,
+    deactivateAccount,
 };

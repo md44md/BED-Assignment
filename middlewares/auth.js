@@ -29,6 +29,9 @@ function verifyJWT(req, res, next) {
             // Stall owner status toggle route
             "PUT /stalls/status": ["stallOwner"],
 
+            // Stall owner account deletion
+            "DELETE /stallowners/account": ["stallOwner"],
+
             // NEA officer inspection routes
             "POST /inspections": ["neaOfficer"],
 
@@ -49,6 +52,9 @@ function verifyJWT(req, res, next) {
             // Customer complaint routes
             "POST /complaint": ["customer"],
             "GET /complaint": ["customer"],
+
+            // Customer account deletion
+            "DELETE /customers/account": ["customer"],
 
             // NEA officer hygiene grade routes
             "POST /hygiene-grades": ["neaOfficer"],
