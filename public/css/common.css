@@ -609,3 +609,52 @@ a.home-card:active { transform: translateY(1px); }
     .form-row .btn { width: 100%; }
     .item-edit-form { grid-template-columns: 1fr; }
 }
+
+/* ---------- Stat cards (Operator sales analytics) ---------- */
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--brand-tint);
+}
+.stat-card__value { font-size: 1.6rem; font-weight: 800; color: var(--brand-dark); letter-spacing: -.02em; }
+.stat-card__label { font-size: .82rem; color: var(--text-muted); }
+
+/* ---------- CSS-only bar rows (popular items / peak hours) ---------- */
+.bar-list { display: grid; gap: 14px; }
+.bar-row {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+}
+.bar-row__label { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.bar-row__name { font-weight: 700; }
+.bar-track {
+    height: 10px;
+    border-radius: 999px;
+    background: var(--bg);
+    overflow: hidden;
+}
+.bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--brand);
+    transition: width .2s ease;
+}
+.bar-row__stats {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    margin-top: 8px; font-size: .82rem; color: var(--text-muted);
+}
+
+/* ---------- Secondary section heading inside a panel ---------- */
+.panel__head--sub { margin: 28px 0 20px; }
+.panel__title--sm { font-size: 1.05rem; }
