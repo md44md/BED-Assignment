@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HCMS - Operator Console</title>
+    <link rel="stylesheet" href="/css/common.css" />
+    <!-- Keep the page hidden until the auth guard confirms a session, so an
+         unauthenticated visitor never sees a flash of the console. -->
+    <style>body.auth-pending { visibility: hidden; }</style>
+</head>
+<body class="auth-pending">
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand__text">
+                <span class="brand__title">Hawker Centre Management System</span>
+                <span class="brand__subtitle">Operator Console</span>
+            </div>
+        </div>
+        <!-- The whole pill is the log-out button -->
+        <button id="logout-btn" type="button" class="session-btn">
+            <span class="session-btn__dot" aria-hidden="true"></span>
+            <span id="session-email"></span>
+            <span class="session-btn__label">· Log out</span>
+        </button>
+    </header>
+
+    <main class="layout">
+        <section class="panel" aria-labelledby="console-heading">
+            <div class="panel__head">
+                <h2 id="console-heading" class="panel__title">Sales Analytics</h2>
+                <p class="panel__lead">
+                    View a stall's sales performance — popular items and peak hours —
+                    so you can make data-driven decisions to improve it.
+                </p>
+            </div>
+
+            <form id="analytics-form" class="form-row" novalidate>
+                <div class="field field--grow">
+                    <label class="field__label" for="analytics-stall">Stall</label>
+                    <select id="analytics-stall" class="input" required></select>
+                </div>
+                <button type="submit" class="btn btn--primary">Load analytics</button>
+            </form>
+            <div id="analytics-message" class="message" role="status" aria-live="polite" hidden></div>
+
+            <!-- Summary stat cards -->
+            <div id="summary-results" class="results"></div>
+
+            <!-- Popular items -->
+            <div class="panel__head panel__head--sub">
+                <h3 class="panel__title panel__title--sm">Popular Items</h3>
+                <p class="panel__lead">Ranked by quantity sold (completed orders only).</p>
+            </div>
+            <div id="popular-items-results" class="results"></div>
+
+            <!-- Peak hours -->
+            <div class="panel__head panel__head--sub">
+                <h3 class="panel__title panel__title--sm">Peak Hours</h3>
+                <p class="panel__lead">Order volume by hour of day.</p>
+            </div>
+            <div id="peak-hours-results" class="results"></div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Hawker Centre Management System · Operator Console</p>
+        <p class="site-footer__muted">Figures reflect completed orders only.</p>
+    </footer>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/operator-dashboard.js"></script>
+</body>
+</html>

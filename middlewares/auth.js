@@ -60,6 +60,12 @@ function verifyJWT(req, res, next) {
             "POST /hygiene-grades": ["neaOfficer"],
             "PUT /hygiene-grades/[0-9]+": ["neaOfficer"],
             "DELETE /hygiene-grades/[0-9]+": ["neaOfficer"],
+
+            // Operator sales analytics route
+            "GET /stalls/[0-9]+/sales-analytics": ["operator"],
+
+            // Operator stall list (filtered to their centres)
+            "GET /operators/stalls": ["operator"],
         };
 
         const requestedEndpoint = `${req.method} ${req.url}`;

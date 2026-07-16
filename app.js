@@ -27,6 +27,7 @@ const { validateCreateComplaint } = require("./middlewares/complaintValidation")
 const menuItemController = require("./controllers/menuItemController");
 const { validateMenuItem, validateMenuItemId } = require("./middlewares/menuItemValidation")
 const rentalAgreementController = require("./controllers/rentalAgreementController");
+const salesAnalyticsController = require("./controllers/salesAnalyticsController")
 const { verifyJWT } = require("./middlewares/auth");
 
 // Initialize Express app
@@ -102,6 +103,10 @@ app.get("/stalls/:stallID/hygiene-grades", hygieneGradeController.getStallGrades
 app.post("/hygiene-grades", verifyJWT, validateIssueGrade, hygieneGradeController.issueGrade);
 app.put("/hygiene-grades/:gradeID", verifyJWT, validateUpdateGrade, hygieneGradeController.updateGrade);
 app.delete("/hygiene-grades/:gradeID", verifyJWT, hygieneGradeController.deleteGrade);
+
+// Routes for viewing sales analytics
+app.get("/operators/stalls", verifyJWT, operatorController.getMyStalls)
+app.get("/stalls/:stallID/sales-analytics", verifyJWT, salesAnalyticsController.getSalesAnalytics)
 
 // Start server
 app.listen(port, () => {
