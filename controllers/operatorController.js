@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const operatorModel = require("../models/operatorModel");
+const salesAnalyticsModel = require("../models/salesAnalyticsModel");
 
 // POST /operators/login
 async function login(req, res) {
@@ -54,7 +55,20 @@ async function logout(req, res) {
     res.status(200).json({ message: "Logout successful. Please discard your token." });
 }
 
+// GET /operators/stalls — stalls inside hawker centres managed by the logged-in operator
+async function getMyStalls(req, res) {
+    try {
+        const operatorID = req.user.operatorID;
+        const stalls = await salesAnalyticsModel.getStallsByOperatorID(operatorID);
+        res.status(200).json({ stalls });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving stalls." });
+    }
+}
+
 module.exports = {
     login,
     logout,
+    getMyStalls,
 };
