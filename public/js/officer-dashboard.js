@@ -7,6 +7,7 @@
      POST   /hygiene-grades
      PUT    /hygiene-grades/:gradeID
      DELETE /hygiene-grades/:gradeID
+     PUT    /inspections/:id
    Relies on helpers from common.js (loaded first).
    ============================================================ */
 
@@ -106,6 +107,37 @@ async function handleLogInspection(event) {
         renderInspectionResult(result, insp);
         rememberInspection(insp);
         $("#inspect-form").reset();
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        submitBtn.disabled = false;
+    }
+}
+
+/* ---------- Correct an inspection ---------- */
+
+async function handleCorrectInspection(event) {
+    event.preventDefault();
+    const msg = $("#correct-message");
+    const result = $("#correct-result");
+    const submitBtn = event.submitter;
+    clearMessage(msg);
+    result.innerHTML = "";
+
+    const inspectionID = $("#correct-inspection-id").value;
+    const payload = {
+        score: Number($("#correct-score").value),
+        remarks: $("#correct-remarks").value.trim(),
+    };
+    // Only send a date if the officer picked one; otherwise the server keeps the original.
+    const date = $("#correct-date").value;
+    if (date) payload.inspectionDate = date;
+
+    submitBtn.disabled = true;
+    try {
+        const data = await api(`/inspections/${inspectionID}`, { method: "PUT", body: payload, auth: true });
+        showMessage(msg, "success", data.message || "Inspection updated successfully.");
+        renderInspectionResult(result, data.inspection || {});
     } catch (err) {
         if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
     } finally {
@@ -231,6 +263,7 @@ function handleTabClick(event) {
         t.setAttribute("aria-selected", String(active));
     });
     $("#inspect-tab").hidden = target !== "inspect";
+    $("#correct-tab").hidden = target !== "correct";
     $("#issue-tab").hidden = target !== "issue";
     $("#manage-tab").hidden = target !== "manage";
 }
@@ -259,10 +292,12 @@ function init() {
 
     // The inspection date can't be in the future (server enforces this too).
     $("#inspect-date").max = new Date().toISOString().slice(0, 10);
+    $("#correct-date").max = new Date().toISOString().slice(0, 10);
 
     // Wire up actions.
     $("#logout-btn").addEventListener("click", handleLogout);
     $("#inspect-form").addEventListener("submit", handleLogInspection);
+    $("#correct-form").addEventListener("submit", handleCorrectInspection);
     $("#issue-form").addEventListener("submit", handleIssue);
     $("#manage-form").addEventListener("submit", handleManageLoad);
     $("#manage-results").addEventListener("click", handleManageAction);
