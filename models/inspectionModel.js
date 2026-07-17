@@ -82,8 +82,41 @@ async function getInspectionById(inspectionID) {
     }
 }
 
+// Update a previously logged inspection's score/remarks/date
+async function updateInspection(inspectionID, score, remarks, inspectionDate) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Inspection
+            SET score = @score, remarks = @remarks, inspectionDate = @inspectionDate
+            OUTPUT INSERTED.*
+            WHERE inspectionID = @inspectionID
+        `;
+        const request = connection.request();
+        request.input("inspectionID", sql.Int, inspectionID);
+        request.input("score", sql.Int, score);
+        request.input("remarks", sql.VarChar(2000), remarks);
+        request.input("inspectionDate", sql.Date, inspectionDate);
+        const result = await request.query(query);
+        return result.recordset[0];
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     stallExists,
     createInspection,
     getInspectionById,
+    updateInspection,
 };
