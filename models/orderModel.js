@@ -240,10 +240,50 @@ async function getOrdersByCustomer(customerID) {
     }
 }
 
+// Get a single order (with its items) by ID — used to rebuild a cart on reorder
+async function getOrderWithItemsById(orderID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+
+        const orderRequest = connection.request();
+        orderRequest.input("orderID", sql.Int, orderID);
+        const orderResult = await orderRequest.query(`
+            SELECT orderID, customerID, stallID FROM Orders WHERE orderID = @orderID
+        `);
+        if (orderResult.recordset.length === 0) {
+            return null;
+        }
+        const order = orderResult.recordset[0];
+
+        const itemsRequest = connection.request();
+        itemsRequest.input("orderID", sql.Int, orderID);
+        const itemsResult = await itemsRequest.query(`
+            SELECT menuItemID, itemName, quantity, addons
+            FROM OrderItem
+            WHERE orderID = @orderID
+        `);
+
+        return { ...order, items: itemsResult.recordset };
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getCartById,
     getCartItemsForOrder,
     getNextQueueNumber,
     submitOrder,
     getOrdersByCustomer,
+    getOrderWithItemsById,
 };

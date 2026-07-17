@@ -90,7 +90,10 @@ function renderOrder(order) {
                     Order #${order.orderID} · ${formatDateTime(order.createdAt)} · Queue ${order.queueNumber}
                 </div>
             </div>
-            ${statusTag}
+            <div class="form-row">
+                ${statusTag}
+                <button type="button" class="btn btn--primary btn--sm" data-action="reorder">Reorder</button>
+            </div>
         </div>
 
         <div class="cart-stall__items">${order.items.map(renderOrderItemHtml).join("")}</div>
@@ -120,6 +123,41 @@ function renderOrders(orders) {
     for (const order of orders) {
         results.appendChild(renderOrder(order));
     }
+}
+
+/* ---------- Reorder ---------- */
+
+// Success needs a "View cart" link, so it bypasses showMessage (textContent-only)
+// and builds its own markup, same as the empty-cart link elsewhere in the app.
+function showReorderSuccess(el, data) {
+    let text = `Added ${data.addedItems.length} item(s) to your cart.`;
+    if (data.skippedItems && data.skippedItems.length > 0) {
+        text += ` No longer available: ${data.skippedItems.join(", ")}.`;
+    }
+    el.className = "message message--success";
+    el.innerHTML = `${text} <a href="/customer-cart.html">View cart →</a>`;
+    el.hidden = false;
+}
+
+async function handleReorder(orderID, btn) {
+    const msg = $("#orders-message");
+    clearMessage(msg);
+    btn.disabled = true;
+    try {
+        const data = await api(`/orders/${orderID}/reorder`, { method: "POST", auth: true });
+        showReorderSuccess(msg, data);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function handleResultsClick(event) {
+    const btn = event.target.closest('button[data-action="reorder"]');
+    if (!btn) return;
+    const orderID = Number(btn.closest(".order-card").dataset.orderId);
+    await handleReorder(orderID, btn);
 }
 
 /* ---------- Load orders ---------- */
@@ -152,6 +190,7 @@ function init() {
     if (email) $("#session-email").textContent = email;
 
     $("#logout-btn").addEventListener("click", handleLogout);
+    $("#orders-results").addEventListener("click", handleResultsClick);
 
     loadOrders();
 }
