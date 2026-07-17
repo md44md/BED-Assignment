@@ -311,16 +311,22 @@ async function advanceQueue(stallID) {
             WHERE orderID = @orderID
         `);
 
-        // Find who is next in line after advancing
+        // Find who is next in line after advancing, joining through to the customer's
+        // email and the stall name so the caller can notify them (third-party email).
         const nextRequest = new sql.Request(transaction);
         nextRequest.input("stallID", sql.Int, stallID);
         const nextResult = await nextRequest.query(`
-            SELECT TOP 1 orderID, customerID, queueNumber, status
-            FROM Orders
-            WHERE stallID = @stallID
-              AND status IN ('pending', 'preparing', 'ready')
-              AND CAST(createdAt AS DATE) = CAST(GETDATE() AS DATE)
-            ORDER BY queueNumber ASC
+            SELECT TOP 1 o.orderID, o.customerID, o.queueNumber, o.status,
+                   u.email AS customerEmail, c.firstName AS customerFirstName,
+                   s.stallName
+            FROM Orders o
+            JOIN Customer c ON o.customerID = c.customerID
+            JOIN Users u ON c.userID = u.userID
+            JOIN Stall s ON o.stallID = s.stallID
+            WHERE o.stallID = @stallID
+              AND o.status IN ('pending', 'preparing', 'ready')
+              AND CAST(o.createdAt AS DATE) = CAST(GETDATE() AS DATE)
+            ORDER BY o.queueNumber ASC
         `);
 
         await transaction.commit();
