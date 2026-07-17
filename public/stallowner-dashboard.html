@@ -123,12 +123,29 @@
 
             <!-- Sales Analytics tab -->
             <div id="analytics-tab" class="tab-panel" role="tabpanel" hidden>
-                <div class="empty">
-                    <p><strong>Sales Analytics</strong></p>
-                    <p>Track your stall's sales performance over time.</p>
-                    <p class="field__help">This feature is coming soon.</p>
+                <p class="panel__lead">Your stall's sales performance — popular items and peak hours — from completed orders.</p>
+
+                <div class="form-row">
+                    <button id="analytics-refresh-btn" type="button" class="btn btn--secondary btn--sm">Refresh</button>
                 </div>
-            </div>
+
+                <div id="analytics-message" class="message" role="status" aria-live="polite" hidden></div>
+
+                <!-- Summary stat cards -->
+                <div id="analytics-summary-results" class="results"></div>
+
+                <!-- Popular items -->
+                <div class="panel__head panel__head--sub">
+                    <h3 class="panel__title panel__title--sm">Popular Items</h3>
+                    <p class="panel__lead">Ranked by quantity sold (completed orders only).</p>
+                </div>
+                <div id="analytics-popular-items-results" class="results"></div>
+
+                <!-- Peak hours -->
+                <div class="panel__head panel__head--sub">
+                    <p class="panel__lead">Order volume by hour of day.</p>
+                </div>
+            <div id="analytics-peak-hours-results" class="results"></div>
         </section>
 
         <section class="panel" aria-labelledby="danger-heading">

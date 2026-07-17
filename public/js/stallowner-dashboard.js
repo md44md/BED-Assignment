@@ -50,6 +50,7 @@ function handleTabClick(event) {
     if (target === "menu") loadMenuItems();
     if (target === "queue") loadQueue();
     if (target === "rentals") loadRentalAgreements();
+    if (target === "analytics") loadSalesAnalytics();
 }
 
 /* ---------- Small helpers specific to menu items ---------- */
@@ -498,6 +499,120 @@ async function handleDeleteAccount() {
     }
 }
 
+/* ---------- Sales Analytics ---------- */
+
+function renderSummary(container, summary) {
+    container.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "stat-grid";
+    grid.innerHTML = `
+        <div class="stat-card">
+            <span class="stat-card__value">${Number(summary.totalOrders)}</span>
+            <span class="stat-card__label">Completed orders</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card__value">${formatCurrency(summary.totalRevenue)}</span>
+            <span class="stat-card__label">Total revenue</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card__value">${formatCurrency(summary.averageOrderValue)}</span>
+            <span class="stat-card__label">Average order value</span>
+        </div>
+    `;
+    container.appendChild(grid);
+}
+// Popular items: bar length scaled to quantity sold, relative to the top item.
+function renderPopularItems(container, items) {
+    container.innerHTML = "";
+    if (!items || items.length === 0) {
+        container.innerHTML = `<div class="empty">No completed orders yet for your stall.</div>`;
+        return;
+    }
+    const max = Math.max(...items.map((i) => Number(i.totalQuantitySold)));
+    const list = document.createElement("div");
+    list.className = "bar-list";
+    items.forEach((item) => {
+        const pct = max > 0 ? Math.round((Number(item.totalQuantitySold) / max) * 100) : 0;
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+            <div class="bar-row__label">
+                <span class="bar-row__name">${item.name}</span>
+                <span class="category-tag category--${item.category}">${item.category}</span>
+            </div>
+            <div class="bar-track">
+                <div class="bar-fill" style="width:${pct}%"></div>
+            </div>
+            <div class="bar-row__stats">
+                <span>${Number(item.totalQuantitySold)} sold</span>
+                <span>${formatCurrency(item.totalRevenue)}</span>
+                <span>${Number(item.orderCount)} orders</span>
+            </div>
+        `;
+        list.appendChild(row);
+    });
+    container.appendChild(list);
+}
+
+// Peak hours: one bar per active hour, scaled to the busiest hour. The API
+// already orders these by orderCount descending, so the busiest hour is first.
+function renderPeakHours(container, hours) {
+    container.innerHTML = "";
+    if (!hours || hours.length === 0) {
+        container.innerHTML = `<div class="empty">No completed orders yet for your stall.</div>`;
+        return;
+    }
+    const max = Math.max(...hours.map((h) => Number(h.orderCount)));
+    const list = document.createElement("div");
+    list.className = "bar-list";
+    hours.forEach((hour) => {
+        const pct = max > 0 ? Math.round((Number(hour.orderCount) / max) * 100) : 0;
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+            <div class="bar-row__label">
+                <span class="bar-row__name">${formatHourRange(hour.hourOfDay)}</span>
+            </div>
+            <div class="bar-track">
+                <div class="bar-fill" style="width:${pct}%"></div>
+            </div>
+            <div class="bar-row__stats">
+                <span>${Number(hour.orderCount)} orders</span>
+                <span>${formatCurrency(hour.totalRevenue)}</span>
+            </div>
+        `;
+        list.appendChild(row);
+    });
+    container.appendChild(list);
+}
+
+// e.g. 13 -> "1pm–2pm"
+function formatHourRange(hour) {
+    const h = Number(hour);
+    const label = (n) => {
+        const period = n < 12 || n === 24 ? "am" : "pm";
+        let display = n % 12;
+        if (display === 0) display = 12;
+        return `${display}${period}`;
+    };
+    return `${label(h)}–${label((h + 1) % 24)}`;
+}
+
+async function loadSalesAnalytics() {
+    const msg = $("#analytics-message");
+    clearMessage(msg);
+    try {
+        // Server derives the stall from the signed-in owner's JWT, so there's
+        // no stallID to pass — unlike the operator's version of this route.
+        const data = await api("/sales-analytics", { auth: true });
+        renderSummary($("#analytics-summary-results"), data.summary);
+        renderPopularItems($("#analytics-popular-items-results"), data.popularItems);
+        renderPeakHours($("#analytics-peak-hours-results"), data.peakHours);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
 /* ---------- Init ---------- */
 
 function init() {
@@ -525,6 +640,7 @@ function init() {
     $("#rentals-refresh-btn").addEventListener("click", loadRentalAgreements);
     $("#queue-refresh-btn").addEventListener("click", loadQueue);
     $("#serve-next-btn").addEventListener("click", handleServeNext);
+    $("#analytics-refresh-btn").addEventListener("click", loadSalesAnalytics);
     $("#stall-status-row").addEventListener("click", handleStallStatusClick);
     $("#delete-account-btn").addEventListener("click", handleDeleteAccount);
 

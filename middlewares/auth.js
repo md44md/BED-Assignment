@@ -38,6 +38,7 @@ function verifyJWT(req, res, next) {
 
             // NEA officer inspection routes
             "POST /inspections": ["neaOfficer"],
+            "PUT /inspections/[0-9]+": ["neaOfficer"],
 
             // Customer cart routes
             "GET /cart": ["customer"],
@@ -64,6 +65,15 @@ function verifyJWT(req, res, next) {
             "POST /hygiene-grades": ["neaOfficer"],
             "PUT /hygiene-grades/[0-9]+": ["neaOfficer"],
             "DELETE /hygiene-grades/[0-9]+": ["neaOfficer"],
+
+            // Operator sales analytics route
+            "GET /stalls/[0-9]+/sales-analytics": ["operator"],
+
+            // Stall owner sales analytics route
+            "GET /sales-analytics": ["stallOwner"],
+
+            // Operator stall list (filtered to their centres)
+            "GET /operators/stalls": ["operator"],
         };
 
         const requestedEndpoint = `${req.method} ${req.url}`;

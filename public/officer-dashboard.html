@@ -34,6 +34,7 @@
 
             <div class="tabs" role="tablist">
                 <button class="tab is-active" role="tab" data-tab="inspect" aria-selected="true">Log inspection</button>
+                <button class="tab" role="tab" data-tab="correct" aria-selected="false">Correct inspection</button>
                 <button class="tab" role="tab" data-tab="issue" aria-selected="false">Issue a grade</button>
                 <button class="tab" role="tab" data-tab="manage" aria-selected="false">Manage grades</button>
             </div>
@@ -64,6 +65,36 @@
                 </form>
                 <div id="inspect-message" class="message" role="status" aria-live="polite" hidden></div>
                 <div id="inspect-result" class="results"></div>
+            </div>
+
+            <!-- Correct inspection tab -->
+            <div id="correct-tab" class="tab-panel" role="tabpanel" hidden>
+                <p class="panel__lead">Update the score, remarks, or date of a previously logged inspection.</p>
+                <form id="correct-form" class="form-grid" novalidate>
+                    <div class="field">
+                        <label class="field__label" for="correct-inspection-id">Inspection ID</label>
+                        <input id="correct-inspection-id" class="input" type="number" min="1" step="1"
+                               placeholder="e.g. 1" required />
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="correct-score">Score (0–100)</label>
+                        <input id="correct-score" class="input" type="number" min="0" max="100" step="1"
+                               placeholder="e.g. 88" required />
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="correct-date">Inspection date</label>
+                        <input id="correct-date" class="input" type="date" />
+                        <p class="field__help">Leave blank to keep the original date.</p>
+                    </div>
+                    <div class="field field--full">
+                        <label class="field__label" for="correct-remarks">Remarks</label>
+                        <textarea id="correct-remarks" class="input" rows="3" maxlength="2000"
+                                  placeholder="Corrected observations…" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn--primary">Save correction</button>
+                </form>
+                <div id="correct-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="correct-result" class="results"></div>
             </div>
 
             <!-- Issue tab -->

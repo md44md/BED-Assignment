@@ -9,15 +9,12 @@ dotenv.config();
 
 // controllers and middlewares
 const stallOwnerController = require("./controllers/stallOwnerController");
-const { validateRegister, validateLogin } = require("./middlewares/stallOwnerValidation");
 const customerController = require("./controllers/customerController");
-const { validateRegister: validateCustomerRegister, validateLogin: validateCustomerLogin } = require("./middlewares/customerValidation");
 const officerController = require("./controllers/officerController");
-const { validateLogin: validateOfficerLogin } = require("./middlewares/officerValidation");
 const operatorController = require("./controllers/operatorController");
-const { validateLogin: validateOperatorLogin } = require("./middlewares/officerValidation");
+const { validateRegister, validateLogin } = require("./middlewares/userValidation");
 const inspectionController = require("./controllers/inspectionController");
-const { validateLogInspection } = require("./middlewares/inspectionValidation");
+const { validateLogInspection, validateUpdateInspection } = require("./middlewares/inspectionValidation");
 const cartController = require("./controllers/cartController");
 const { validateAddItem, validateCartItemId } = require("./middlewares/cartValidation");
 const orderController = require("./controllers/orderController");
@@ -33,6 +30,7 @@ const menuItemController = require("./controllers/menuItemController");
 const { validateMenuItem, validateMenuItemId } = require("./middlewares/menuItemValidation")
 const rentalAgreementController = require("./controllers/rentalAgreementController");
 const queueController = require("./controllers/queueController");
+const salesAnalyticsController = require("./controllers/salesAnalyticsController")
 const { verifyJWT } = require("./middlewares/auth");
 
 // Initialize Express app
@@ -54,8 +52,8 @@ app.post("/stallowners/logout", stallOwnerController.logout);
 app.delete("/stallowners/account", verifyJWT, stallOwnerController.deleteAccount);
 
 // Routes for customer auth
-app.post("/customers/register", validateCustomerRegister, customerController.register);
-app.post("/customers/login", validateCustomerLogin, customerController.login);
+app.post("/customers/register", validateRegister, customerController.register);
+app.post("/customers/login", validateLogin, customerController.login);
 app.post("/customers/logout", customerController.logout);
 app.delete("/customers/account", verifyJWT, customerController.deleteAccount);
 
@@ -102,10 +100,11 @@ app.post("/officers/login", validateOfficerLogin, officerController.login);
  *     responses:
  *       200: { description: Logout confirmed. }
  */
+app.post("/officers/login", validateLogin, officerController.login);
 app.post("/officers/logout", officerController.logout);
 
 // Routes for operator auth
-app.post("/operators/login", validateOperatorLogin, operatorController.login);
+app.post("/operators/login", validateLogin, operatorController.login);
 app.post("/operators/logout", operatorController.logout);
 
 // Routes for officer inspections
@@ -137,6 +136,7 @@ app.post("/operators/logout", operatorController.logout);
  *       404: { description: Stall not found. }
  */
 app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.logInspection);
+app.put("/inspections/:id", verifyJWT, validateUpdateInspection, inspectionController.updateInspection);
 
 // Routes for customer cart
 app.get("/cart", verifyJWT, cartController.getCart);
@@ -319,6 +319,11 @@ app.get("/stalls/:stallID/hygiene-grades", hygieneGradeController.getStallGrades
 app.post("/hygiene-grades", verifyJWT, validateIssueGrade, hygieneGradeController.issueGrade);
 app.put("/hygiene-grades/:gradeID", verifyJWT, validateUpdateGrade, hygieneGradeController.updateGrade);
 app.delete("/hygiene-grades/:gradeID", verifyJWT, hygieneGradeController.deleteGrade);
+
+// Routes for viewing sales analytics
+app.get("/operators/stalls", verifyJWT, operatorController.getMyStalls)
+app.get("/stalls/:stallID/sales-analytics", verifyJWT, salesAnalyticsController.getSalesAnalytics)
+app.get("/sales-analytics", verifyJWT, salesAnalyticsController.getMySalesAnalytics)
 
 // Start server
 app.listen(port, () => {
