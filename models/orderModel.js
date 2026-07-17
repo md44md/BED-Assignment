@@ -311,6 +311,9 @@ async function advanceQueue(stallID) {
             WHERE orderID = @orderID
         `);
 
+        // The row was read before the update, so its status is still the pre-serve value.
+        servedOrder.status = "completed";
+
         // Find who is next in line after advancing, joining through to the customer's
         // email and the stall name so the caller can notify them (third-party email).
         const nextRequest = new sql.Request(transaction);

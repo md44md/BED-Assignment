@@ -3,6 +3,18 @@ const orderModel = require("../models/orderModel");
 const notificationModel = require("../models/notificationModel");
 const emailService = require("../services/emailService");
 
+// The next-in-line row carries the customer's contact details so we can email them.
+// Those are for the notification only, so responses expose just the queue fields.
+function toQueueOrder(order) {
+    if (!order) return null;
+    return {
+        orderID: order.orderID,
+        customerID: order.customerID,
+        queueNumber: order.queueNumber,
+        status: order.status,
+    };
+}
+
 // GET /stallowners/queue  (stall owner only)
 // Returns today's active queue for the logged-in owner's stall, current customer first.
 async function getQueue(req, res) {
@@ -74,8 +86,8 @@ async function advanceQueue(req, res) {
 
         res.status(200).json({
             message: "Current customer served. Queue advanced.",
-            servedOrder: result.servedOrder,
-            nextOrder: next, // null when the queue is now empty
+            servedOrder: toQueueOrder(result.servedOrder),
+            nextOrder: toQueueOrder(next), // null when the queue is now empty
             notified, // true only when the next customer was emailed successfully
         });
     } catch (error) {
