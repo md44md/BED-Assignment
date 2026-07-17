@@ -43,10 +43,12 @@ function handleTabClick(event) {
         t.setAttribute("aria-selected", String(active));
     });
     $("#menu-tab").hidden = target !== "menu";
+    $("#queue-tab").hidden = target !== "queue";
     $("#rentals-tab").hidden = target !== "rentals";
     $("#complaints-tab").hidden = target !== "complaints";
     $("#analytics-tab").hidden = target !== "analytics";
     if (target === "menu") loadMenuItems();
+    if (target === "queue") loadQueue();
     if (target === "rentals") loadRentalAgreements();
 }
 
@@ -364,6 +366,79 @@ async function loadRentalAgreements() {
     }
 }
 
+/* ---------- Queue management ---------- */
+
+// Render the queue: the current customer first (highlighted), then those waiting.
+function renderQueue(queue) {
+    const results = $("#queue-results");
+    results.innerHTML = "";
+
+    if (!queue || queue.length === 0) {
+        results.innerHTML = '<div class="empty">No customers in the queue right now.</div>';
+        return;
+    }
+
+    queue.forEach((order, index) => {
+        const isCurrent = index === 0;
+        const card = document.createElement("article");
+        card.className = "item-card" + (isCurrent ? " item-card--current" : "");
+        const tag = isCurrent
+            ? '<span class="tag tag--current">Now serving</span>'
+            : '<span class="tag tag--historical">Waiting</span>';
+        card.innerHTML = `
+            <div class="item-card__body">
+                <div class="item-card__row">
+                    <span class="item-card__title">Queue #${order.queueNumber}</span>
+                    ${tag}
+                    <span class="tag tag--available">${order.status}</span>
+                </div>
+                <div class="item-card__meta">Order ID ${order.orderID} · Customer ID ${order.customerID}</div>
+            </div>
+        `;
+        results.appendChild(card);
+    });
+}
+
+async function loadQueue() {
+    const msg = $("#queue-message");
+    clearMessage(msg);
+    try {
+        const data = await api("/stallowners/queue", { auth: true });
+        renderQueue(data.queue);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+async function handleServeNext() {
+    const msg = $("#queue-message");
+    clearMessage(msg);
+
+    const btn = $("#serve-next-btn");
+    btn.disabled = true;
+    try {
+        const data = await api("/stallowners/queue/advance", { method: "POST", auth: true });
+
+        // Build a clear summary of what happened for the owner.
+        let summary = `Served queue #${data.servedOrder.queueNumber}.`;
+        if (data.nextOrder) {
+            summary += ` Now serving #${data.nextOrder.queueNumber}.`;
+            summary += data.notified
+                ? " The next customer has been emailed."
+                : " (Could not email the next customer.)";
+        } else {
+            summary += " The queue is now empty.";
+        }
+        showMessage(msg, data.nextOrder && !data.notified ? "error" : "success", summary);
+
+        loadQueue();
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
 /* ---------- Stall status toggle ---------- */
 
 // Maps each status to an existing tag colour so it reuses the same visual
@@ -448,6 +523,8 @@ function init() {
     $("#refresh-btn").addEventListener("click", loadMenuItems);
     $("#menu-results").addEventListener("click", handleResultsClick);
     $("#rentals-refresh-btn").addEventListener("click", loadRentalAgreements);
+    $("#queue-refresh-btn").addEventListener("click", loadQueue);
+    $("#serve-next-btn").addEventListener("click", handleServeNext);
     $("#stall-status-row").addEventListener("click", handleStallStatusClick);
     $("#delete-account-btn").addEventListener("click", handleDeleteAccount);
 
