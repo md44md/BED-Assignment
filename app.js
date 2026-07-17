@@ -12,7 +12,7 @@ const officerController = require("./controllers/officerController");
 const operatorController = require("./controllers/operatorController");
 const { validateRegister, validateLogin } = require("./middlewares/userValidation");
 const inspectionController = require("./controllers/inspectionController");
-const { validateLogInspection } = require("./middlewares/inspectionValidation");
+const { validateLogInspection, validateUpdateInspection } = require("./middlewares/inspectionValidation");
 const cartController = require("./controllers/cartController");
 const { validateAddItem, validateCartItemId } = require("./middlewares/cartValidation");
 const orderController = require("./controllers/orderController");
@@ -61,6 +61,7 @@ app.post("/operators/logout", operatorController.logout);
 
 // Routes for officer inspections
 app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.logInspection);
+app.put("/inspections/:id", verifyJWT, validateUpdateInspection, inspectionController.updateInspection);
 
 // Routes for customer cart
 app.get("/cart", verifyJWT, cartController.getCart);

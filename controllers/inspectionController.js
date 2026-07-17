@@ -27,6 +27,35 @@ async function logInspection(req, res) {
     }
 }
 
+// PUT /inspections/:id
+async function updateInspection(req, res) {
+    try {
+        const inspectionID = parseInt(req.params.id, 10);
+        if (isNaN(inspectionID)) {
+            return res.status(400).json({ error: "Inspection ID must be a number." });
+        }
+
+        const existing = await inspectionModel.getInspectionById(inspectionID);
+        if (!existing) {
+            return res.status(404).json({ error: "Inspection not found." });
+        }
+
+        const { score, remarks, inspectionDate } = req.body;
+        const date = inspectionDate ? new Date(inspectionDate) : existing.inspectionDate;
+
+        const updated = await inspectionModel.updateInspection(inspectionID, score, remarks, date);
+
+        res.status(200).json({
+            message: "Inspection updated successfully.",
+            inspection: updated,
+        });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error updating inspection." });
+    }
+}
+
 module.exports = {
     logInspection,
+    updateInspection,
 };
