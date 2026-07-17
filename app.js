@@ -107,6 +107,7 @@ app.delete("/hygiene-grades/:gradeID", verifyJWT, hygieneGradeController.deleteG
 // Routes for viewing sales analytics
 app.get("/operators/stalls", verifyJWT, operatorController.getMyStalls)
 app.get("/stalls/:stallID/sales-analytics", verifyJWT, salesAnalyticsController.getSalesAnalytics)
+app.get("/sales-analytics", verifyJWT, salesAnalyticsController.getMySalesAnalytics)
 
 // Start server
 app.listen(port, () => {

@@ -1,7 +1,7 @@
 const sql = require('mssql');
 const dbConfig = require('../dbConfig');
 
-
+// Get stall owned by operator
 async function getStallOwnedByOperator(stallID, operatorID) {
     let connection;
     try {
@@ -15,6 +15,40 @@ async function getStallOwnedByOperator(stallID, operatorID) {
         const request = connection.request();
         request.input("stallID", sql.Int, stallID);
         request.input("operatorID", sql.Int, operatorID);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset[0];
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Get stall owned by owner
+async function getStallOwnedByOwner(stallOwnerID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT s.stallID, s.stallName, hc.centreID, hc.name AS centreName
+            FROM Stall s
+            INNER JOIN HawkerCentre hc ON s.centreID = hc.centreID
+            WHERE s.stallOwnerID = @stallOwnerID
+        `;
+        const request = connection.request();
+        request.input("stallOwnerID", sql.Int, stallOwnerID);
         const result = await request.query(query);
 
         if (result.recordset.length === 0) {
@@ -178,6 +212,7 @@ async function getPeakHoursByStallID(stallID) {
 
 module.exports = {
     getStallOwnedByOperator,
+    getStallOwnedByOwner,
     getStallsByOperatorID,
     getSalesSummaryByStallID,
     getPopularItemsByStallID,

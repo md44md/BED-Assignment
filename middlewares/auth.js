@@ -64,6 +64,9 @@ function verifyJWT(req, res, next) {
             // Operator sales analytics route
             "GET /stalls/[0-9]+/sales-analytics": ["operator"],
 
+            // Stall owner sales analytics route
+            "GET /sales-analytics": ["stallOwner"],
+
             // Operator stall list (filtered to their centres)
             "GET /operators/stalls": ["operator"],
         };
