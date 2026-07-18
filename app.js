@@ -89,7 +89,7 @@ app.delete("/customers/account", verifyJWT, customerController.deleteAccount);
  *       401: { description: Invalid credentials }
  *       404: { description: Account not found (or not an officer account) }
  */
-app.post("/officers/login", validateOfficerLogin, officerController.login);
+app.post("/officers/login", validateLogin, officerController.login);
 /**
  * @openapi
  * /officers/logout:
@@ -100,7 +100,6 @@ app.post("/officers/login", validateOfficerLogin, officerController.login);
  *     responses:
  *       200: { description: Logout confirmed. }
  */
-app.post("/officers/login", validateLogin, officerController.login);
 app.post("/officers/logout", officerController.logout);
 
 // Routes for operator auth
