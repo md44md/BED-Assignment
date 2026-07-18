@@ -28,6 +28,7 @@ const complaintController = require("./controllers/complaintController")
 const { validateCreateComplaint, validateUpdateComplaintStatus } = require("./middlewares/complaintValidation")
 const menuItemController = require("./controllers/menuItemController");
 const { validateMenuItem, validateMenuItemId } = require("./middlewares/menuItemValidation")
+const { uploadMenuItemImage } = require("./middlewares/uploadMiddleware");
 const rentalAgreementController = require("./controllers/rentalAgreementController");
 const queueController = require("./controllers/queueController");
 const salesAnalyticsController = require("./controllers/salesAnalyticsController")
@@ -202,8 +203,8 @@ app.get("/feedback/stall", verifyJWT, feedbackController.getStallFeedback);
 
 // Routes for menu management
 app.get("/menuitems", verifyJWT, menuItemController.getMenuItems);
-app.post("/menuitems", verifyJWT, validateMenuItem, menuItemController.createMenuItem);
-app.put("/menuitems/:id", verifyJWT, validateMenuItemId, validateMenuItem, menuItemController.updateMenuItem);
+app.post("/menuitems", verifyJWT,uploadMenuItemImage, validateMenuItem, menuItemController.createMenuItem);
+app.put("/menuitems/:id", verifyJWT, uploadMenuItemImage, validateMenuItemId, validateMenuItem, menuItemController.updateMenuItem);
 app.delete("/menuitems/:id", verifyJWT, validateMenuItemId, menuItemController.deleteMenuItem);
 
 // Route for viewing rental agreements
@@ -328,6 +329,15 @@ app.delete("/hygiene-grades/:gradeID", verifyJWT, hygieneGradeController.deleteG
 app.get("/operators/stalls", verifyJWT, operatorController.getMyStalls)
 app.get("/stalls/:stallID/sales-analytics", verifyJWT, salesAnalyticsController.getSalesAnalytics)
 app.get("/sales-analytics", verifyJWT, salesAnalyticsController.getMySalesAnalytics)
+
+/* Multer throws its own errors (e.g. file too big, wrong type) that would crash with a raw stack trace. This is to
+catch the errors cleanly.*/
+app.use((error, req, res, next) => {
+    if (error && error.message) {
+        return res.status(400).json({ error: error.message });
+    }
+    next(error);
+});
 
 // Start server
 app.listen(port, () => {
