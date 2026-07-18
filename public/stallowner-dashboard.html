@@ -42,6 +42,7 @@
 
             <div class="tabs" role="tablist">
                 <button class="tab is-active" role="tab" data-tab="menu" aria-selected="true">Menu Items</button>
+                <button class="tab" role="tab" data-tab="queue" aria-selected="false">Queue</button>
                 <button class="tab" role="tab" data-tab="rentals" aria-selected="false">Rental Agreements</button>
                 <button class="tab" role="tab" data-tab="complaints" aria-selected="false">Complaints &amp; Ratings</button>
                 <button class="tab" role="tab" data-tab="analytics" aria-selected="false">Sales Analytics</button>
@@ -84,6 +85,19 @@
 
                 <div id="menu-message" class="message" role="status" aria-live="polite" hidden></div>
                 <div id="menu-results" class="results"></div>
+            </div>
+
+            <!-- Queue tab -->
+            <div id="queue-tab" class="tab-panel" role="tabpanel" hidden>
+                <p class="panel__lead">Serve the current customer and advance the queue. The next customer is emailed automatically when they become current.</p>
+
+                <div class="form-row">
+                    <button id="queue-refresh-btn" type="button" class="btn btn--secondary btn--sm">Refresh</button>
+                    <button id="serve-next-btn" type="button" class="btn btn--primary btn--sm">Serve current &amp; advance</button>
+                </div>
+
+                <div id="queue-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="queue-results" class="results"></div>
             </div>
 
             <!-- Rental Agreements tab -->
