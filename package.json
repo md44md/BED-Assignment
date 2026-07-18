@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,11 @@
     "express": "^5.2.1",
     "joi": "^18.2.3",
     "jsonwebtoken": "^9.0.3",
-    "mssql": "^12.6.0"
+    "mssql": "^12.6.0",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
   }
 }

@@ -29,6 +29,10 @@ function verifyJWT(req, res, next) {
             // Stall owner status toggle route
             "PUT /stalls/status": ["stallOwner"],
 
+            // Stall owner queue management
+            "GET /stallowners/queue": ["stallOwner"],
+            "POST /stallowners/queue/advance": ["stallOwner"],
+
             // Stall owner account deletion
             "DELETE /stallowners/account": ["stallOwner"],
 
