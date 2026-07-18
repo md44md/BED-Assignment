@@ -25,7 +25,7 @@ const stallController = require("./controllers/stallController");
 const feedbackController = require("./controllers/feedbackController");
 const { validateSubmitFeedback, validateEditFeedback } = require("./middlewares/feedbackValidation");
 const complaintController = require("./controllers/complaintController")
-const { validateCreateComplaint } = require("./middlewares/complaintValidation")
+const { validateCreateComplaint, validateUpdateComplaintStatus } = require("./middlewares/complaintValidation")
 const menuItemController = require("./controllers/menuItemController");
 const { validateMenuItem, validateMenuItemId } = require("./middlewares/menuItemValidation")
 const rentalAgreementController = require("./controllers/rentalAgreementController");
@@ -195,6 +195,11 @@ app.get("/feedback", verifyJWT, feedbackController.getMyFeedback);
 // Routes for complaints
 app.post("/complaint", verifyJWT, validateCreateComplaint, complaintController.createComplaint);
 app.get("/complaint", verifyJWT, complaintController.getComplaintsByCustomer);
+
+// Routes for stall satisfaction and complaint viewing
+app.get("/complaint/stall", verifyJWT, complaintController.getComplaintsByStall);
+app.put("/complaint/:complaintID/status", verifyJWT, validateUpdateComplaintStatus, complaintController.updateComplaintStatus);
+app.get("/feedback/stall", verifyJWT, feedbackController.getStallFeedback);
 
 // Routes for menu management
 app.get("/menuitems", verifyJWT, menuItemController.getMenuItems);

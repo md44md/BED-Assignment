@@ -50,6 +50,7 @@ function handleTabClick(event) {
     if (target === "menu") loadMenuItems();
     if (target === "queue") loadQueue();
     if (target === "rentals") loadRentalAgreements();
+    if (target === "complaints") loadComplaintsAndRatings();
     if (target === "analytics") loadSalesAnalytics();
 }
 
@@ -311,6 +312,197 @@ async function handleResultsClick(event) {
         await handleDelete(menuItemID);
         btn.disabled = false;
     }
+}
+
+/* ---------- Complaints & Ratings ---------- */
+
+// Map a complaint status to one of the shared tag colour variants.
+const COMPLAINT_STATUSES = ["open", "underReview", "resolved", "closed"];
+
+function complaintStatusTagClass(status) {
+    switch (status) {
+        case "resolved":
+        case "closed":
+            return "tag--current";       // green
+        case "underReview":
+            return "tag--low-stock";     // amber
+        default:                         // open
+            return "tag--historical";    // neutral
+    }
+}
+
+// Summary stat cards: average rating + total review count.
+function renderSatisfactionSummary(container, summary) {
+    container.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "stat-grid";
+    const totalReviews = Number(summary.totalReviews);
+    const averageRating = Number(summary.averageRating);
+    grid.innerHTML = `
+        <div class="stat-card">
+            <span class="stat-card__value">${totalReviews > 0 ? averageRating.toFixed(1) : "—"}</span>
+            <span class="stat-card__label">Average rating (out of 5)</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card__value">${totalReviews}</span>
+            <span class="stat-card__label">Total reviews</span>
+        </div>
+    `;
+    container.appendChild(grid);
+}
+
+// CSS-only bar chart: number of reviews at each star rating, 5 down to 1,
+// bar length scaled to whichever star count is highest.
+function renderRatingDistribution(container, feedback) {
+    container.innerHTML = "";
+    if (!feedback || feedback.length === 0) {
+        container.innerHTML = "";
+        return;
+    }
+    const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    feedback.forEach((item) => {
+        counts[item.rating] = (counts[item.rating] || 0) + 1;
+    });
+    const max = Math.max(...Object.values(counts));
+
+    const list = document.createElement("div");
+    list.className = "bar-list";
+    [5, 4, 3, 2, 1].forEach((stars) => {
+        const count = counts[stars];
+        const pct = max > 0 ? Math.round((count / max) * 100) : 0;
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+            <div class="bar-row__label">
+                <span class="bar-row__name">${stars}★</span>
+            </div>
+            <div class="bar-track">
+                <div class="bar-fill" style="width:${pct}%"></div>
+            </div>
+            <div class="bar-row__stats">
+                <span>${count} review${count === 1 ? "" : "s"}</span>
+            </div>
+        `;
+        list.appendChild(row);
+    });
+    container.appendChild(list);
+}
+
+// Individual reviews, newest first, reusing the order-card look.
+function renderFeedbackCard(item) {
+    const card = document.createElement("article");
+    card.className = "order-card";
+    card.innerHTML = `
+        <div class="order-card__head">
+            <div>
+                <div class="order-card__title">${item.firstName} ${item.lastName}</div>
+                <div class="order-card__meta">${item.rating}★ · ${formatDate(item.createdAt)}</div>
+            </div>
+        </div>
+        ${item.comments ? `<p class="order-card__meta">${item.comments}</p>` : ""}
+    `;
+    return card;
+}
+
+function renderFeedbackList(feedback) {
+    const results = $("#feedback-results");
+    results.innerHTML = "";
+    if (!feedback || feedback.length === 0) {
+        results.innerHTML = `<div class="empty">No reviews left for your stall yet.</div>`;
+        return;
+    }
+    for (const item of feedback) {
+        results.appendChild(renderFeedbackCard(item));
+    }
+}
+
+// Complaints, each with a status select + update button so the stall owner
+// can work through them without leaving the page.
+function renderComplaintCard(complaint) {
+    const card = document.createElement("article");
+    card.className = "order-card";
+    card.dataset.complaintId = complaint.complaintID;
+
+    const statusTag = `<span class="tag ${complaintStatusTagClass(complaint.status)}">${complaint.status}</span>`;
+
+    card.innerHTML = `
+        <div class="order-card__head">
+            <div>
+                <div class="order-card__title">${complaint.firstName} ${complaint.lastName}</div>
+                <div class="order-card__meta">${complaint.category} · Filed ${formatDate(complaint.createdAt)}</div>
+            </div>
+            ${statusTag}
+        </div>
+        <p class="order-card__meta">${complaint.description}</p>
+        ${complaint.resolvedAt ? `<div class="order-card__meta">Resolved ${formatDate(complaint.resolvedAt)}</div>` : ""}
+        <div class="grade-card__actions">
+            <select class="input" data-role="status-select">
+                ${COMPLAINT_STATUSES.map((s) => `<option value="${s}" ${s === complaint.status ? "selected" : ""}>${s}</option>`).join("")}
+            </select>
+            <button type="button" class="btn btn--secondary btn--sm" data-action="update-status">Update status</button>
+        </div>
+    `;
+    return card;
+}
+
+function renderComplaintsList(complaints) {
+    const results = $("#complaints-results");
+    results.innerHTML = "";
+    if (!complaints || complaints.length === 0) {
+        results.innerHTML = `<div class="empty">No complaints filed against your stall yet.</div>`;
+        return;
+    }
+    for (const complaint of complaints) {
+        results.appendChild(renderComplaintCard(complaint));
+    }
+}
+
+async function loadComplaintsAndRatings() {
+    const msg = $("#complaints-message");
+    clearMessage(msg);
+    try {
+        // Run sequentially, not concurrently: both share the back-end's
+        // single global mssql connection pool (same note as complaints.js
+        // and feedback.js on the customer side).
+        const feedbackData = await api("/feedback/stall", { auth: true });
+        renderSatisfactionSummary($("#satisfaction-summary-results"), feedbackData.summary);
+        renderRatingDistribution($("#rating-distribution-results"), feedbackData.feedback);
+        renderFeedbackList(feedbackData.feedback);
+
+        const complaintsData = await api("/complaint/stall", { auth: true });
+        renderComplaintsList(complaintsData.complaints);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+async function handleUpdateComplaintStatus(card, complaintID) {
+    const msg = $("#complaints-message");
+    clearMessage(msg);
+    const status = card.querySelector('[data-role="status-select"]').value;
+
+    try {
+        const data = await api(`/complaint/${complaintID}/status`, {
+            method: "PUT",
+            body: { status },
+            auth: true,
+        });
+        showMessage(msg, "success", data.message || "Complaint status updated.");
+        loadComplaintsAndRatings();
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+async function handleComplaintsResultsClick(event) {
+    const btn = event.target.closest('button[data-action="update-status"]');
+    if (!btn) return;
+    const card = btn.closest(".order-card");
+    const complaintID = Number(card.dataset.complaintId);
+
+    btn.disabled = true;
+    await handleUpdateComplaintStatus(card, complaintID);
+    btn.disabled = false;
 }
 
 /* ---------- Rental Agreements ---------- */
@@ -638,6 +830,8 @@ function init() {
     $("#refresh-btn").addEventListener("click", loadMenuItems);
     $("#menu-results").addEventListener("click", handleResultsClick);
     $("#rentals-refresh-btn").addEventListener("click", loadRentalAgreements);
+    $("#complaints-refresh-btn").addEventListener("click", loadComplaintsAndRatings);
+    $("#complaints-results").addEventListener("click", handleComplaintsResultsClick);
     $("#queue-refresh-btn").addEventListener("click", loadQueue);
     $("#serve-next-btn").addEventListener("click", handleServeNext);
     $("#analytics-refresh-btn").addEventListener("click", loadSalesAnalytics);

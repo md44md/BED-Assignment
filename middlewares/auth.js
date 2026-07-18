@@ -58,6 +58,13 @@ function verifyJWT(req, res, next) {
             "POST /complaint": ["customer"],
             "GET /complaint": ["customer"],
 
+            // Stall owner complaint routes
+            "GET /complaint/stall": ["stallOwner"],
+            "PUT /complaint/[0-9]+/status": ["stallOwner"],
+
+            // Stall owner feedback routes
+            "GET /feedback/stall": ["stallOwner"],
+
             // Customer account deletion
             "DELETE /customers/account": ["customer"],
 
