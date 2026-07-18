@@ -82,17 +82,20 @@ async function getMenuItemById(id) {
 }
 
 // Create new menu item
-async function createMenuItem(stallID, itemData) {
+// imageURL is optional — it's null when the vendor didn't attach a photo,
+// and the Cloudinary secure_url when they did.
+async function createMenuItem(stallID, itemData, imageURL) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = "INSERT INTO MenuItem (stallID, name, description, price, category) VALUES (@stallID, @name, @description, @price, @category); SELECT SCOPE_IDENTITY() AS menuItemID;";
+        const query = "INSERT INTO MenuItem (stallID, name, description, price, category, imageURL) VALUES (@stallID, @name, @description, @price, @category, @imageURL); SELECT SCOPE_IDENTITY() AS menuItemID;";
         const request = connection.request();
         request.input("stallID", sql.Int, stallID);
         request.input("name", sql.VarChar(255), itemData.name);
         request.input("description", sql.VarChar(1000), itemData.description);
         request.input("price", sql.Decimal(10, 2), itemData.price);
         request.input("category", sql.VarChar(50), itemData.category);
+        request.input("imageURL", sql.VarChar(500), imageURL);
         const result = await request.query(query);
 
         const newMenuItemID = result.recordset[0].menuItemID;
@@ -112,11 +115,13 @@ async function createMenuItem(stallID, itemData) {
 }
 
 // Update menu item
-async function updateMenuItem(id, itemData) {
+// imageURL is null when the vendor didn't upload a new photo on this edit —
+// COALESCE keeps whatever image the item already had instead of wiping it out.
+async function updateMenuItem(id, itemData, imageURL) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = "UPDATE MenuItem SET name = @name, description = @description, price = @price, category = @category, isAvailable = @isAvailable WHERE menuItemID = @id";
+        const query = "UPDATE MenuItem SET name = @name, description = @description, price = @price, category = @category, isAvailable = @isAvailable, imageURL = COALESCE(@imageURL, imageURL) WHERE menuItemID = @id";
         const request = connection.request();
         request.input("id", sql.Int, id);
         request.input("name", sql.VarChar(255), itemData.name);
@@ -124,6 +129,7 @@ async function updateMenuItem(id, itemData) {
         request.input("price", sql.Decimal(10, 2), itemData.price);
         request.input("category", sql.VarChar(50), itemData.category);
         request.input("isAvailable", sql.Bit, itemData.isAvailable);
+        request.input("imageURL", sql.VarChar(500), imageURL);
         const result = await request.query(query);
 
         if (result.rowsAffected[0] === 0) {
