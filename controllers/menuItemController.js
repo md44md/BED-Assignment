@@ -1,4 +1,5 @@
 const menuItemModel = require("../models/menuItemModel");
+const { uploadImageToCloudinary } = require("../cloudinaryConfig");
 
 // Get /menuitems
 async function getMenuItems(req, res) {
@@ -33,6 +34,8 @@ async function getMenuItemById(req, res) {
 }
 
 // Post /menuitems
+// If the vendor attached a photo (multer puts it on req.file), upload it to
+// Cloudinary first and pass the resulting secure_url down to the model.
 async function createMenuItem(req, res) {
     try {
         const stall = await menuItemModel.getStallByOwnerID(req.user.stallOwnerID);
@@ -40,7 +43,13 @@ async function createMenuItem(req, res) {
             return res.status(404).json({ message: "No stall found for this account." });
         }
 
-        const newMenuItem = await menuItemModel.createMenuItem(stall.stallID, req.body);
+        let imageURL = null;
+        if (req.file) {
+            const uploadResult = await uploadImageToCloudinary(req.file.buffer, req.file.mimetype);
+            imageURL = uploadResult.secure_url;
+        }
+
+        const newMenuItem = await menuItemModel.createMenuItem(stall.stallID, req.body, imageURL);
         res.status(201).json(newMenuItem);
     } catch (error) {
         console.error("Controller error:", error);
@@ -63,7 +72,13 @@ async function updateMenuItem(req, res) {
             return res.status(403).json({ error: "You do not have permission to edit this menu item." });
         }
 
-        const updatedMenuItem = await menuItemModel.updateMenuItem(id, req.body);
+        let imageURL = null;
+        if (req.file) {
+            const uploadResult = await uploadImageToCloudinary(req.file.buffer, req.file.mimetype);
+            imageURL = uploadResult.secure_url;
+        }
+
+        const updatedMenuItem = await menuItemModel.updateMenuItem(id, req.body, imageURL);
         res.json(updatedMenuItem);
     } catch (error) {
         console.error("Controller error:", error);
