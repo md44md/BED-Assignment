@@ -20,6 +20,14 @@ const createComplaintSchema = Joi.object({
     }),
 });
 
+// Schema for updating a complaint's status
+const updateComplaintStatusSchema = Joi.object({
+    status: Joi.string().valid("open", "underReview", "resolved", "closed").required().messages({
+        "any.only": "Status must be one of: open, underReview, resolved, closed",
+        "any.required": "Status is required",
+    }),
+});
+
 // Middleware to validate create complaint body
 function validateCreateComplaint(req, res, next) {
     const { error } = createComplaintSchema.validate(req.body, { abortEarly: false });
@@ -32,6 +40,19 @@ function validateCreateComplaint(req, res, next) {
     next();
 }
 
+// Middleware to validate update complaint status
+function validateUpdateComplaintStatus(req, res, next) {
+    const { error } = updateComplaintStatusSchema.validate(req.body, { abortEarly: false });
+
+    if (error) {
+        const errorMessage = error.details.map((detail) => detail.message).join(", ");
+        return res.status(400).json({ error: errorMessage });
+    }
+
+    next();
+}
+
 module.exports = {
     validateCreateComplaint,
+    validateUpdateComplaintStatus
 };

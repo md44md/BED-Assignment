@@ -1,4 +1,5 @@
 const feedbackModel = require("../models/feedbackModel");
+const stallModel = require("../models/stallModel");
 
 // POST /feedback
 async function submitFeedback(req, res) {
@@ -78,8 +79,31 @@ async function getMyFeedback(req, res) {
     }
 }
 
+// GET /feedback/stall (stall owner only)
+async function getStallFeedback(req, res) {
+    try {
+        const stall = await stallModel.getStallByOwnerID(req.user.stallOwnerID);
+        if (!stall) {
+            return res.status(404).json({ error: "No stall found for this account." });
+        }
+
+        const summary = await feedbackModel.getSatisfactionSummaryByStallID(stall.stallID);
+        const feedback = await feedbackModel.getFeedbackByStallID(stall.stallID);
+
+        res.status(200).json({
+            summary: summary,
+            count: feedback.length,
+            feedback: feedback,
+        });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving stall feedback." });
+    }
+}
+
 module.exports = {
     submitFeedback,
     editFeedback,
     getMyFeedback,
+    getStallFeedback
 };
