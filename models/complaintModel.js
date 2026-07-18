@@ -68,6 +68,7 @@ async function getComplaintsByStall(stallID) {
         const query = `
             SELECT c.complaintID, c.stallID, s.stallName, c.category, c.description, c.status, c.createdAt, c.resolvedAt
             FROM Complaint c
+            JOIN Stall s ON s.stallID = c.stallID
             JOIN Customer cu ON cu.customerID = c.customerID
             WHERE c.stallID = @stallID
             ORDER BY c.createdAt DESC
@@ -136,7 +137,7 @@ async function updateComplaintStatus(complaintID, status) {
             return null;
         }
 
-        return await getComplaintById(id);
+        return await getComplaintById(complaintID);
     } catch (error) {
         console.error("Database error:", error);
         throw error;

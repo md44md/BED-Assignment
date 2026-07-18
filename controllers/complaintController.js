@@ -43,7 +43,7 @@ async function getComplaintsByStall(req, res) {
             return res.status(404).json({ error: "No stall found for this account." });
         }
 
-        const complaints = await complaintModel.getComplaintsByStallID(stall.stallID);
+        const complaints = await complaintModel.getComplaintsByStall(stall.stallID);
 
         res.status(200).json({
             count: complaints.length,
