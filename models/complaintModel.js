@@ -66,7 +66,7 @@ async function getComplaintsByStall(stallID) {
     try {
         connection = await sql.connect(dbConfig);
         const query = `
-            SELECT c.complaintID, c.stallID, s.stallName, c.category, c.description, c.status, c.createdAt, c.resolvedAt
+            SELECT c.complaintID, c.stallID, s.stallName, c.category, c.description, c.status, c.createdAt, c.resolvedAt, cu.firstName, cu.lastName
             FROM Complaint c
             JOIN Stall s ON s.stallID = c.stallID
             JOIN Customer cu ON cu.customerID = c.customerID
@@ -132,10 +132,6 @@ async function updateComplaintStatus(complaintID, status) {
         request.input("complaintID", sql.Int, complaintID);
         request.input("status", sql.VarChar(20), status);
         const result = await request.query(query);
-
-        if (result.recordset.length === 0) {
-            return null;
-        }
 
         return await getComplaintById(complaintID);
     } catch (error) {
