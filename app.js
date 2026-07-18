@@ -81,6 +81,11 @@ app.get("/feedback", verifyJWT, feedbackController.getMyFeedback);
 app.post("/complaint", verifyJWT, validateCreateComplaint, complaintController.createComplaint);
 app.get("/complaint", verifyJWT, complaintController.getComplaintsByCustomer);
 
+// Routes for stall satisfaction and complaint viewing
+app.get("/complaint/stall", verifyJWT, complaintController.getComplaintsByStall);
+app.put("/complaint/:complaintID/status", verifyJWT, validateUpdateComplaintStatus, complaintController.updateComplaintStatus);
+app.get("/feedback/stall", verifyJWT, feedbackController.getStallFeedback);
+
 // Routes for menu management
 app.get("/menuitems", verifyJWT, menuItemController.getMenuItems);
 app.post("/menuitems", verifyJWT, validateMenuItem, menuItemController.createMenuItem);
