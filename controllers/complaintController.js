@@ -92,5 +92,6 @@ async function updateComplaintStatus(req, res) {
 module.exports = {
     createComplaint,
     getComplaintsByCustomer,
+    getComplaintsByStall,
     updateComplaintStatus
 };
