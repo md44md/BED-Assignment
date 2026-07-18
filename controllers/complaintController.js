@@ -77,7 +77,8 @@ async function updateComplaintStatus(req, res) {
             return res.status(403).json({ error: "Access denied. This complaint does not belong to your stall." });
         }
 
-        const updatedComplaint = await complaintModel.updateComplaintStatus(complaintID);
+        const { status } = req.body;
+        const updatedComplaint = await complaintModel.updateComplaintStatus(complaintID, status);
         
         res.status(200).json({
             message: "Complaint status updated successfully.",
