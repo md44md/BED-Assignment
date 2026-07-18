@@ -73,6 +73,7 @@ function renderItemCard(item) {
     const card = document.createElement("article");
     card.className = `item-card category--${item.category}` + (available ? "" : " item-card--unavailable");
     card.dataset.itemId = item.menuItemID;
+    if (item.imageURL) card.dataset.imageUrl = item.imageURL;
 
     const availTag = available
         ? '<span class="tag tag--available">Available</span>'
@@ -81,21 +82,27 @@ function renderItemCard(item) {
 
     card.innerHTML = `
         <div class="item-card__body">
-            <div class="item-card__row">
-                <span class="category-tag category--${item.category}">${item.category}</span>
-                ${availTag}
-                ${lowStockTag}
+            <div class="item-card__layout">                
+                ${item.imageURL ? `<img class="item-card__image item-card__image--thumb" src="${item.imageURL}" alt="${item.name}" />` 
+                : `<img class="item-card__image item-card__image--thumb" src="../images/default-img.png" alt="${item.name}" />`}
+                <div class="item-card__content">
+                    <div class="item-card__row">
+                        <span class="category-tag category--${item.category}">${item.category}</span>
+                        ${availTag}
+                        ${lowStockTag}
+                    </div>
+                    <div class="item-card__title">${item.name}</div>
+                    ${item.description ? `<div class="item-card__desc">${item.description}</div>` : ""}
+                    <div class="item-card__meta">Menu item ID ${item.menuItemID}</div>
+                    <div class="item-card__actions" data-view="display">
+                        <button type="button" class="btn btn--secondary btn--sm" data-action="edit">Edit</button>
+                        <button type="button" class="btn btn--secondary btn--sm" data-action="toggle-availability">
+                            Mark ${available ? "unavailable" : "available"}
+                        </button>
+                        <button type="button" class="btn btn--danger btn--sm" data-action="delete">Delete</button>
+                    </div>
+                </div>
                 <span class="item-card__price">${formatCurrency(item.price)}</span>
-            </div>
-            <div class="item-card__title">${item.name}</div>
-            ${item.description ? `<div class="item-card__desc">${item.description}</div>` : ""}
-            <div class="item-card__meta">Menu item ID ${item.menuItemID}</div>
-            <div class="item-card__actions" data-view="display">
-                <button type="button" class="btn btn--secondary btn--sm" data-action="edit">Edit</button>
-                <button type="button" class="btn btn--secondary btn--sm" data-action="toggle-availability">
-                    Mark ${available ? "unavailable" : "available"}
-                </button>
-                <button type="button" class="btn btn--danger btn--sm" data-action="delete">Delete</button>
             </div>
         </div>
     `;
@@ -133,18 +140,27 @@ async function handleAdd(event) {
     event.preventDefault();
     const msg = $("#add-message");
     clearMessage(msg);
-
-    const payload = {
-        name: $("#add-name").value.trim(),
-        description: $("#add-description").value.trim(),
-        price: Number($("#add-price").value),
-        category: $("#add-category").value,
-    };
-
+ 
+    const formData = new FormData();
+    formData.append("name", $("#add-name").value.trim());
+    formData.append("description", $("#add-description").value.trim());
+    formData.append("price", Number($("#add-price").value));
+    formData.append("category", $("#add-category").value);
+ 
+    const imageFile = $("#add-image").files[0];
+    if (imageFile) formData.append("image", imageFile); // field name must match multer's upload.single("image")
+ 
     const submitBtn = event.submitter;
     submitBtn.disabled = true;
     try {
-        await api("/menuitems", { method: "POST", body: payload, auth: true });
+        const res = await fetch("/menuitems", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${getToken()}` },
+            body: formData,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || data.message || "Request failed.");
+ 
         showMessage(msg, "success", "Menu item added.");
         $("#add-form").reset();
         $("#add-category").value = "main";
@@ -182,6 +198,7 @@ function showEditForm(card, item) {
                 ${CATEGORIES.map((c) => `<option value="${c}" ${c === item.category ? "selected" : ""}>${c}</option>`).join("")}
             </select>
         </div>
+
         <div class="field checkbox-field">
             <input id="edit-available-${item.menuItemID}" type="checkbox" ${isTruthy(item.isAvailable) ? "checked" : ""} />
             <label for="edit-available-${item.menuItemID}">Available to order</label>
@@ -191,11 +208,31 @@ function showEditForm(card, item) {
             <input id="edit-desc-${item.menuItemID}" class="input" type="text" maxlength="1000"
                    value="${(item.description || "").replace(/"/g, "&quot;")}" />
         </div>
+
+        <div class="field field--full">
+            <label class="field__label" for="edit-image-${item.menuItemID}">Image</label>
+            <img id="edit-image-preview-${item.menuItemID}" class="item-card__image"
+                src="${item.imageURL || ""}" alt="Menu item image preview"
+                style="margin-bottom:0.5rem; ${item.imageURL ? "" : "display:none;"}" />
+            <input type="file" class="input" id="edit-image-${item.menuItemID}" accept="image/*" />
+        </div>
+
         <div class="item-edit-form__actions">
             <button type="submit" class="btn btn--primary btn--sm">Save</button>
             <button type="button" class="btn btn--secondary btn--sm" data-action="cancel-edit">Cancel</button>
         </div>
     `;
+    // Handle image preview
+    const imageInput = form.querySelector(`#edit-image-${item.menuItemID}`);
+    const imagePreview = form.querySelector(`#edit-image-preview-${item.menuItemID}`);
+
+    imageInput.addEventListener("change", () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+
+        imagePreview.src = URL.createObjectURL(file);
+        imagePreview.style.display = "";
+    });
 
     card.querySelector('[data-view="display"]').hidden = true;
     body.appendChild(form);
@@ -214,18 +251,27 @@ async function handleSaveEdit(event, menuItemID) {
     const msg = $("#menu-message");
     clearMessage(msg);
 
-    const payload = {
-        name: $(`#edit-name-${menuItemID}`).value.trim(),
-        description: $(`#edit-desc-${menuItemID}`).value.trim(),
-        price: Number($(`#edit-price-${menuItemID}`).value),
-        category: $(`#edit-category-${menuItemID}`).value,
-        isAvailable: $(`#edit-available-${menuItemID}`).checked,
-    };
+    const formData = new FormData();
+    formData.append("name", $(`#edit-name-${menuItemID}`).value.trim());
+    formData.append("description", $(`#edit-desc-${menuItemID}`).value.trim());
+    formData.append("price", Number($(`#edit-price-${menuItemID}`).value));
+    formData.append("category", $(`#edit-category-${menuItemID}`).value);
+    formData.append("isAvailable", $(`#edit-available-${menuItemID}`).checked);
+
+    const imageFile = $(`#edit-image-${menuItemID}`).files[0];
+    if (imageFile) formData.append("image", imageFile);
 
     const submitBtn = event.submitter;
     submitBtn.disabled = true;
     try {
-        await api(`/menuitems/${menuItemID}`, { method: "PUT", body: payload, auth: true });
+        const res = await fetch(`/menuitems/${menuItemID}`, {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${getToken()}` },
+            body: formData,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || data.message || "Request failed.");
+
         showMessage(msg, "success", "Menu item updated.");
         loadMenuItems();
     } catch (err) {
@@ -290,6 +336,7 @@ async function handleResultsClick(event) {
             price: card.querySelector(".item-card__price").textContent.replace("$", ""),
             category: [...card.classList].find((c) => c.startsWith("category--") && c !== "category-tag").replace("category--", ""),
             isAvailable: !card.classList.contains("item-card--unavailable"),
+            imageURL: card.dataset.imageUrl || null,
         };
         showEditForm(card, item);
     }
@@ -568,6 +615,21 @@ function init() {
     $("#delete-account-btn").addEventListener("click", handleDeleteAccount);
 
     $("#logout-btn").addEventListener("click", handleLogout);
+
+    // Handle image preview
+    const addImageInput = $("#add-image");
+    const addImagePreview = $("#add-image-preview");
+
+    addImageInput.addEventListener("change", () => {
+        const file = addImageInput.files[0];
+        if (!file) {
+            addImagePreview.style.display = "none";
+            return;
+        }
+
+        addImagePreview.src = URL.createObjectURL(file);
+        addImagePreview.style.display = "";
+    });
 
     // Load menu items for the default tab
     loadMenuItems();

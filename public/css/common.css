@@ -475,6 +475,19 @@ a.home-card:active { transform: translateY(1px); }
 .item-card__title { font-weight: 700; font-size: 1.05rem; }
 .item-card__desc { color: var(--text-muted); font-size: .9rem; margin-top: 4px; }
 .item-card__meta { color: var(--text-muted); font-size: .8rem; margin-top: 4px; }
+.item-card__image {
+    aspect-ratio: 1 / 1;
+    max-height: 120px;
+    max-width: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin: 10px;
+    margin-right: 25px;
+}
+.item-card__layout {
+    display: flex;
+}
+
 .item-card__price { font-weight: 700; color: var(--brand-dark); margin-left: auto; font-size: 1rem; }
 .item-card__actions {
     display: flex;

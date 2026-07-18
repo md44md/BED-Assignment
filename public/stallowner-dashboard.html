@@ -72,7 +72,14 @@
                     <div class="field field--full">
                         <label class="field__label" for="add-description">Description (optional)</label>
                         <input id="add-description" class="input" type="text" maxlength="1000" />
+                    </div>                    
+                    <div class="field field--full">
+                        <label class="field__label" for="add-image">Image</label>
+                        <img id="add-image-preview" class="item-card__image" alt="Menu item image preview"
+                            style="margin-top:0.5rem; display:none;" />
+                        <input type="file" class="input" id="add-image" accept="image/*" />
                     </div>
+
                     <button type="submit" class="btn btn--primary">Add item</button>
                 </form>
 
