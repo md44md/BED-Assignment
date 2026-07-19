@@ -67,6 +67,24 @@ function isExpired(expiryDate) {
     return !isNaN(d) && d < new Date(new Date().toDateString());
 }
 
+// Render a 1-5 rating as a filled/empty star string, e.g. renderStars(4) -> "★★★★☆"
+function renderStars(rating) {
+    const filled = Math.round(Number(rating));
+    return "★".repeat(filled) + "☆".repeat(5 - filled);
+}
+
+// Escape text before interpolating it into innerHTML. Needed anywhere we
+// render free text written by someone other than the viewer (e.g. another
+// customer's review comment) so it can't be used for a stored-XSS injection.
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
 function showMessage(el, type, text) {
     el.className = `message message--${type}`;
     el.textContent = text;
