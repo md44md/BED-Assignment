@@ -21,7 +21,8 @@
             <a class="session-btn" href="/customer-home.html">← Stalls</a>
             <a class="session-btn" href="/customer-cart.html">🛒 Cart</a>
             <a class="session-btn" href="/customer-orders.html">📋 My Orders</a>
-            <button id="logout-btn" type="button" class="session-btn">
+            <a id="login-btn" class="session-btn" href="/customer-login.html" hidden>Log in</a>
+            <button id="logout-btn" type="button" class="session-btn" hidden>
                 <span class="session-btn__dot" aria-hidden="true"></span>
                 <span id="session-email"></span>
                 <span class="session-btn__label">· Log out</span>
@@ -38,6 +39,16 @@
 
             <div id="menu-message" class="message" role="status" aria-live="polite" hidden></div>
             <div id="menu-results" class="results"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="reviews-heading">
+            <div class="panel__head">
+                <h2 id="reviews-heading" class="panel__title">Ratings &amp; Reviews</h2>
+                <p id="reviews-summary" class="panel__lead">Loading reviews…</p>
+            </div>
+
+            <div id="reviews-message" class="message" role="status" aria-live="polite" hidden></div>
+            <div id="reviews-results" class="results"></div>
         </section>
     </main>
 

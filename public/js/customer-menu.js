@@ -1,11 +1,13 @@
 /* ============================================================
-   Stall Menu — customer-facing menu browsing.
-   Protected page: no valid token -> redirect to the login page.
+   Stall Menu — customer-facing menu + reviews browsing.
+   Public page: viewable by guests. Only "Add to cart" needs a session
+   (enforced by api(..., { auth: true }), which redirects to login on 401).
    Reads ?stallID= from the URL (linked from customer-home.html).
 
    Talks to the back-end API:
-     GET  /stalls/:stallID/menu   (public)
-     POST /cart/items             (customer only)
+     GET  /stalls/:stallID/menu       (public)
+     GET  /stalls/:stallID/feedback   (public)
+     POST /cart/items                 (customer only)
    Relies on helpers from common.js (loaded first).
    ============================================================ */
 
@@ -14,10 +16,18 @@
 const LOGIN_URL = "/customer-login.html";
 
 /* ---------- Auth guard ---------- */
+// This page is viewable by guests (menu + reviews are public); only
+// "Add to cart" actually requires a session, enforced by api(...,
+// { auth: true }) below.
 
 function goToLogin() {
     clearSession();
     window.location.replace(LOGIN_URL);
+}
+
+function handleLogout() {
+    clearSession();
+    window.location.href = LOGIN_URL;
 }
 
 function handleAuthFailure(err) {
@@ -90,6 +100,53 @@ function renderMenu(items) {
     }
 }
 
+/* ---------- Reviews rendering ---------- */
+
+function renderReviewCard(review) {
+    const card = document.createElement("article");
+    card.className = "review-card";
+    const reviewerName = `${review.firstName} ${review.lastName.charAt(0)}.`;
+
+    card.innerHTML = `
+        <div class="review-card__head">
+            <span class="review-card__stars">${renderStars(review.rating)}</span>
+            <span class="review-card__meta">${escapeHtml(reviewerName)} · ${formatDate(review.createdAt)}</span>
+        </div>
+        ${review.comments ? `<p class="review-card__comment">${escapeHtml(review.comments)}</p>` : ""}
+    `;
+    return card;
+}
+
+function renderReviews(data) {
+    const summary = $("#reviews-summary");
+    const results = $("#reviews-results");
+    results.innerHTML = "";
+
+    if (!data.reviewCount) {
+        summary.textContent = "No reviews yet.";
+        results.innerHTML = '<div class="empty">Be the first to leave a review after your order.</div>';
+        return;
+    }
+
+    summary.textContent = `${renderStars(data.averageRating)} ${data.averageRating} out of 5 (${data.reviewCount} review${data.reviewCount === 1 ? "" : "s"})`;
+    for (const review of data.reviews) {
+        results.appendChild(renderReviewCard(review));
+    }
+}
+
+/* ---------- Load reviews ---------- */
+
+async function loadReviews(stallID) {
+    const msg = $("#reviews-message");
+    clearMessage(msg);
+    try {
+        const data = await api(`/stalls/${stallID}/feedback`);
+        renderReviews(data);
+    } catch (err) {
+        showMessage(msg, "error", err.message);
+    }
+}
+
 /* ---------- Load stall + menu ---------- */
 
 async function loadMenu(stallID) {
@@ -140,14 +197,18 @@ async function handleResultsClick(event) {
 /* ---------- Init ---------- */
 
 function init() {
-    // Auth guard: this page is customer-only.
-    if (!isLoggedIn()) {
-        goToLogin();
-        return;
-    }
-
-    // Guard passed. Reveal the page (it starts hidden to avoid a flash).
+    // Menu + reviews are public, so reveal the page for guests and members alike
+    // (it starts hidden only to avoid a flash before we know the login state).
     document.body.classList.remove("auth-pending");
+
+    if (isLoggedIn()) {
+        const email = getEmail();
+        if (email) $("#session-email").textContent = email;
+        $("#logout-btn").hidden = false;
+        $("#logout-btn").addEventListener("click", handleLogout);
+    } else {
+        $("#login-btn").hidden = false;
+    }
 
     const stallID = getStallIdFromUrl();
     if (!stallID) {
@@ -158,6 +219,7 @@ function init() {
 
     $("#menu-results").addEventListener("click", handleResultsClick);
     loadMenu(stallID);
+    loadReviews(stallID);
 }
 
 document.addEventListener("DOMContentLoaded", init);

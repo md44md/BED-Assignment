@@ -79,6 +79,29 @@ async function getMyFeedback(req, res) {
     }
 }
 
+// GET /stalls/:stallID/feedback  (public)
+// Lets a customer check a stall's ratings/reviews before deciding to order.
+async function getStallFeedback(req, res) {
+    try {
+        const stallID = parseInt(req.params.stallID, 10);
+        if (isNaN(stallID)) {
+            return res.status(400).json({ error: "Stall ID must be a number." });
+        }
+
+        const stall = await stallModel.getStallById(stallID);
+        if (!stall) {
+            return res.status(404).json({ error: "Stall not found." });
+        }
+
+        const reviews = await feedbackModel.getFeedbackByStall(stallID);
+        const averageRating = reviews.length
+            ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
+            : null;
+
+        res.status(200).json({
+            averageRating: averageRating,
+            reviewCount: reviews.length,
+            reviews: reviews,
 // GET /feedback/stall (stall owner only)
 async function getStallFeedback(req, res) {
     try {
@@ -105,5 +128,6 @@ module.exports = {
     submitFeedback,
     editFeedback,
     getMyFeedback,
+    getStallFeedback,
     getStallFeedback
 };

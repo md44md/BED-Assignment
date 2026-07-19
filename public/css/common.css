@@ -615,6 +615,23 @@ a.home-card:active { transform: translateY(1px); }
 }
 .order-summary__row--total span:last-child { color: var(--brand-dark); }
 
+/* ---------- Reviews ---------- */
+.review-card {
+    padding: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+}
+.review-card__head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.review-card__stars { color: var(--brand-dark); font-size: 1.05rem; letter-spacing: 1px; }
+.review-card__meta { color: var(--text-muted); font-size: .85rem; }
+.review-card__comment { margin-top: 8px; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 560px) {
     .form-grid { grid-template-columns: 1fr; }
