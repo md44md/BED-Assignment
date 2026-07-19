@@ -326,10 +326,15 @@ CREATE TABLE Orders (
 -- status can be: 'pending', 'preparing', 'ready', 'completed', 'abandoned'
 -- paymentStatus can be: 'pending', 'paid', 'failed'
 
+-- createdAt defaults to GETDATE(), so these orders are dated the day the script is run.
+-- orderID 4 seeds Stall 1's live queue for the queue-advance demo: it sits at queue #43
+-- (current), so a customer who checks out at Stall 1 next becomes #44 and is the one emailed
+-- when the owner advances. This only works if the schema is run on the SAME day you record.
 INSERT INTO Orders (customerID, stallID, queueNumber, status, paymentMethod, paymentStatus, subtotal, packagingFee, gstAmount, totalAmount) VALUES
     (1, 1, 42, 'completed', 'PayNow', 'paid',    9.00, 0.00, 0.81,  9.81),
     (2, 3, 17, 'completed', 'NETS',   'paid',    5.50, 0.50, 0.54,  6.54),
-    (3, 5,  5, 'preparing', 'Cash',   'pending', 5.00, 0.00, 0.45,  5.45);
+    (3, 5,  5, 'preparing', 'Cash',   'pending', 5.00, 0.00, 0.45,  5.45),
+    (2, 1, 43, 'preparing', 'PayNow', 'paid',    4.50, 0.00, 0.41,  4.91);  -- orderID 4: seeds Stall 1's queue (see note above)
 
 CREATE TABLE OrderItem (
     orderItemID INT IDENTITY(1,1) PRIMARY KEY,
@@ -347,7 +352,8 @@ CREATE TABLE OrderItem (
 INSERT INTO OrderItem (orderID, menuItemID, itemName, unitPrice, quantity, addons) VALUES
     (1, 1,  'Steamed Chicken Rice', 4.50, 2, 'No chilli'),
     (2, 7,  'Char Kway Teow',       5.50, 1, 'Extra cockles'),
-    (3, 13, 'Wonton Noodles',       5.00, 1, NULL);
+    (3, 13, 'Wonton Noodles',       5.00, 1, NULL),
+    (4, 1,  'Steamed Chicken Rice', 4.50, 1, NULL);
 
 CREATE TABLE Payment (
     paymentID      INT IDENTITY(1,1) PRIMARY KEY,
@@ -363,7 +369,8 @@ CREATE TABLE Payment (
 INSERT INTO Payment (orderID, method, status, transactionRef, paidAt) VALUES
     (1, 'PayNow', 'success', 'TXN-PAY-001', '2025-06-01 12:35:00'),
     (2, 'NETS',   'success', 'TXN-NET-002', '2025-06-02 13:10:00'),
-    (3, 'Cash',   'pending', NULL,           NULL);
+    (3, 'Cash',   'pending', NULL,           NULL),
+    (4, 'PayNow', 'success', 'TXN-PAY-004', GETDATE());
 
 
 -- ============================================================
@@ -486,17 +493,19 @@ CREATE TABLE Inspection (
 );
 -- status can be: 'scheduled', 'completed', 'cancelled'
 
--- Stall 3 has two completed inspections to support the historical HygieneGrade below.
--- The remaining stalls each have one completed inspection backing their current grade.
+-- Inspection dates are quarter-spaced across 2024-2026 so the grades below fall due in
+-- different quarters (see HygieneGrade). Stall 3 has two completed inspections (a historical
+-- grade and a current one). inspectionID 4 is an upcoming *scheduled* re-inspection for Stall 5.
+-- Each grade is issued on the day of its backing inspection.
 INSERT INTO Inspection (stallID, officerID, scheduledDate, inspectionDate, score, remarks, status) VALUES
-    (1, 1, '2025-05-10', '2025-05-10', 88, 'Generally clean, minor grease buildup on exhaust hood.', 'completed'),
-    (3, 2, '2024-05-15', '2024-05-15', 91, 'Excellent hygiene standards across the board.',           'completed'),
-    (3, 2, '2025-05-15', '2025-05-15', 74, 'Food storage temperature not maintained properly.',       'completed'),
-    (5, 3, '2025-06-20', NULL,          NULL, NULL,                                                   'scheduled'),
-    (2, 1, '2025-05-12', '2025-05-12', 90, 'Well-maintained prep area, proper food handling observed.', 'completed'),  -- inspectionID 5
-    (4, 2, '2025-05-18', '2025-05-18', 82, 'Satisfactory overall, reminded staff on glove usage.',      'completed'),  -- inspectionID 6
-    (5, 3, '2025-05-22', '2025-05-22', 95, 'Immaculate stall, exemplary hygiene practices.',            'completed'),  -- inspectionID 7
-    (6, 1, '2025-05-25', '2025-05-25', 68, 'Some cleanliness lapses at wash station, needs improvement.', 'completed');  -- inspectionID 8
+    (1, 1, '2025-09-01', '2025-09-01', 88, 'Generally clean, minor grease buildup on exhaust hood.', 'completed'),      -- inspectionID 1  (Stall 1)
+    (3, 2, '2024-12-01', '2024-12-01', 91, 'Excellent hygiene standards across the board.',           'completed'),      -- inspectionID 2  (Stall 3, historical)
+    (3, 2, '2026-01-01', '2026-01-01', 74, 'Food storage temperature not maintained properly.',       'completed'),      -- inspectionID 3  (Stall 3, current)
+    (5, 3, '2026-08-15', NULL,          NULL, NULL,                                                   'scheduled'),       -- inspectionID 4  (Stall 5, upcoming re-inspection)
+    (2, 1, '2026-07-01', '2026-07-01', 90, 'Well-maintained prep area, proper food handling observed.', 'completed'),    -- inspectionID 5  (Stall 2, this quarter)
+    (4, 2, '2026-04-01', '2026-04-01', 82, 'Satisfactory overall, reminded staff on glove usage.',      'completed'),    -- inspectionID 6  (Stall 4, Q2 2026)
+    (5, 3, '2025-11-01', '2025-11-01', 95, 'Immaculate stall, exemplary hygiene practices.',            'completed'),    -- inspectionID 7  (Stall 5, Q4 2025)
+    (6, 1, '2026-02-01', '2026-02-01', 68, 'Some cleanliness lapses at wash station, needs improvement.', 'completed');  -- inspectionID 8  (Stall 6, Q1 2026)
 
 -- Hygiene grade issued after an inspection
 CREATE TABLE HygieneGrade (
@@ -510,13 +519,18 @@ CREATE TABLE HygieneGrade (
 );
 -- grade can be: 'A', 'B', 'C', 'D'
 
--- Stall 3 has a historical grade (from inspectionID 2) and a current grade (from inspectionID 3).
--- Every stall (1-6) has exactly one active grade so the officer/customer views always show a grade.
+-- Every stall (1-6) has exactly one active grade so the officer/customer views always show a
+-- grade. Grades are quarter-spaced and issued on the day of their backing inspection, giving a
+-- range of validity to talk through in the demo: Stall 2 was graded this quarter, Stall 1 is
+-- close to expiry (a natural cue for the upcoming re-inspection), and the others sit in between.
+-- Stall 3 also keeps one deliberately expired historical grade (isActive = 0) to show grade history.
+-- NOTE: these are fixed dates chosen to be valid across the assignment period (through the demo).
+-- They do not auto-roll, so refresh them if this data is reused far beyond 2026.
 INSERT INTO HygieneGrade (stallID, inspectionID, grade, issuedDate, expiryDate, isActive) VALUES
-    (1, 1, 'A', '2025-05-10', '2026-05-10', 1),
-    (3, 2, 'A', '2024-05-15', '2025-05-15', 0),  -- previous grade, now inactive
-    (3, 3, 'B', '2025-05-15', '2026-05-15', 1),
-    (2, 5, 'A', '2025-05-12', '2026-05-12', 1),
-    (4, 6, 'B', '2025-05-18', '2026-05-18', 1),
-    (5, 7, 'A', '2025-05-22', '2026-05-22', 1),
-    (6, 8, 'C', '2025-05-25', '2026-05-25', 1);
+    (1, 1, 'A', '2025-09-01', '2026-09-01', 1),  -- Stall 1: valid, expiring soon (cue for re-inspection)
+    (3, 2, 'A', '2024-12-01', '2025-12-01', 0),  -- Stall 3: historical grade, now expired/inactive
+    (3, 3, 'B', '2026-01-01', '2027-01-01', 1),  -- Stall 3: current grade (dropped A -> B after re-inspection)
+    (2, 5, 'A', '2026-07-01', '2027-07-01', 1),  -- Stall 2: freshly issued this quarter (Q3 2026)
+    (4, 6, 'B', '2026-04-01', '2027-04-01', 1),  -- Stall 4: issued Q2 2026
+    (5, 7, 'A', '2025-11-01', '2026-11-01', 1),  -- Stall 5: valid, expiring Q4 2026
+    (6, 8, 'C', '2026-02-01', '2027-02-01', 1);  -- Stall 6: issued Q1 2026
