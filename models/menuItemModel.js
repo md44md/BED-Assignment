@@ -34,7 +34,13 @@ async function getMenuItemsByStallID(stallID) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = "SELECT menuItemID, stallID, name, description, price, category, isAvailable, isLowStock, imageURL FROM MenuItem WHERE stallID = @stallID";
+        const query = `
+            SELECT mi.menuItemID, mi.stallID, mi.name, mi.description, mi.price, mi.category,
+                   mi.isAvailable, mi.isLowStock, mi.imageURL,
+                   (SELECT COUNT(*) FROM MenuItemLike mil WHERE mil.menuItemID = mi.menuItemID) AS likeCount
+            FROM MenuItem mi
+            WHERE mi.stallID = @stallID
+        `;
         const request = connection.request();
         request.input("stallID", sql.Int, stallID);
         const result = await request.query(query);
@@ -180,6 +186,134 @@ async function deleteMenuItem(id) {
     }
 }
 
+// Check if a customer already has a like on this item
+async function getLike(customerID, menuItemID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = "SELECT likeID FROM MenuItemLike WHERE customerID = @customerID AND menuItemID = @menuItemID";
+        const request = connection.request();
+        request.input("customerID", sql.Int, customerID);
+        request.input("menuItemID", sql.Int, menuItemID);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset[0];
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Insert a like row
+async function likeMenuItem(customerID, menuItemID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = "INSERT INTO MenuItemLike (customerID, menuItemID) VALUES (@customerID, @menuItemID)";
+        const request = connection.request();
+        request.input("customerID", sql.Int, customerID);
+        request.input("menuItemID", sql.Int, menuItemID);
+        await request.query(query);
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Delete a like row
+async function unlikeMenuItem(customerID, menuItemID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = "DELETE FROM MenuItemLike WHERE customerID = @customerID AND menuItemID = @menuItemID";
+        const request = connection.request();
+        request.input("customerID", sql.Int, customerID);
+        request.input("menuItemID", sql.Int, menuItemID);
+        await request.query(query);
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Fresh like count for one item, returned after a like/unlike so the UI updates immediately
+async function getLikeCountByMenuItemID(menuItemID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = "SELECT COUNT(*) AS likeCount FROM MenuItemLike WHERE menuItemID = @menuItemID";
+        const request = connection.request();
+        request.input("menuItemID", sql.Int, menuItemID);
+        const result = await request.query(query);
+
+        return result.recordset[0].likeCount;
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// All menuItemIDs a customer has liked, across every stall
+async function getLikedMenuItemIDsByCustomer(customerID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = "SELECT menuItemID FROM MenuItemLike WHERE customerID = @customerID";
+        const request = connection.request();
+        request.input("customerID", sql.Int, customerID);
+        const result = await request.query(query);
+
+        return result.recordset.map((row) => row.menuItemID);
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getStallByOwnerID,
     getMenuItemsByStallID,
@@ -187,4 +321,9 @@ module.exports = {
     createMenuItem,
     updateMenuItem,
     deleteMenuItem,
+    getLike,
+    likeMenuItem,
+    unlikeMenuItem,
+    getLikeCountByMenuItemID,
+    getLikedMenuItemIDsByCustomer,
 };
