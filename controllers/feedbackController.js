@@ -81,7 +81,7 @@ async function getMyFeedback(req, res) {
 
 // GET /stalls/:stallID/feedback  (public)
 // Lets a customer check a stall's ratings/reviews before deciding to order.
-async function getStallFeedback(req, res) {
+async function getStallReviews(req, res) {
     try {
         const stallID = parseInt(req.params.stallID, 10);
         if (isNaN(stallID)) {
@@ -102,6 +102,13 @@ async function getStallFeedback(req, res) {
             averageRating: averageRating,
             reviewCount: reviews.length,
             reviews: reviews,
+        });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving stall feedback." });
+    }
+}
+
 // GET /feedback/stall (stall owner only)
 async function getStallFeedback(req, res) {
     try {
@@ -128,6 +135,6 @@ module.exports = {
     submitFeedback,
     editFeedback,
     getMyFeedback,
+    getStallReviews,
     getStallFeedback,
-    getStallFeedback
 };

@@ -215,7 +215,7 @@ app.get("/stalls", stallController.getStalls);
 // Public: browse a stall's menu (no auth)
 app.get("/stalls/:stallID/menu", stallController.getStallMenu);
 // Public: browse a stall's ratings/reviews (no auth)
-app.get("/stalls/:stallID/feedback", feedbackController.getStallFeedback);
+app.get("/stalls/:stallID/feedback", feedbackController.getStallReviews);
 // Stall owner only: toggle own stall's status (open/busy/closed)
 app.put("/stalls/status", verifyJWT, stallController.updateStallStatus);
 
