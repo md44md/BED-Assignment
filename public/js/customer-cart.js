@@ -228,7 +228,7 @@ async function handleResultsClick(event) {
 
 function init() {
     // Auth guard: this page is customer-only.
-    if (!isLoggedIn()) {
+    if (!isLoggedIn() || getRole() !== "customer") {
         goToLogin();
         return;
     }
