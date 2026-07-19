@@ -109,9 +109,66 @@ async function deleteMenuItem(req, res) {
     }
 }
 
+// GET /menuitems/likes (customer only)
+// Returns the menu item IDs the logged-in customer has liked, so the
+// front-end can mark hearts on the public GET /stalls/:stallID/menu response.
+async function getMyLikedMenuItems(req, res) {
+    try {
+        const likedMenuItemIDs = await menuItemModel.getLikedMenuItemIDsByCustomer(req.user.customerID);
+        res.json({ likedMenuItemIDs });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving your liked menu items." });
+    }
+}
+
+// POST /menuitems/:id/like (customer only)
+async function likeMenuItem(req, res) {
+    try {
+        const id = parseInt(req.params.id);
+        const menuItem = await menuItemModel.getMenuItemById(id);
+        if (!menuItem) {
+            return res.status(404).json({ error: "Menu item not found." });
+        }
+
+        const existing = await menuItemModel.getLike(req.user.customerID, id);
+        if (!existing) {
+            await menuItemModel.likeMenuItem(req.user.customerID, id);
+        }
+
+        const likeCount = await menuItemModel.getLikeCountByMenuItemID(id);
+        res.status(200).json({ liked: true, likeCount: likeCount });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error liking menu item." });
+    }
+}
+
+// DELETE /menuitems/:id/like (customer only)
+async function unlikeMenuItem(req, res) {
+    try {
+        const id = parseInt(req.params.id);
+        const menuItem = await menuItemModel.getMenuItemById(id);
+        if (!menuItem) {
+            return res.status(404).json({ error: "Menu item not found." });
+        }
+
+        await menuItemModel.unlikeMenuItem(req.user.customerID, id);
+
+        const likeCount = await menuItemModel.getLikeCountByMenuItemID(id);
+        res.status(200).json({ liked: false, likeCount: likeCount });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error unliking menu item." });
+    }
+}
+
 module.exports = {
     getMenuItems,
     createMenuItem,
     updateMenuItem,
     deleteMenuItem,
+    getMyLikedMenuItems,
+    likeMenuItem,
+    unlikeMenuItem,
 };
