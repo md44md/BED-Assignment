@@ -38,6 +38,25 @@ function handleAuthFailure(err) {
     return false;
 }
 
+/* ---------- Likes ---------- */
+
+// menuItemIDs the logged-in customer has liked, so item cards can show the
+// right heart state on first paint.
+let likedMenuItemIDs = new Set();
+
+async function loadMyLikes() {
+    if (!isLoggedIn()) {
+        likedMenuItemIDs = new Set();
+        return;
+    }
+    try {
+        const data = await api("/menuitems/likes", { auth: true });
+        likedMenuItemIDs = new Set(data.likedMenuItemIDs || []);
+    } catch {
+        likedMenuItemIDs = new Set();
+    }
+}
+
 /* ---------- Helpers ---------- */
 
 function getStallIdFromUrl() {
@@ -53,6 +72,7 @@ function isTruthy(flag) {
 
 function renderItemCard(item) {
     const available = isTruthy(item.isAvailable);
+    const liked = likedMenuItemIDs.has(item.menuItemID);
 
     const card = document.createElement("article");
     card.className = `item-card category--${item.category}` + (available ? "" : " item-card--unavailable");
@@ -63,8 +83,8 @@ function renderItemCard(item) {
 
     card.innerHTML = `
         <div class="item-card__body">
-            <div class="item-card__layout">                
-            ${item.imageURL ? `<img class="item-card__image item-card__image--thumb" src="${item.imageURL}" alt="${item.name}" />` 
+            <div class="item-card__layout">
+            ${item.imageURL ? `<img class="item-card__image item-card__image--thumb" src="${item.imageURL}" alt="${item.name}" />`
             : `<img class="item-card__image item-card__image--thumb" src="../images/default-img.png" alt="${item.name}" />`}
                 <div class="item-card__content">
                     <div class="item-card__row">
@@ -78,6 +98,10 @@ function renderItemCard(item) {
                         <input type="number" class="input qty-input" min="1" max="99" value="1" ${available ? "" : "disabled"} />
                         <button type="button" class="btn btn--primary btn--sm" data-action="add" ${available ? "" : "disabled"}>
                             Add to cart
+                        </button>
+                        <button type="button" class="btn-like${liked ? " btn-like--active" : ""}" data-action="like" aria-pressed="${liked}">
+                            <span class="btn-like__icon">${liked ? "♥" : "♡"}</span>
+                            <span class="btn-like__count">${item.likeCount ?? 0}</span>
                         </button>
                     </div>
                 </div>
@@ -166,10 +190,7 @@ async function loadMenu(stallID) {
 
 /* ---------- Add to cart ---------- */
 
-async function handleResultsClick(event) {
-    const btn = event.target.closest('button[data-action="add"]');
-    if (!btn) return;
-
+async function handleAddToCart(btn) {
     const card = btn.closest(".item-card");
     const menuItemID = Number(card.dataset.itemId);
     const qtyInput = card.querySelector(".qty-input");
@@ -194,9 +215,50 @@ async function handleResultsClick(event) {
     }
 }
 
+/* ---------- Like / unlike ---------- */
+
+async function handleLikeClick(btn) {
+    const card = btn.closest(".item-card");
+    const menuItemID = Number(card.dataset.itemId);
+    const currentlyLiked = likedMenuItemIDs.has(menuItemID);
+    const msg = $("#menu-message");
+    clearMessage(msg);
+
+    btn.disabled = true;
+    try {
+        const method = currentlyLiked ? "DELETE" : "POST";
+        const data = await api(`/menuitems/${menuItemID}/like`, { method, auth: true });
+
+        if (data.liked) likedMenuItemIDs.add(menuItemID);
+        else likedMenuItemIDs.delete(menuItemID);
+
+        btn.classList.toggle("btn-like--active", data.liked);
+        btn.setAttribute("aria-pressed", String(data.liked));
+        btn.querySelector(".btn-like__icon").textContent = data.liked ? "♥" : "♡";
+        btn.querySelector(".btn-like__count").textContent = data.likeCount;
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function handleResultsClick(event) {
+    const addBtn = event.target.closest('button[data-action="add"]');
+    if (addBtn) {
+        await handleAddToCart(addBtn);
+        return;
+    }
+
+    const likeBtn = event.target.closest('button[data-action="like"]');
+    if (likeBtn) {
+        await handleLikeClick(likeBtn);
+    }
+}
+
 /* ---------- Init ---------- */
 
-function init() {
+async function init() {
     // Menu + reviews are public, so reveal the page for guests and members alike
     // (it starts hidden only to avoid a flash before we know the login state).
     document.body.classList.remove("auth-pending");
@@ -218,8 +280,13 @@ function init() {
     }
 
     $("#menu-results").addEventListener("click", handleResultsClick);
-    loadMenu(stallID);
-    loadReviews(stallID);
+
+    // Run sequentially, not concurrently: these share the backend's single
+    // global mssql connection pool, and firing them at the same time can
+    // cause one request's pool.close() to cut off the other mid-query.
+    await loadMyLikes();
+    await loadMenu(stallID);
+    await loadReviews(stallID);
 }
 
 document.addEventListener("DOMContentLoaded", init);
