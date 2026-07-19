@@ -63,19 +63,25 @@ function renderItemCard(item) {
 
     card.innerHTML = `
         <div class="item-card__body">
-            <div class="item-card__row">
-                <span class="category-tag category--${item.category}">${item.category}</span>
-                ${availTag}
-                ${lowStockTag}
-                <span class="item-card__price">${formatCurrency(item.price)}</span>
-            </div>
-            <div class="item-card__title">${item.name}</div>
-            ${item.description ? `<div class="item-card__desc">${item.description}</div>` : ""}
-            <div class="item-card__actions">
-                <input type="number" class="input qty-input" min="1" max="99" value="1" ${available ? "" : "disabled"} />
-                <button type="button" class="btn btn--primary btn--sm" data-action="add" ${available ? "" : "disabled"}>
-                    Add to cart
-                </button>
+            <div class="item-card__layout">                
+            ${item.imageURL ? `<img class="item-card__image item-card__image--thumb" src="${item.imageURL}" alt="${item.name}" />` 
+            : `<img class="item-card__image item-card__image--thumb" src="../images/default-img.png" alt="${item.name}" />`}
+                <div class="item-card__content">
+                    <div class="item-card__row">
+                        <span class="category-tag category--${item.category}">${item.category}</span>
+                        ${availTag}
+                        ${lowStockTag}
+                    </div>
+                    <div class="item-card__title">${item.name}</div>
+                    ${item.description ? `<div class="item-card__desc">${item.description}</div>` : ""}
+                    <div class="item-card__actions">
+                        <input type="number" class="input qty-input" min="1" max="99" value="1" ${available ? "" : "disabled"} />
+                        <button type="button" class="btn btn--primary btn--sm" data-action="add" ${available ? "" : "disabled"}>
+                            Add to cart
+                        </button>
+                    </div>
+                </div>
+                <span class="item-card__price item-card__price--right">${formatCurrency(item.price)}</span>
             </div>
         </div>
     `;

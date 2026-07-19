@@ -43,11 +43,14 @@ function handleTabClick(event) {
         t.setAttribute("aria-selected", String(active));
     });
     $("#menu-tab").hidden = target !== "menu";
+    $("#queue-tab").hidden = target !== "queue";
     $("#rentals-tab").hidden = target !== "rentals";
     $("#complaints-tab").hidden = target !== "complaints";
     $("#analytics-tab").hidden = target !== "analytics";
     if (target === "menu") loadMenuItems();
+    if (target === "queue") loadQueue();
     if (target === "rentals") loadRentalAgreements();
+    if (target === "complaints") loadComplaintsAndRatings();
     if (target === "analytics") loadSalesAnalytics();
 }
 
@@ -73,6 +76,7 @@ function renderItemCard(item) {
     const card = document.createElement("article");
     card.className = `item-card category--${item.category}` + (available ? "" : " item-card--unavailable");
     card.dataset.itemId = item.menuItemID;
+    if (item.imageURL) card.dataset.imageUrl = item.imageURL;
 
     const availTag = available
         ? '<span class="tag tag--available">Available</span>'
@@ -81,21 +85,27 @@ function renderItemCard(item) {
 
     card.innerHTML = `
         <div class="item-card__body">
-            <div class="item-card__row">
-                <span class="category-tag category--${item.category}">${item.category}</span>
-                ${availTag}
-                ${lowStockTag}
+            <div class="item-card__layout">                
+                ${item.imageURL ? `<img class="item-card__image item-card__image--thumb" src="${item.imageURL}" alt="${item.name}" />` 
+                : `<img class="item-card__image item-card__image--thumb" src="../images/default-img.png" alt="${item.name}" />`}
+                <div class="item-card__content">
+                    <div class="item-card__row">
+                        <span class="category-tag category--${item.category}">${item.category}</span>
+                        ${availTag}
+                        ${lowStockTag}
+                    </div>
+                    <div class="item-card__title">${item.name}</div>
+                    ${item.description ? `<div class="item-card__desc">${item.description}</div>` : ""}
+                    <div class="item-card__meta">Menu item ID ${item.menuItemID}</div>
+                    <div class="item-card__actions" data-view="display">
+                        <button type="button" class="btn btn--secondary btn--sm" data-action="edit">Edit</button>
+                        <button type="button" class="btn btn--secondary btn--sm" data-action="toggle-availability">
+                            Mark ${available ? "unavailable" : "available"}
+                        </button>
+                        <button type="button" class="btn btn--danger btn--sm" data-action="delete">Delete</button>
+                    </div>
+                </div>
                 <span class="item-card__price">${formatCurrency(item.price)}</span>
-            </div>
-            <div class="item-card__title">${item.name}</div>
-            ${item.description ? `<div class="item-card__desc">${item.description}</div>` : ""}
-            <div class="item-card__meta">Menu item ID ${item.menuItemID}</div>
-            <div class="item-card__actions" data-view="display">
-                <button type="button" class="btn btn--secondary btn--sm" data-action="edit">Edit</button>
-                <button type="button" class="btn btn--secondary btn--sm" data-action="toggle-availability">
-                    Mark ${available ? "unavailable" : "available"}
-                </button>
-                <button type="button" class="btn btn--danger btn--sm" data-action="delete">Delete</button>
             </div>
         </div>
     `;
@@ -133,18 +143,27 @@ async function handleAdd(event) {
     event.preventDefault();
     const msg = $("#add-message");
     clearMessage(msg);
-
-    const payload = {
-        name: $("#add-name").value.trim(),
-        description: $("#add-description").value.trim(),
-        price: Number($("#add-price").value),
-        category: $("#add-category").value,
-    };
-
+ 
+    const formData = new FormData();
+    formData.append("name", $("#add-name").value.trim());
+    formData.append("description", $("#add-description").value.trim());
+    formData.append("price", Number($("#add-price").value));
+    formData.append("category", $("#add-category").value);
+ 
+    const imageFile = $("#add-image").files[0];
+    if (imageFile) formData.append("image", imageFile); // field name must match multer's upload.single("image")
+ 
     const submitBtn = event.submitter;
     submitBtn.disabled = true;
     try {
-        await api("/menuitems", { method: "POST", body: payload, auth: true });
+        const res = await fetch("/menuitems", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${getToken()}` },
+            body: formData,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || data.message || "Request failed.");
+ 
         showMessage(msg, "success", "Menu item added.");
         $("#add-form").reset();
         $("#add-category").value = "main";
@@ -182,6 +201,7 @@ function showEditForm(card, item) {
                 ${CATEGORIES.map((c) => `<option value="${c}" ${c === item.category ? "selected" : ""}>${c}</option>`).join("")}
             </select>
         </div>
+
         <div class="field checkbox-field">
             <input id="edit-available-${item.menuItemID}" type="checkbox" ${isTruthy(item.isAvailable) ? "checked" : ""} />
             <label for="edit-available-${item.menuItemID}">Available to order</label>
@@ -191,11 +211,31 @@ function showEditForm(card, item) {
             <input id="edit-desc-${item.menuItemID}" class="input" type="text" maxlength="1000"
                    value="${(item.description || "").replace(/"/g, "&quot;")}" />
         </div>
+
+        <div class="field field--full">
+            <label class="field__label" for="edit-image-${item.menuItemID}">Image</label>
+            <img id="edit-image-preview-${item.menuItemID}" class="item-card__image"
+                src="${item.imageURL || ""}" alt="Menu item image preview"
+                style="margin-bottom:0.5rem; ${item.imageURL ? "" : "display:none;"}" />
+            <input type="file" class="input" id="edit-image-${item.menuItemID}" accept="image/*" />
+        </div>
+
         <div class="item-edit-form__actions">
             <button type="submit" class="btn btn--primary btn--sm">Save</button>
             <button type="button" class="btn btn--secondary btn--sm" data-action="cancel-edit">Cancel</button>
         </div>
     `;
+    // Handle image preview
+    const imageInput = form.querySelector(`#edit-image-${item.menuItemID}`);
+    const imagePreview = form.querySelector(`#edit-image-preview-${item.menuItemID}`);
+
+    imageInput.addEventListener("change", () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+
+        imagePreview.src = URL.createObjectURL(file);
+        imagePreview.style.display = "";
+    });
 
     card.querySelector('[data-view="display"]').hidden = true;
     body.appendChild(form);
@@ -214,18 +254,27 @@ async function handleSaveEdit(event, menuItemID) {
     const msg = $("#menu-message");
     clearMessage(msg);
 
-    const payload = {
-        name: $(`#edit-name-${menuItemID}`).value.trim(),
-        description: $(`#edit-desc-${menuItemID}`).value.trim(),
-        price: Number($(`#edit-price-${menuItemID}`).value),
-        category: $(`#edit-category-${menuItemID}`).value,
-        isAvailable: $(`#edit-available-${menuItemID}`).checked,
-    };
+    const formData = new FormData();
+    formData.append("name", $(`#edit-name-${menuItemID}`).value.trim());
+    formData.append("description", $(`#edit-desc-${menuItemID}`).value.trim());
+    formData.append("price", Number($(`#edit-price-${menuItemID}`).value));
+    formData.append("category", $(`#edit-category-${menuItemID}`).value);
+    formData.append("isAvailable", $(`#edit-available-${menuItemID}`).checked);
+
+    const imageFile = $(`#edit-image-${menuItemID}`).files[0];
+    if (imageFile) formData.append("image", imageFile);
 
     const submitBtn = event.submitter;
     submitBtn.disabled = true;
     try {
-        await api(`/menuitems/${menuItemID}`, { method: "PUT", body: payload, auth: true });
+        const res = await fetch(`/menuitems/${menuItemID}`, {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${getToken()}` },
+            body: formData,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || data.message || "Request failed.");
+
         showMessage(msg, "success", "Menu item updated.");
         loadMenuItems();
     } catch (err) {
@@ -290,6 +339,7 @@ async function handleResultsClick(event) {
             price: card.querySelector(".item-card__price").textContent.replace("$", ""),
             category: [...card.classList].find((c) => c.startsWith("category--") && c !== "category-tag").replace("category--", ""),
             isAvailable: !card.classList.contains("item-card--unavailable"),
+            imageURL: card.dataset.imageUrl || null,
         };
         showEditForm(card, item);
     }
@@ -309,6 +359,197 @@ async function handleResultsClick(event) {
         await handleDelete(menuItemID);
         btn.disabled = false;
     }
+}
+
+/* ---------- Complaints & Ratings ---------- */
+
+// Map a complaint status to one of the shared tag colour variants.
+const COMPLAINT_STATUSES = ["open", "underReview", "resolved", "closed"];
+
+function complaintStatusTagClass(status) {
+    switch (status) {
+        case "resolved":
+        case "closed":
+            return "tag--current";       // green
+        case "underReview":
+            return "tag--low-stock";     // amber
+        default:                         // open
+            return "tag--historical";    // neutral
+    }
+}
+
+// Summary stat cards: average rating + total review count.
+function renderSatisfactionSummary(container, summary) {
+    container.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "stat-grid";
+    const totalReviews = Number(summary.totalReviews);
+    const averageRating = Number(summary.averageRating);
+    grid.innerHTML = `
+        <div class="stat-card">
+            <span class="stat-card__value">${totalReviews > 0 ? averageRating.toFixed(1) : "—"}</span>
+            <span class="stat-card__label">Average rating (out of 5)</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-card__value">${totalReviews}</span>
+            <span class="stat-card__label">Total reviews</span>
+        </div>
+    `;
+    container.appendChild(grid);
+}
+
+// CSS-only bar chart: number of reviews at each star rating, 5 down to 1,
+// bar length scaled to whichever star count is highest.
+function renderRatingDistribution(container, feedback) {
+    container.innerHTML = "";
+    if (!feedback || feedback.length === 0) {
+        container.innerHTML = "";
+        return;
+    }
+    const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    feedback.forEach((item) => {
+        counts[item.rating] = (counts[item.rating] || 0) + 1;
+    });
+    const max = Math.max(...Object.values(counts));
+
+    const list = document.createElement("div");
+    list.className = "bar-list";
+    [5, 4, 3, 2, 1].forEach((stars) => {
+        const count = counts[stars];
+        const pct = max > 0 ? Math.round((count / max) * 100) : 0;
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+            <div class="bar-row__label">
+                <span class="bar-row__name">${stars}★</span>
+            </div>
+            <div class="bar-track">
+                <div class="bar-fill" style="width:${pct}%"></div>
+            </div>
+            <div class="bar-row__stats">
+                <span>${count} review${count === 1 ? "" : "s"}</span>
+            </div>
+        `;
+        list.appendChild(row);
+    });
+    container.appendChild(list);
+}
+
+// Individual reviews, newest first, reusing the order-card look.
+function renderFeedbackCard(item) {
+    const card = document.createElement("article");
+    card.className = "order-card";
+    card.innerHTML = `
+        <div class="order-card__head">
+            <div>
+                <div class="order-card__title">${item.firstName} ${item.lastName}</div>
+                <div class="order-card__meta">${item.rating}★ · ${formatDate(item.createdAt)}</div>
+            </div>
+        </div>
+        ${item.comments ? `<p class="order-card__meta">${item.comments}</p>` : ""}
+    `;
+    return card;
+}
+
+function renderFeedbackList(feedback) {
+    const results = $("#feedback-results");
+    results.innerHTML = "";
+    if (!feedback || feedback.length === 0) {
+        results.innerHTML = `<div class="empty">No reviews left for your stall yet.</div>`;
+        return;
+    }
+    for (const item of feedback) {
+        results.appendChild(renderFeedbackCard(item));
+    }
+}
+
+// Complaints, each with a status select + update button so the stall owner
+// can work through them without leaving the page.
+function renderComplaintCard(complaint) {
+    const card = document.createElement("article");
+    card.className = "order-card";
+    card.dataset.complaintId = complaint.complaintID;
+
+    const statusTag = `<span class="tag ${complaintStatusTagClass(complaint.status)}">${complaint.status}</span>`;
+
+    card.innerHTML = `
+        <div class="order-card__head">
+            <div>
+                <div class="order-card__title">${complaint.firstName} ${complaint.lastName}</div>
+                <div class="order-card__meta">${complaint.category} · Filed ${formatDate(complaint.createdAt)}</div>
+            </div>
+            ${statusTag}
+        </div>
+        <p class="order-card__meta">${complaint.description}</p>
+        ${complaint.resolvedAt ? `<div class="order-card__meta">Resolved ${formatDate(complaint.resolvedAt)}</div>` : ""}
+        <div class="grade-card__actions">
+            <select class="input" data-role="status-select">
+                ${COMPLAINT_STATUSES.map((s) => `<option value="${s}" ${s === complaint.status ? "selected" : ""}>${s}</option>`).join("")}
+            </select>
+            <button type="button" class="btn btn--secondary btn--sm" data-action="update-status">Update status</button>
+        </div>
+    `;
+    return card;
+}
+
+function renderComplaintsList(complaints) {
+    const results = $("#complaints-results");
+    results.innerHTML = "";
+    if (!complaints || complaints.length === 0) {
+        results.innerHTML = `<div class="empty">No complaints filed against your stall yet.</div>`;
+        return;
+    }
+    for (const complaint of complaints) {
+        results.appendChild(renderComplaintCard(complaint));
+    }
+}
+
+async function loadComplaintsAndRatings() {
+    const msg = $("#complaints-message");
+    clearMessage(msg);
+    try {
+        // Run sequentially, not concurrently: both share the back-end's
+        // single global mssql connection pool (same note as complaints.js
+        // and feedback.js on the customer side).
+        const feedbackData = await api("/feedback/stall", { auth: true });
+        renderSatisfactionSummary($("#satisfaction-summary-results"), feedbackData.summary);
+        renderRatingDistribution($("#rating-distribution-results"), feedbackData.feedback);
+        renderFeedbackList(feedbackData.feedback);
+
+        const complaintsData = await api("/complaint/stall", { auth: true });
+        renderComplaintsList(complaintsData.complaints);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+async function handleUpdateComplaintStatus(card, complaintID) {
+    const msg = $("#complaints-message");
+    clearMessage(msg);
+    const status = card.querySelector('[data-role="status-select"]').value;
+
+    try {
+        const data = await api(`/complaint/${complaintID}/status`, {
+            method: "PUT",
+            body: { status },
+            auth: true,
+        });
+        showMessage(msg, "success", data.message || "Complaint status updated.");
+        loadComplaintsAndRatings();
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+async function handleComplaintsResultsClick(event) {
+    const btn = event.target.closest('button[data-action="update-status"]');
+    if (!btn) return;
+    const card = btn.closest(".order-card");
+    const complaintID = Number(card.dataset.complaintId);
+
+    btn.disabled = true;
+    await handleUpdateComplaintStatus(card, complaintID);
+    btn.disabled = false;
 }
 
 /* ---------- Rental Agreements ---------- */
@@ -362,6 +603,79 @@ async function loadRentalAgreements() {
         renderRentalList(results, data.rentalAgreements);
     } catch (err) {
         if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+/* ---------- Queue management ---------- */
+
+// Render the queue: the current customer first (highlighted), then those waiting.
+function renderQueue(queue) {
+    const results = $("#queue-results");
+    results.innerHTML = "";
+
+    if (!queue || queue.length === 0) {
+        results.innerHTML = '<div class="empty">No customers in the queue right now.</div>';
+        return;
+    }
+
+    queue.forEach((order, index) => {
+        const isCurrent = index === 0;
+        const card = document.createElement("article");
+        card.className = "item-card" + (isCurrent ? " item-card--current" : "");
+        const tag = isCurrent
+            ? '<span class="tag tag--current">Now serving</span>'
+            : '<span class="tag tag--historical">Waiting</span>';
+        card.innerHTML = `
+            <div class="item-card__body">
+                <div class="item-card__row">
+                    <span class="item-card__title">Queue #${order.queueNumber}</span>
+                    ${tag}
+                    <span class="tag tag--available">${order.status}</span>
+                </div>
+                <div class="item-card__meta">Order ID ${order.orderID} · Customer ID ${order.customerID}</div>
+            </div>
+        `;
+        results.appendChild(card);
+    });
+}
+
+async function loadQueue() {
+    const msg = $("#queue-message");
+    clearMessage(msg);
+    try {
+        const data = await api("/stallowners/queue", { auth: true });
+        renderQueue(data.queue);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+async function handleServeNext() {
+    const msg = $("#queue-message");
+    clearMessage(msg);
+
+    const btn = $("#serve-next-btn");
+    btn.disabled = true;
+    try {
+        const data = await api("/stallowners/queue/advance", { method: "POST", auth: true });
+
+        // Build a clear summary of what happened for the owner.
+        let summary = `Served queue #${data.servedOrder.queueNumber}.`;
+        if (data.nextOrder) {
+            summary += ` Now serving #${data.nextOrder.queueNumber}.`;
+            summary += data.notified
+                ? " The next customer has been emailed."
+                : " (Could not email the next customer.)";
+        } else {
+            summary += " The queue is now empty.";
+        }
+        showMessage(msg, data.nextOrder && !data.notified ? "error" : "success", summary);
+
+        loadQueue();
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        btn.disabled = false;
     }
 }
 
@@ -563,11 +877,30 @@ function init() {
     $("#refresh-btn").addEventListener("click", loadMenuItems);
     $("#menu-results").addEventListener("click", handleResultsClick);
     $("#rentals-refresh-btn").addEventListener("click", loadRentalAgreements);
+    $("#complaints-refresh-btn").addEventListener("click", loadComplaintsAndRatings);
+    $("#complaints-results").addEventListener("click", handleComplaintsResultsClick);
+    $("#queue-refresh-btn").addEventListener("click", loadQueue);
+    $("#serve-next-btn").addEventListener("click", handleServeNext);
     $("#analytics-refresh-btn").addEventListener("click", loadSalesAnalytics);
     $("#stall-status-row").addEventListener("click", handleStallStatusClick);
     $("#delete-account-btn").addEventListener("click", handleDeleteAccount);
 
     $("#logout-btn").addEventListener("click", handleLogout);
+
+    // Handle image preview
+    const addImageInput = $("#add-image");
+    const addImagePreview = $("#add-image-preview");
+
+    addImageInput.addEventListener("change", () => {
+        const file = addImageInput.files[0];
+        if (!file) {
+            addImagePreview.style.display = "none";
+            return;
+        }
+
+        addImagePreview.src = URL.createObjectURL(file);
+        addImagePreview.style.display = "";
+    });
 
     // Load menu items for the default tab
     loadMenuItems();

@@ -53,16 +53,28 @@ customers, stall owners, operators, and NEA officers.
    npm start
    ```
 5. The app runs on `http://localhost:3000` (or the `PORT` set in `.env`).
+6. Interactive API documentation (Swagger UI) is available at
+   `http://localhost:3000/api-docs`.
+
+### Running Tests
+Unit tests are written with [Jest](https://jestjs.io/):
+```
+npm test
+```
 
 ## Project Structure
 ```
 BED-Assignment/
 ├── app.js               # Express app entry point and route definitions
+├── swagger.js           # Swagger/OpenAPI config (served at /api-docs)
 ├── dbConfig.js          # SQL Server connection config (reads from .env)
+├── cloudinaryConfig.js  # Cloudinary config for menu item image uploads
 ├── controllers/         # Request handlers (business logic per feature)
 ├── models/              # Database access (SQL queries per table)
-├── middlewares/         # JWT auth and Joi validation
+├── middlewares/         # JWT auth, Joi validation, file uploads
+├── services/            # Third-party integrations (e.g. Brevo email)
 ├── database/            # Schema creation script + sample data
+├── tests/               # Jest unit tests
 ├── public/              # Front-end (HTML, CSS, client-side JS)
 └── postman/             # API test evidence (screenshots + test cases)
 ```

@@ -102,6 +102,21 @@ async function getStallFeedback(req, res) {
             averageRating: averageRating,
             reviewCount: reviews.length,
             reviews: reviews,
+// GET /feedback/stall (stall owner only)
+async function getStallFeedback(req, res) {
+    try {
+        const stall = await stallModel.getStallByOwnerID(req.user.stallOwnerID);
+        if (!stall) {
+            return res.status(404).json({ error: "No stall found for this account." });
+        }
+
+        const summary = await feedbackModel.getSatisfactionSummaryByStallID(stall.stallID);
+        const feedback = await feedbackModel.getFeedbackByStallID(stall.stallID);
+
+        res.status(200).json({
+            summary: summary,
+            count: feedback.length,
+            feedback: feedback,
         });
     } catch (error) {
         console.error("Controller error:", error);
@@ -114,4 +129,5 @@ module.exports = {
     editFeedback,
     getMyFeedback,
     getStallFeedback,
+    getStallFeedback
 };

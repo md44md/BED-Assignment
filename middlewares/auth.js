@@ -29,6 +29,10 @@ function verifyJWT(req, res, next) {
             // Stall owner status toggle route
             "PUT /stalls/status": ["stallOwner"],
 
+            // Stall owner queue management
+            "GET /stallowners/queue": ["stallOwner"],
+            "POST /stallowners/queue/advance": ["stallOwner"],
+
             // Stall owner account deletion
             "DELETE /stallowners/account": ["stallOwner"],
 
@@ -53,6 +57,13 @@ function verifyJWT(req, res, next) {
             // Customer complaint routes
             "POST /complaint": ["customer"],
             "GET /complaint": ["customer"],
+
+            // Stall owner complaint routes
+            "GET /complaint/stall": ["stallOwner"],
+            "PUT /complaint/[0-9]+/status": ["stallOwner"],
+
+            // Stall owner feedback routes
+            "GET /feedback/stall": ["stallOwner"],
 
             // Customer account deletion
             "DELETE /customers/account": ["customer"],
