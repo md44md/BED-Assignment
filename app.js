@@ -207,6 +207,11 @@ app.post("/menuitems", verifyJWT,uploadMenuItemImage, validateMenuItem, menuItem
 app.put("/menuitems/:id", verifyJWT, uploadMenuItemImage, validateMenuItemId, validateMenuItem, menuItemController.updateMenuItem);
 app.delete("/menuitems/:id", verifyJWT, validateMenuItemId, menuItemController.deleteMenuItem);
 
+// Routes for customer menu item likes
+app.get("/menuitems/likes", verifyJWT, menuItemController.getMyLikedMenuItems);
+app.post("/menuitems/:id/like", verifyJWT, validateMenuItemId, menuItemController.likeMenuItem);
+app.delete("/menuitems/:id/like", verifyJWT, validateMenuItemId, menuItemController.unlikeMenuItem);
+
 // Route for viewing rental agreements
 app.get("/rental-agreements", verifyJWT, rentalAgreementController.getRentalAgreements);
 

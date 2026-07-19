@@ -54,6 +54,11 @@ function verifyJWT(req, res, next) {
             "POST /feedback/edit": ["customer"],
             "GET /feedback": ["customer"],
 
+            // Customer menu item like routes
+            "GET /menuitems/likes": ["customer"],
+            "POST /menuitems/[0-9]+/like": ["customer"],
+            "DELETE /menuitems/[0-9]+/like": ["customer"],
+
             // Customer complaint routes
             "POST /complaint": ["customer"],
             "GET /complaint": ["customer"],

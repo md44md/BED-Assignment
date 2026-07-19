@@ -543,6 +543,19 @@ a.home-card:active { transform: translateY(1px); }
 /* ---------- Quantity input (menu browsing) ---------- */
 .qty-input { width: 64px; text-align: center; padding: 6px 8px; }
 
+/* ---------- Like button (menu browsing) ---------- */
+.btn-like {
+    display: inline-flex; align-items: center; gap: 6px;
+    font: inherit; font-weight: 600; font-size: .82rem;
+    padding: 5px 12px; border-radius: 999px;
+    background: var(--bg); color: var(--text-muted);
+    border: 1px solid var(--border); cursor: pointer;
+}
+.btn-like:hover:not(:disabled) { background: var(--danger-tint); }
+.btn-like--active { background: var(--danger-tint); color: var(--danger); border-color: var(--danger); }
+.btn-like:disabled { opacity: .6; cursor: default; }
+.btn-like__icon { font-size: 1rem; line-height: 1; }
+
 /* ---------- Cart (customer-cart page) ---------- */
 .cart-stall {
     padding-bottom: 20px;
