@@ -57,6 +57,7 @@ app.post("/customers/register", validateRegister, customerController.register);
 app.post("/customers/login", validateLogin, customerController.login);
 app.post("/customers/logout", customerController.logout);
 app.delete("/customers/account", verifyJWT, customerController.deleteAccount);
+app.get("/customers/account", verifyJWT, customerController.getAccount);
 
 // Routes for officer auth
 /**

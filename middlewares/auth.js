@@ -70,8 +70,9 @@ function verifyJWT(req, res, next) {
             // Stall owner feedback routes
             "GET /feedback/stall": ["stallOwner"],
 
-            // Customer account deletion
+            // Customer account deletion / profile view
             "DELETE /customers/account": ["customer"],
+            "GET /customers/account": ["customer"],
 
             // NEA officer hygiene grade routes
             "POST /hygiene-grades": ["neaOfficer"],

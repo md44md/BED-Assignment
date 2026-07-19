@@ -50,6 +50,46 @@ async function loadStallGrid() {
     renderStallGrid(stallList);
 }
 
+/* ---------- My profile ---------- */
+
+function renderProfile(account) {
+    const results = $("#profile-results");
+    results.innerHTML = "";
+    const card = document.createElement("article");
+    card.className = "item-card";
+    card.innerHTML = `
+        <div class="item-card__body">
+            <div class="item-card__row">
+                <span class="item-card__title">${account.firstName} ${account.lastName}</span>
+                ${account.isVerified ? '<span class="tag tag--available">Verified</span>' : '<span class="tag tag--unavailable">Not verified</span>'}
+            </div>
+            <div class="item-card__meta">Email: ${account.email}</div>
+            <div class="item-card__meta">Phone: ${account.phone || "—"}</div>
+        </div>
+    `;
+    results.appendChild(card);
+}
+
+async function loadProfile() {
+    const msg = $("#profile-message");
+    clearMessage(msg);
+    try {
+        const account = await api("/customers/account", { auth: true });
+        renderProfile(account);
+    } catch (err) {
+        if (!goToLoginIfAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+// If the token is stale (e.g. account was deleted elsewhere), bounce to login.
+function goToLoginIfAuthFailure(err) {
+    if (err.status === 401 || err.status === 403) {
+        goToLogin();
+        return true;
+    }
+    return false;
+}
+
 /* ---------- Delete account ---------- */
 
 async function handleDeleteAccount() {
@@ -95,6 +135,7 @@ function init() {
     $("#delete-account-btn").addEventListener("click", handleDeleteAccount);
 
     loadStallGrid();
+    loadProfile();
 }
 
 document.addEventListener("DOMContentLoaded", init);

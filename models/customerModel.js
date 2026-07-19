@@ -142,10 +142,45 @@ async function deactivateAccount(userID) {
     }
 }
 
+// Get a customer's own profile (never includes passwordHash)
+async function getAccountByUserID(userID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT u.email, u.isActive, c.firstName, c.lastName, c.phone, c.isVerified
+            FROM Users u
+            JOIN Customer c ON c.userID = u.userID
+            WHERE u.userID = @userID
+        `;
+        const request = connection.request();
+        request.input("userID", sql.Int, userID);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset[0];
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getUserByEmail,
     createUser,
     createCustomer,
     getCustomerByUserID,
     deactivateAccount,
+    getAccountByUserID,
 };
