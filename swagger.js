@@ -1,59 +1,52 @@
-// Swagger / OpenAPI configuration.
-// Specs are written as @openapi JSDoc annotation blocks above the routes in app.js;
-// swagger-jsdoc collects them and swagger-ui-express serves them at /api-docs.
+// Swagger / OpenAPI generator (swagger-autogen).
+// Scans app.js for routes and writes the spec to swagger-output.json.
+// Run with: node swagger.js  (or: npm run swagger)
+// Then restart the server -- app.js serves the generated file at /api-docs.
 
-const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerAutogen = require("swagger-autogen")();
 
-const options = {
-    definition: {
-        openapi: "3.0.0",
-        info: {
-            title: "Hawker Centre Management System API",
-            version: "1.0.0",
+const doc = {
+    info: {
+        title: "Hawker Centre Management System API",
+        description:
+            "RESTful API for the Hawker Centre Management System (BED assignment). " +
+            "Protected endpoints require a Bearer JWT obtained from the relevant /login route.",
+        version: "1.0.0",
+    },
+    host: "localhost:3000",
+    schemes: ["http"],
+    securityDefinitions: {
+        bearerAuth: {
+            type: "apiKey",
+            name: "Authorization",
+            in: "header",
             description:
-                "RESTful API for the Hawker Centre Management System (BED assignment). " +
-                "Protected endpoints require a Bearer JWT obtained from the relevant /login route.",
-        },
-        servers: [
-            { url: "http://localhost:3000", description: "Local development server" },
-        ],
-        components: {
-            securitySchemes: {
-                // Reusable JWT bearer scheme; routes opt in with `security: [{ bearerAuth: [] }]`.
-                bearerAuth: {
-                    type: "http",
-                    scheme: "bearer",
-                    bearerFormat: "JWT",
-                },
-            },
-            schemas: {
-                // One order as it appears when viewing a stall's queue.
-                QueueOrder: {
-                    type: "object",
-                    properties: {
-                        orderID: { type: "integer", example: 8 },
-                        customerID: { type: "integer", example: 1 },
-                        queueNumber: { type: "integer", example: 43 },
-                        status: { type: "string", example: "pending" },
-                        createdAt: { type: "string", format: "date-time" },
-                    },
-                },
-                // The same order as reported by the advance endpoint, which reads the
-                // queue rows it acts on and so does not carry createdAt.
-                QueueOrderSummary: {
-                    type: "object",
-                    properties: {
-                        orderID: { type: "integer", example: 8 },
-                        customerID: { type: "integer", example: 1 },
-                        queueNumber: { type: "integer", example: 43 },
-                        status: { type: "string", example: "completed" },
-                    },
-                },
-            },
+                "Paste: Bearer <token>. Get a token from /customers/login, /stallowners/login, /operators/login, or /officers/login.",
         },
     },
-    // Files containing @openapi annotations.
-    apis: ["./app.js"],
+    // Applied to every route by default; routes that don't need auth
+    // are opted out individually with '#swagger.security = []' in app.js.
+    security: [{ bearerAuth: [] }],
 };
 
-module.exports = swaggerJsdoc(options);
+const outputFile = "./swagger-output.json";
+const routes = [
+    "./app.js",
+    "./controllers/stallOwnerController.js",
+    "./controllers/customerController.js",
+    "./controllers/officerController.js",
+    "./controllers/operatorController.js",
+    "./controllers/inspectionController.js",
+    "./controllers/cartController.js",
+    "./controllers/orderController.js",
+    "./controllers/hygieneGradeController.js",
+    "./controllers/stallController.js",
+    "./controllers/feedbackController.js",
+    "./controllers/complaintController.js",
+    "./controllers/menuItemController.js",
+    "./controllers/rentalAgreementController.js",
+    "./controllers/queueController.js",
+    "./controllers/salesAnalyticsController.js",
+];
+
+swaggerAutogen(outputFile, routes, doc);
