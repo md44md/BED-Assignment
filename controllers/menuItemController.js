@@ -17,22 +17,6 @@ async function getMenuItems(req, res) {
     }
 }
 
-// Get /menuitems/:id
-async function getMenuItemById(req, res) {
-    try {
-        const id = parseInt(req.params.id);
-        const menuItem = await menuItemModel.getMenuItemById(id);
-        if (!menuItem) {
-            return res.status(404).json({ message: "Menu item not found." });
-        }
-
-        res.json(menuItem);
-    } catch (error) {
-        console.error("Controller error:", error);
-        res.status(500).json({ error: "Error retrieving menu items." });
-    }
-}
-
 // Post /menuitems
 // If the vendor attached a photo (multer puts it on req.file), upload it to
 // Cloudinary first and pass the resulting secure_url down to the model.
