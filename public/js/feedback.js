@@ -5,7 +5,20 @@
 
 "use strict";
 
+const LOGIN_URL = "/customer-login.html";
 const LAST_FEEDBACK_ID_KEY = "hcms_last_feedback_id";
+
+/* ---------- Auth guard / logout ---------- */
+
+function goToLogin() {
+    clearSession();
+    window.location.replace(LOGIN_URL);
+}
+
+function handleLogout() {
+    clearSession();
+    window.location.href = LOGIN_URL;
+}
 
 // Cache of the customer's own feedback (loaded from GET /feedback), keyed by
 // feedbackID, so selecting a review in the edit dropdown can pre-fill its
@@ -167,7 +180,21 @@ async function editFeedback(event) {
 
 /* ---------- Init ---------- */
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function init() {
+    // Auth guard: this page is customer-only.
+    if (!isLoggedIn() || getRole() !== "customer") {
+        goToLogin();
+        return;
+    }
+
+    // Guard passed. Reveal the page (it starts hidden to avoid a flash).
+    document.body.classList.remove("auth-pending");
+
+    // Show which customer is signed in.
+    const email = getEmail();
+    if (email) $("#session-email").textContent = email;
+
+    $("#logout-btn").addEventListener("click", handleLogout);
     $("#submit-form").addEventListener("submit", submitFeedback);
     $("#edit-form").addEventListener("submit", editFeedback);
     $("#edit-feedback-id").addEventListener("change", fillEditFieldsFromSelection);
@@ -177,4 +204,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // can cause one request's pool.close() to cut off the other mid-query.
     await loadEligibleOrders();
     await loadMyFeedback();
-});
+}
+
+document.addEventListener("DOMContentLoaded", init);
