@@ -6,7 +6,7 @@ async function getUserByEmail(email) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = "SELECT userID, email, passwordHash, role, isActive FROM Users WHERE email = @email AND role = 'stallOwner'";
+        const query = "SELECT userID, email, passwordHash, role, isActive, profilePictureURL FROM Users WHERE email = @email AND role = 'stallOwner'";
         const request = connection.request();
         request.input("email", sql.VarChar(255), email);
         const result = await request.query(query);
@@ -139,10 +139,45 @@ async function deactivateAccount(userID) {
     }
 }
 
+// Get a stall owner's own profile (never includes passwordHash)
+async function getAccountByUserID(userID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT u.email, u.isActive, u.profilePictureURL, s.firstName, s.lastName, s.phone
+            FROM Users u
+            JOIN StallOwner s ON s.userID = u.userID
+            WHERE u.userID = @userID
+        `;
+        const request = connection.request();
+        request.input("userID", sql.Int, userID);
+        const result = await request.query(query);
+
+        if (result.recordset.length === 0) {
+            return null;
+        }
+
+        return result.recordset[0];
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getUserByEmail,
     createUser,
     createStallOwner,
     getStallOwnerByUserID,
     deactivateAccount,
+    getAccountByUserID,
 };

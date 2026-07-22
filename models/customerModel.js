@@ -6,7 +6,7 @@ async function getUserByEmail(email) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = "SELECT userID, email, passwordHash, role, isActive FROM Users WHERE email = @email AND role = 'customer'";
+        const query = "SELECT userID, email, passwordHash, role, isActive, profilePictureURL FROM Users WHERE email = @email AND role = 'customer'";
         const request = connection.request();
         request.input("email", sql.VarChar(255), email);
         const result = await request.query(query);
@@ -148,7 +148,7 @@ async function getAccountByUserID(userID) {
     try {
         connection = await sql.connect(dbConfig);
         const query = `
-            SELECT u.email, u.isActive, c.firstName, c.lastName, c.phone, c.isVerified
+            SELECT u.email, u.isActive, u.profilePictureURL, c.firstName, c.lastName, c.phone, c.isVerified
             FROM Users u
             JOIN Customer c ON c.userID = u.userID
             WHERE u.userID = @userID

@@ -17,12 +17,13 @@ GO
 -- ============================================================
 
 CREATE TABLE Users (
-    userID       INT IDENTITY(1,1) PRIMARY KEY,
-    email        VARCHAR(255) NOT NULL UNIQUE,
-    passwordHash VARCHAR(255) NOT NULL,
-    role         VARCHAR(20)  NOT NULL,      -- 'customer', 'stallOwner', 'operator', 'neaOfficer'
-    createdAt    DATETIME DEFAULT GETDATE(),
-    isActive     BIT DEFAULT 1
+    userID           INT IDENTITY(1,1) PRIMARY KEY,
+    email            VARCHAR(255) NOT NULL UNIQUE,
+    passwordHash     VARCHAR(255) NOT NULL,
+    role             VARCHAR(20)  NOT NULL,      -- 'customer', 'stallOwner', 'operator', 'neaOfficer'
+    createdAt        DATETIME DEFAULT GETDATE(),
+    isActive         BIT DEFAULT 1,
+    profilePictureURL VARCHAR(500)               -- shared across all roles; set via PUT /account/picture
 );
 
 -- Seeded plaintext passwords (for testing login only): <Name>123! e.g. Alice123!, Bob123!, ...

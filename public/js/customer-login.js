@@ -24,7 +24,7 @@ async function handleLogin(event) {
         });
         // Pass the role so any page can read getRole(); the server still
         // enforces authorisation from the JWT regardless.
-        saveSession(data.token, email, "customer");
+        saveSession(data.token, email, "customer", data.profilePictureURL);
         window.location.href = HOME_URL;
     } catch (err) {
         showMessage(msg, "error", err.message);

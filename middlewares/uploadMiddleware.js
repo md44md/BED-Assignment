@@ -21,4 +21,5 @@ const upload = multer({
 // FormData key ("image") must match it exactly.
 module.exports = {
     uploadMenuItemImage: upload.single("image"),
+    uploadProfilePicture: upload.single("image"),
 };
