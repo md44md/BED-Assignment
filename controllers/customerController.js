@@ -77,6 +77,7 @@ async function login(req, res) {
         res.status(200).json({
             message: "Login successful.",
             token: token,
+            profilePictureURL: user.profilePictureURL,
         });
     } catch (error) {
         console.error("Controller error:", error);
@@ -120,6 +121,7 @@ async function getAccount(req, res) {
             lastName: account.lastName,
             phone: account.phone,
             isVerified: account.isVerified,
+            profilePictureURL: account.profilePictureURL,
         });
     } catch (error) {
         console.error("Controller error:", error);
