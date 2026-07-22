@@ -9,12 +9,12 @@ cloudinary.config({
 // Uploads an in-memory file buffer (as produced by multer's memoryStorage)
 // straight to Cloudinary — no temp file ever touches our own disk.
 // Returns Cloudinary's full response; callers typically just need secure_url.
-async function uploadImageToCloudinary(fileBuffer, mimetype) {
+async function uploadImageToCloudinary(fileBuffer, mimetype, folder = "hcms/menu-items") {
     const base64Data = fileBuffer.toString("base64");
     const dataURI = `data:${mimetype};base64,${base64Data}`;
 
     return await cloudinary.uploader.upload(dataURI, {
-        folder: "hcms/menu-items",
+        folder,
         resource_type: "image",
     });
 }
