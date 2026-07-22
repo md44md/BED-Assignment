@@ -33,8 +33,9 @@ function verifyJWT(req, res, next) {
             "GET /stallowners/queue": ["stallOwner"],
             "POST /stallowners/queue/advance": ["stallOwner"],
 
-            // Stall owner account deletion
+            // Stall owner account deletion / profile view
             "DELETE /stallowners/account": ["stallOwner"],
+            "GET /stallowners/account": ["stallOwner"],
 
             // NEA officer inspection routes
             "POST /inspections": ["neaOfficer"],
@@ -87,6 +88,13 @@ function verifyJWT(req, res, next) {
 
             // Operator stall list (filtered to their centres)
             "GET /operators/stalls": ["operator"],
+
+            // Profile view (officer / operator)
+            "GET /officers/account": ["neaOfficer"],
+            "GET /operators/account": ["operator"],
+
+            // Profile picture upload (any logged-in role)
+            "PUT /account/picture": ["customer", "stallOwner", "operator", "neaOfficer"],
         };
 
         const requestedEndpoint = `${req.method} ${req.url}`;
