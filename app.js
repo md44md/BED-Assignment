@@ -28,8 +28,9 @@ const complaintController = require("./controllers/complaintController")
 const { validateCreateComplaint, validateUpdateComplaintStatus } = require("./middlewares/complaintValidation")
 const menuItemController = require("./controllers/menuItemController");
 const { validateMenuItem, validateMenuItemId } = require("./middlewares/menuItemValidation")
-const { uploadMenuItemImage } = require("./middlewares/uploadMiddleware");
+const { uploadMenuItemImage, uploadProfilePicture } = require("./middlewares/uploadMiddleware");
 const rentalAgreementController = require("./controllers/rentalAgreementController");
+const userController = require("./controllers/userController");
 const queueController = require("./controllers/queueController");
 const salesAnalyticsController = require("./controllers/salesAnalyticsController")
 const { verifyJWT } = require("./middlewares/auth");
@@ -51,6 +52,7 @@ app.post("/stallowners/register", validateRegister, stallOwnerController.registe
 app.post("/stallowners/login", validateLogin, stallOwnerController.login);
 app.post("/stallowners/logout", stallOwnerController.logout);
 app.delete("/stallowners/account", verifyJWT, stallOwnerController.deleteAccount);
+app.get("/stallowners/account", verifyJWT, stallOwnerController.getAccount);
 
 // Routes for customer auth
 app.post("/customers/register", validateRegister, customerController.register);
@@ -103,10 +105,15 @@ app.post("/officers/login", validateLogin, officerController.login);
  *       200: { description: Logout confirmed. }
  */
 app.post("/officers/logout", officerController.logout);
+app.get("/officers/account", verifyJWT, officerController.getAccount);
 
 // Routes for operator auth
 app.post("/operators/login", validateLogin, operatorController.login);
 app.post("/operators/logout", operatorController.logout);
+app.get("/operators/account", verifyJWT, operatorController.getAccount);
+
+// Route for profile picture upload (shared across all roles)
+app.put("/account/picture", verifyJWT, uploadProfilePicture, userController.uploadProfilePicture);
 
 // Routes for officer inspections
 /**
