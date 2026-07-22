@@ -17,11 +17,14 @@
                 <span class="brand__subtitle">Stall Owner Dashboard</span>
             </div>
         </div>
-        <button id="logout-btn" type="button" class="session-btn">
-            <span class="session-btn__dot" aria-hidden="true"></span>
-            <span id="session-email"></span>
-            <span class="session-btn__label">· Log out</span>
-        </button>
+        <div class="header-actions">
+            <a class="session-btn" href="/stallowner-profile.html">👤 My Profile</a>
+            <button id="logout-btn" type="button" class="session-btn">
+                <span class="session-btn__dot" aria-hidden="true"></span>
+                <span id="session-email"></span>
+                <span class="session-btn__label">· Log out</span>
+            </button>
+        </div>
     </header>
 
     <main class="layout">
@@ -170,17 +173,6 @@
                     <p class="panel__lead">Order volume by hour of day.</p>
                 </div>
             <div id="analytics-peak-hours-results" class="results"></div>
-        </section>
-
-        <section class="panel" aria-labelledby="danger-heading">
-            <div class="panel__head">
-                <h2 id="danger-heading" class="panel__title">Danger zone</h2>
-                <p class="panel__lead">
-                    Deleting your account is permanent — you will no longer be able to log in.
-                </p>
-            </div>
-            <button id="delete-account-btn" type="button" class="btn btn--danger">Delete my account</button>
-            <div id="delete-account-message" class="message" role="status" aria-live="polite" hidden></div>
         </section>
     </main>
 
