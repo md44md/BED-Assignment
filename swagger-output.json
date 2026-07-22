@@ -140,6 +140,33 @@
             "description": "Internal Server Error"
           }
         }
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
       }
     },
     "/customers/register": {
@@ -344,6 +371,35 @@
         }
       }
     },
+    "/officers/account": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/operators/login": {
       "post": {
         "description": "",
@@ -392,6 +448,64 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/operators/account": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/account/picture": {
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -998,6 +1112,114 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/officers/complaints": {
+      "get": {
+        "tags": [
+          "Officer Complaints"
+        ],
+        "summary": "View complaints submitted about stalls",
+        "description": "NEA officer view of complaints across every stall, newest first. Each complaint includes the stall, its hawker centre and the customer who raised it. The optional filters can be combined to narrow the list down while investigating.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status: open, underReview, resolved or closed.",
+            "type": "string"
+          },
+          {
+            "name": "stallID",
+            "in": "query",
+            "description": "Filter by the stall the complaint is about.",
+            "type": "integer"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter by category: Hygiene, Service, Food Quality or Other.",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching complaints (empty list when nothing matches)."
+          },
+          "400": {
+            "description": "Invalid filter value."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not an officer)."
+          },
+          "500": {
+            "description": "Error retrieving complaints."
+          }
+        }
+      }
+    },
+    "/officers/complaints/{complaintID}/status": {
+      "put": {
+        "tags": [
+          "Officer Complaints"
+        ],
+        "summary": "Record follow-up action on a complaint",
+        "description": "Moves a complaint through open -> underReview -> resolved/closed as the officer investigates. Officers have authority over every stall, so no ownership check applies. resolvedAt is stamped when the complaint is resolved or closed, and cleared if it is reopened.",
+        "parameters": [
+          {
+            "name": "complaintID",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the complaint being followed up."
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "underReview"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status updated; the updated complaint is returned."
+          },
+          "400": {
+            "description": "Complaint ID is not a number, or the status is missing/invalid."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not an officer)."
+          },
+          "404": {
+            "description": "Complaint not found."
+          },
+          "500": {
+            "description": "Error updating complaint status."
           }
         }
       }
