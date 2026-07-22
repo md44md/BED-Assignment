@@ -25,7 +25,8 @@ const stallController = require("./controllers/stallController");
 const feedbackController = require("./controllers/feedbackController");
 const { validateSubmitFeedback, validateEditFeedback } = require("./middlewares/feedbackValidation");
 const complaintController = require("./controllers/complaintController")
-const { validateCreateComplaint, validateUpdateComplaintStatus } = require("./middlewares/complaintValidation")
+const { validateCreateComplaint, validateUpdateComplaintStatus, validateComplaintFilters } = require("./middlewares/complaintValidation")
+const officerComplaintController = require("./controllers/officerComplaintController");
 const menuItemController = require("./controllers/menuItemController");
 const { validateMenuItem, validateMenuItemId } = require("./middlewares/menuItemValidation")
 const { uploadMenuItemImage, uploadProfilePicture } = require("./middlewares/uploadMiddleware");
@@ -100,6 +101,39 @@ app.get("/complaint", verifyJWT, complaintController.getComplaintsByCustomer);
 app.get("/complaint/stall", verifyJWT, complaintController.getComplaintsByStall);
 app.put("/complaint/:complaintID/status", verifyJWT, validateUpdateComplaintStatus, complaintController.updateComplaintStatus);
 app.get("/feedback/stall", verifyJWT, feedbackController.getStallFeedback);
+
+// Routes for NEA officer complaint oversight
+// Officer only: view complaints across every stall, and record follow-up action on one
+app.get("/officers/complaints",
+    /*
+        #swagger.tags = ['Officer Complaints']
+        #swagger.summary = 'View complaints submitted about stalls'
+        #swagger.description = 'NEA officer view of complaints across every stall, newest first. Each complaint includes the stall, its hawker centre and the customer who raised it. The optional filters can be combined to narrow the list down while investigating.'
+        #swagger.parameters['status'] = { in: 'query', description: 'Filter by status: open, underReview, resolved or closed.', type: 'string' }
+        #swagger.parameters['stallID'] = { in: 'query', description: 'Filter by the stall the complaint is about.', type: 'integer' }
+        #swagger.parameters['category'] = { in: 'query', description: 'Filter by category: Hygiene, Service, Food Quality or Other.', type: 'string' }
+        #swagger.responses[200] = { description: 'Matching complaints (empty list when nothing matches).' }
+        #swagger.responses[400] = { description: 'Invalid filter value.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not an officer).' }
+        #swagger.responses[500] = { description: 'Error retrieving complaints.' }
+    */
+    verifyJWT, validateComplaintFilters, officerComplaintController.getAllComplaints);
+app.put("/officers/complaints/:complaintID/status",
+    /*
+        #swagger.tags = ['Officer Complaints']
+        #swagger.summary = 'Record follow-up action on a complaint'
+        #swagger.description = 'Moves a complaint through open -> underReview -> resolved/closed as the officer investigates. Officers have authority over every stall, so no ownership check applies. resolvedAt is stamped when the complaint is resolved or closed, and cleared if it is reopened.'
+        #swagger.parameters['complaintID'] = { in: 'path', description: 'ID of the complaint being followed up.', required: true, type: 'integer' }
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { status: 'underReview' } }
+        #swagger.responses[200] = { description: 'Status updated; the updated complaint is returned.' }
+        #swagger.responses[400] = { description: 'Complaint ID is not a number, or the status is missing/invalid.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not an officer).' }
+        #swagger.responses[404] = { description: 'Complaint not found.' }
+        #swagger.responses[500] = { description: 'Error updating complaint status.' }
+    */
+    verifyJWT, validateUpdateComplaintStatus, officerComplaintController.updateComplaintStatus);
 
 // Routes for menu management
 app.get("/menuitems", verifyJWT, menuItemController.getMenuItems);
