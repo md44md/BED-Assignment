@@ -8,6 +8,8 @@
      PUT    /hygiene-grades/:gradeID
      DELETE /hygiene-grades/:gradeID
      PUT    /inspections/:id
+     GET    /officers/complaints
+     PUT    /officers/complaints/:complaintID/status
    Relies on helpers from common.js (loaded first).
    ============================================================ */
 
@@ -251,6 +253,131 @@ async function refreshManage() {
     }
 }
 
+/* ---------- Complaints (view / follow up) ---------- */
+
+const COMPLAINT_STATUSES = ["open", "underReview", "resolved", "closed"];
+
+// Human wording for the status values stored in the database.
+const COMPLAINT_STATUS_LABELS = {
+    open: "Open",
+    underReview: "Under review",
+    resolved: "Resolved",
+    closed: "Closed",
+};
+
+// Build one complaint card, with the status control the officer uses to record
+// follow-up action. The description, category and complainant name are written by a
+// customer, so they are escaped before going anywhere near innerHTML.
+function renderComplaintCard(complaint) {
+    const card = document.createElement("article");
+    card.className = "grade-card";
+    card.dataset.complaintId = complaint.complaintID;
+
+    const resolved = complaint.status === "resolved" || complaint.status === "closed";
+    const tag = resolved
+        ? `<span class="tag tag--historical">${COMPLAINT_STATUS_LABELS[complaint.status]}</span>`
+        : `<span class="tag tag--current">${COMPLAINT_STATUS_LABELS[complaint.status] || escapeHtml(complaint.status)}</span>`;
+
+    const options = COMPLAINT_STATUSES.map(
+        (s) => `<option value="${s}" ${s === complaint.status ? "selected" : ""}>${COMPLAINT_STATUS_LABELS[s]}</option>`
+    ).join("");
+
+    card.innerHTML = `
+        <div class="grade-card__body">
+            <div class="grade-card__row">
+                <span class="grade-card__title">${escapeHtml(complaint.category)} · ${escapeHtml(complaint.stallName)}</span>
+                ${tag}
+            </div>
+            <div class="grade-card__meta">
+                ${escapeHtml(complaint.centreName)} · Raised by ${escapeHtml(complaint.firstName)} ${escapeHtml(complaint.lastName)} ·
+                ${formatDate(complaint.createdAt)} · Complaint ID ${complaint.complaintID}
+            </div>
+            <p>${escapeHtml(complaint.description)}</p>
+            <div class="grade-card__meta">Resolved: ${complaint.resolvedAt ? formatDate(complaint.resolvedAt) : "—"}</div>
+            <div class="grade-card__actions">
+                <label class="field__label" for="complaint-status-${complaint.complaintID}">Follow-up</label>
+                <select id="complaint-status-${complaint.complaintID}" class="input">${options}</select>
+                <button type="button" class="btn btn--secondary btn--sm" data-action="save-status">Save</button>
+            </div>
+        </div>
+    `;
+    return card;
+}
+
+function renderComplaintList(container, complaints) {
+    container.innerHTML = "";
+    if (!complaints || complaints.length === 0) {
+        container.innerHTML = `<div class="empty">No complaints match these filters.</div>`;
+        return;
+    }
+    for (const complaint of complaints) {
+        container.appendChild(renderComplaintCard(complaint));
+    }
+}
+
+// Turn the filter form into the query string the API expects. Filters left on
+// "All …" are simply omitted, so an untouched form asks for everything.
+function complaintQuery() {
+    const params = new URLSearchParams();
+    const status = $("#complaint-status").value;
+    const stallID = $("#complaint-stall").value;
+    const category = $("#complaint-category").value;
+    if (status) params.set("status", status);
+    if (stallID) params.set("stallID", stallID);
+    if (category) params.set("category", category);
+    const query = params.toString();
+    return query ? `/officers/complaints?${query}` : "/officers/complaints";
+}
+
+async function loadComplaints() {
+    const data = await api(complaintQuery(), { auth: true });
+    renderComplaintList($("#complaints-results"), data.complaints);
+    return data;
+}
+
+async function handleComplaintsLoad(event) {
+    event.preventDefault();
+    const msg = $("#complaints-message");
+    clearMessage(msg);
+
+    try {
+        const data = await loadComplaints();
+        showMessage(msg, "success", `${data.count} complaint${data.count === 1 ? "" : "s"} found.`);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+// Delegated clicks for the Save button on each complaint card.
+async function handleComplaintAction(event) {
+    const btn = event.target.closest("button[data-action='save-status']");
+    if (!btn) return;
+    const card = btn.closest(".grade-card");
+    const complaintID = card.dataset.complaintId;
+    const msg = $("#complaints-message");
+    clearMessage(msg);
+
+    const status = card.querySelector(`#complaint-status-${complaintID}`).value;
+    btn.disabled = true;
+    try {
+        const data = await api(`/officers/complaints/${complaintID}/status`, {
+            method: "PUT",
+            body: { status },
+            auth: true,
+        });
+        showMessage(msg, "success", data.message || "Complaint status updated.");
+        try {
+            await loadComplaints();
+        } catch {
+            /* keep the success message; a stale list is harmless */
+        }
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
 /* ---------- Tabs ---------- */
 
 function handleTabClick(event) {
@@ -266,6 +393,7 @@ function handleTabClick(event) {
     $("#correct-tab").hidden = target !== "correct";
     $("#issue-tab").hidden = target !== "issue";
     $("#manage-tab").hidden = target !== "manage";
+    $("#complaints-tab").hidden = target !== "complaints";
 }
 
 /* ---------- Init ---------- */
@@ -285,10 +413,15 @@ function init() {
     const email = getEmail();
     if (email) $("#session-email").textContent = email;
 
-    // Populate the stall pickers.
-    loadStalls(["#inspect-stall", "#issue-stall", "#manage-stall"], (err) =>
+    // Populate the stall pickers. The complaints filter is optional, so it also gets an
+    // "All stalls" choice on top of the stalls loaded from the back-end.
+    loadStalls(["#inspect-stall", "#issue-stall", "#manage-stall", "#complaint-stall"], (err) =>
         showMessage($("#inspect-message"), "error", `Could not load stalls: ${err.message}`)
-    );
+    ).then(() => {
+        const anyStall = new Option("All stalls", "");
+        $("#complaint-stall").prepend(anyStall);
+        anyStall.selected = true;
+    });
 
     // The inspection date can't be in the future (server enforces this too).
     $("#inspect-date").max = new Date().toISOString().slice(0, 10);
@@ -301,6 +434,8 @@ function init() {
     $("#issue-form").addEventListener("submit", handleIssue);
     $("#manage-form").addEventListener("submit", handleManageLoad);
     $("#manage-results").addEventListener("click", handleManageAction);
+    $("#complaints-form").addEventListener("submit", handleComplaintsLoad);
+    $("#complaints-results").addEventListener("click", handleComplaintAction);
     document.querySelector(".tabs").addEventListener("click", handleTabClick);
 }
 

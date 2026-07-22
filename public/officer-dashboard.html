@@ -32,7 +32,7 @@
         <section class="panel" aria-labelledby="console-heading">
             <div class="panel__head">
                 <h2 id="console-heading" class="panel__title">NEA Officer Console</h2>
-                <p class="panel__lead">Log an inspection result, issue a hygiene grade, or correct/revoke existing grades.</p>
+                <p class="panel__lead">Log an inspection result, issue a hygiene grade, correct/revoke existing grades, or follow up on customer complaints.</p>
             </div>
 
             <div class="tabs" role="tablist">
@@ -40,6 +40,7 @@
                 <button class="tab" role="tab" data-tab="correct" aria-selected="false">Correct inspection</button>
                 <button class="tab" role="tab" data-tab="issue" aria-selected="false">Issue a grade</button>
                 <button class="tab" role="tab" data-tab="manage" aria-selected="false">Manage grades</button>
+                <button class="tab" role="tab" data-tab="complaints" aria-selected="false">Complaints</button>
             </div>
 
             <!-- Log inspection tab -->
@@ -142,6 +143,40 @@
                 </form>
                 <div id="manage-message" class="message" role="status" aria-live="polite" hidden></div>
                 <div id="manage-results" class="results"></div>
+            </div>
+
+            <!-- Complaints tab -->
+            <div id="complaints-tab" class="tab-panel" role="tabpanel" hidden>
+                <p class="panel__lead">Complaints submitted by customers about any stall. Filter to investigate, then record your follow-up action.</p>
+                <form id="complaints-form" class="form-row" novalidate>
+                    <div class="field field--grow">
+                        <label class="field__label" for="complaint-status">Status</label>
+                        <select id="complaint-status" class="input">
+                            <option value="">All statuses</option>
+                            <option value="open">Open</option>
+                            <option value="underReview">Under review</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="field field--grow">
+                        <label class="field__label" for="complaint-stall">Stall</label>
+                        <select id="complaint-stall" class="input"></select>
+                    </div>
+                    <div class="field field--grow">
+                        <label class="field__label" for="complaint-category">Category</label>
+                        <select id="complaint-category" class="input">
+                            <option value="">All categories</option>
+                            <option value="Hygiene">Hygiene</option>
+                            <option value="Service">Service</option>
+                            <option value="Food Quality">Food Quality</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn--secondary">Load complaints</button>
+                </form>
+                <div id="complaints-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="complaints-results" class="results"></div>
             </div>
         </section>
     </main>
