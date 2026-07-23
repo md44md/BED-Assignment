@@ -14,7 +14,7 @@ const officerController = require("./controllers/officerController");
 const operatorController = require("./controllers/operatorController");
 const { validateRegister, validateLogin } = require("./middlewares/userValidation");
 const inspectionController = require("./controllers/inspectionController");
-const { validateLogInspection, validateUpdateInspection } = require("./middlewares/inspectionValidation");
+const { validateLogInspection, validateUpdateInspection, validateScheduleInspection } = require("./middlewares/inspectionValidation");
 const cartController = require("./controllers/cartController");
 const { validateAddItem, validateCartItemId } = require("./middlewares/cartValidation");
 const orderController = require("./controllers/orderController");
@@ -77,6 +77,8 @@ app.put("/account/picture", verifyJWT, uploadProfilePicture, userController.uplo
 // Routes for officer inspections
 app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.logInspection);
 app.put("/inspections/:id", verifyJWT, validateUpdateInspection, inspectionController.updateInspection);
+app.post("/inspections/schedule", verifyJWT, validateScheduleInspection, inspectionController.scheduleInspection);
+app.get("/inspections/scheduled", verifyJWT, inspectionController.getScheduledInspections);
 
 // Routes for customer cart
 app.get("/cart", verifyJWT, cartController.getCart);

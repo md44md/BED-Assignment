@@ -114,9 +114,70 @@ async function updateInspection(inspectionID, score, remarks, inspectionDate) {
     }
 }
 
+// Schedule a future inspection for a stall — no score/remarks yet, status stays 'scheduled'.
+async function scheduleInspection(stallID, officerID, scheduledDate) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            INSERT INTO Inspection (stallID, officerID, scheduledDate, status)
+            OUTPUT INSERTED.*
+            VALUES (@stallID, @officerID, @scheduledDate, 'scheduled')
+        `;
+        const request = connection.request();
+        request.input("stallID", sql.Int, stallID);
+        request.input("officerID", sql.Int, officerID);
+        request.input("scheduledDate", sql.Date, scheduledDate);
+        const result = await request.query(query);
+        return result.recordset[0];
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Get an officer's own upcoming scheduled inspections, soonest first
+async function getScheduledInspections(officerID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT inspectionID, stallID, scheduledDate, status
+            FROM Inspection
+            WHERE officerID = @officerID AND status = 'scheduled'
+            ORDER BY scheduledDate ASC
+        `;
+        const request = connection.request();
+        request.input("officerID", sql.Int, officerID);
+        const result = await request.query(query);
+        return result.recordset;
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     stallExists,
     createInspection,
     getInspectionById,
     updateInspection,
+    scheduleInspection,
+    getScheduledInspections,
 };
