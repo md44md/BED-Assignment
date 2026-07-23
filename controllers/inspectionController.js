@@ -55,7 +55,38 @@ async function updateInspection(req, res) {
     }
 }
 
+// POST /inspections/schedule
+async function scheduleInspection(req, res) {
+    try {
+        const { stallID, scheduledDate } = req.body;
+        const officerID = req.user.officerID;
+
+        const exists = await inspectionModel.stallExists(stallID);
+        if (!exists) {
+            return res.status(404).json({ error: "Stall not found." });
+        }
+
+        // Date-only comparison so scheduling for later today is still allowed.
+        const date = new Date(scheduledDate);
+        const today = new Date(new Date().toDateString());
+        if (date < today) {
+            return res.status(400).json({ error: "Scheduled date cannot be in the past." });
+        }
+
+        const inspection = await inspectionModel.scheduleInspection(stallID, officerID, date);
+
+        res.status(201).json({
+            message: "Inspection scheduled successfully.",
+            inspection: inspection,
+        });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error scheduling inspection." });
+    }
+}
+
 module.exports = {
     logInspection,
     updateInspection,
+    scheduleInspection,
 };
