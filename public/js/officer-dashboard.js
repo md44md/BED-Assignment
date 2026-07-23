@@ -147,8 +147,7 @@ async function handleCorrectInspection(event) {
 
 /* ---------- Schedule an inspection ---------- */
 
-function renderScheduledResult(container, insp) {
-    container.innerHTML = "";
+function renderScheduledCard(insp) {
     const card = document.createElement("article");
     card.className = "grade-card";
     card.innerHTML = `
@@ -162,16 +161,37 @@ function renderScheduledResult(container, insp) {
             </div>
         </div>
     `;
-    container.appendChild(card);
+    return card;
+}
+
+function renderScheduledList(container, inspections) {
+    container.innerHTML = "";
+    if (!inspections || inspections.length === 0) {
+        container.innerHTML = `<div class="empty">No upcoming inspections scheduled yet.</div>`;
+        return;
+    }
+    for (const insp of inspections) {
+        container.appendChild(renderScheduledCard(insp));
+    }
+}
+
+// Re-fetch and re-render this officer's own upcoming scheduled inspections.
+async function loadScheduledInspections() {
+    const msg = $("#schedule-message");
+    const result = $("#schedule-result");
+    try {
+        const data = await api("/inspections/scheduled", { auth: true });
+        renderScheduledList(result, data.inspections);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
 }
 
 async function handleScheduleInspection(event) {
     event.preventDefault();
     const msg = $("#schedule-message");
-    const result = $("#schedule-result");
     const submitBtn = event.submitter;
     clearMessage(msg);
-    result.innerHTML = "";
 
     const payload = {
         stallID: Number($("#schedule-stall").value),
@@ -182,8 +202,8 @@ async function handleScheduleInspection(event) {
     try {
         const data = await api("/inspections/schedule", { method: "POST", body: payload, auth: true });
         showMessage(msg, "success", data.message || "Inspection scheduled successfully.");
-        renderScheduledResult(result, data.inspection || {});
         $("#schedule-form").reset();
+        await loadScheduledInspections();
     } catch (err) {
         if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
     } finally {
@@ -313,6 +333,7 @@ function handleTabClick(event) {
     $("#issue-tab").hidden = target !== "issue";
     $("#manage-tab").hidden = target !== "manage";
     $("#schedule-tab").hidden = target !== "schedule";
+    if (target === "schedule") loadScheduledInspections();
 }
 
 /* ---------- Init ---------- */
