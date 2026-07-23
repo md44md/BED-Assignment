@@ -54,6 +54,34 @@ const updateInspectionSchema = Joi.object({
     }),
 });
 
+// Schema for scheduling a future inspection (date-format only here; the
+// "not in the past" business rule is checked in the controller with a
+// date-only comparison, since Joi's min("now") compares full timestamps
+// and would wrongly reject same-day scheduling).
+const scheduleInspectionSchema = Joi.object({
+    stallID: Joi.number().integer().positive().required().messages({
+        "number.base": "Stall ID must be a number",
+        "number.integer": "Stall ID must be an integer",
+        "number.positive": "Stall ID must be a positive number",
+        "any.required": "Stall ID is required",
+    }),
+    scheduledDate: Joi.date().iso().required().messages({
+        "date.base": "Scheduled date must be a valid date",
+        "date.format": "Scheduled date must be in ISO format (YYYY-MM-DD)",
+        "any.required": "Scheduled date is required",
+    }),
+});
+
+// Middleware to validate schedule inspection req body
+function validateScheduleInspection(req, res, next) {
+    const { error } = scheduleInspectionSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errorMessage = error.details.map((detail) => detail.message).join(", ");
+        return res.status(400).json({ error: errorMessage });
+    }
+    next();
+}
+
 // Middleware to validate log inspection req body
 function validateLogInspection(req, res, next) {
     const { error } = logInspectionSchema.validate(req.body, { abortEarly: false });
@@ -77,4 +105,5 @@ function validateUpdateInspection(req, res, next) {
 module.exports = {
     validateLogInspection,
     validateUpdateInspection,
+    validateScheduleInspection,
 };

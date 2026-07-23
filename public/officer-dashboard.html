@@ -41,6 +41,7 @@
                 <button class="tab" role="tab" data-tab="issue" aria-selected="false">Issue a grade</button>
                 <button class="tab" role="tab" data-tab="manage" aria-selected="false">Manage grades</button>
                 <button class="tab" role="tab" data-tab="complaints" aria-selected="false">Complaints</button>
+                <button class="tab" role="tab" data-tab="schedule" aria-selected="false">Schedule inspection</button>
             </div>
 
             <!-- Log inspection tab -->
@@ -177,6 +178,25 @@
                 </form>
                 <div id="complaints-message" class="message" role="status" aria-live="polite" hidden></div>
                 <div id="complaints-results" class="results"></div>
+            </div>
+
+            <!-- Schedule inspection tab -->
+            <div id="schedule-tab" class="tab-panel" role="tabpanel" hidden>
+                <p class="panel__lead">Plan an upcoming inspection for a stall on a chosen date.</p>
+                <form id="schedule-form" class="form-grid" novalidate>
+                    <div class="field">
+                        <label class="field__label" for="schedule-stall">Stall</label>
+                        <select id="schedule-stall" class="input" required></select>
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="schedule-date">Scheduled date</label>
+                        <input id="schedule-date" class="input" type="date" required />
+                        <p class="field__help">Cannot be in the past.</p>
+                    </div>
+                    <button type="submit" class="btn btn--primary">Schedule inspection</button>
+                </form>
+                <div id="schedule-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="schedule-result" class="results"></div>
             </div>
         </section>
     </main>
