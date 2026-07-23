@@ -78,6 +78,7 @@ app.put("/account/picture", verifyJWT, uploadProfilePicture, userController.uplo
 app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.logInspection);
 app.put("/inspections/:id", verifyJWT, validateUpdateInspection, inspectionController.updateInspection);
 app.post("/inspections/schedule", verifyJWT, validateScheduleInspection, inspectionController.scheduleInspection);
+app.get("/inspections/scheduled", verifyJWT, inspectionController.getScheduledInspections);
 
 // Routes for customer cart
 app.get("/cart", verifyJWT, cartController.getCart);

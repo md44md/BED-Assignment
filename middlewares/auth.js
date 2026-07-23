@@ -41,6 +41,7 @@ function verifyJWT(req, res, next) {
             "POST /inspections": ["neaOfficer"],
             "PUT /inspections/[0-9]+": ["neaOfficer"],
             "POST /inspections/schedule": ["neaOfficer"],
+            "GET /inspections/scheduled": ["neaOfficer"],
 
             // Customer cart routes
             "GET /cart": ["customer"],
