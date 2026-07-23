@@ -145,6 +145,52 @@ async function handleCorrectInspection(event) {
     }
 }
 
+/* ---------- Schedule an inspection ---------- */
+
+function renderScheduledResult(container, insp) {
+    container.innerHTML = "";
+    const card = document.createElement("article");
+    card.className = "grade-card";
+    card.innerHTML = `
+        <div class="grade-card__body">
+            <div class="grade-card__row">
+                <span class="grade-card__title">Inspection #${Number(insp.inspectionID)}</span>
+                <span class="tag tag--historical">${insp.status}</span>
+            </div>
+            <div class="grade-card__meta">
+                ${stallName(insp.stallID)} · Scheduled for ${formatDate(insp.scheduledDate)}
+            </div>
+        </div>
+    `;
+    container.appendChild(card);
+}
+
+async function handleScheduleInspection(event) {
+    event.preventDefault();
+    const msg = $("#schedule-message");
+    const result = $("#schedule-result");
+    const submitBtn = event.submitter;
+    clearMessage(msg);
+    result.innerHTML = "";
+
+    const payload = {
+        stallID: Number($("#schedule-stall").value),
+        scheduledDate: $("#schedule-date").value,
+    };
+
+    submitBtn.disabled = true;
+    try {
+        const data = await api("/inspections/schedule", { method: "POST", body: payload, auth: true });
+        showMessage(msg, "success", data.message || "Inspection scheduled successfully.");
+        renderScheduledResult(result, data.inspection || {});
+        $("#schedule-form").reset();
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        submitBtn.disabled = false;
+    }
+}
+
 /* ---------- Issue a grade ---------- */
 
 async function handleIssue(event) {
@@ -266,6 +312,7 @@ function handleTabClick(event) {
     $("#correct-tab").hidden = target !== "correct";
     $("#issue-tab").hidden = target !== "issue";
     $("#manage-tab").hidden = target !== "manage";
+    $("#schedule-tab").hidden = target !== "schedule";
 }
 
 /* ---------- Init ---------- */
@@ -286,13 +333,15 @@ function init() {
     if (email) $("#session-email").textContent = email;
 
     // Populate the stall pickers.
-    loadStalls(["#inspect-stall", "#issue-stall", "#manage-stall"], (err) =>
+    loadStalls(["#inspect-stall", "#issue-stall", "#manage-stall", "#schedule-stall"], (err) =>
         showMessage($("#inspect-message"), "error", `Could not load stalls: ${err.message}`)
     );
 
     // The inspection date can't be in the future (server enforces this too).
     $("#inspect-date").max = new Date().toISOString().slice(0, 10);
     $("#correct-date").max = new Date().toISOString().slice(0, 10);
+    // The scheduled date can't be in the past (server enforces this too).
+    $("#schedule-date").min = new Date().toISOString().slice(0, 10);
 
     // Wire up actions.
     $("#logout-btn").addEventListener("click", handleLogout);
@@ -301,6 +350,7 @@ function init() {
     $("#issue-form").addEventListener("submit", handleIssue);
     $("#manage-form").addEventListener("submit", handleManageLoad);
     $("#manage-results").addEventListener("click", handleManageAction);
+    $("#schedule-form").addEventListener("submit", handleScheduleInspection);
     document.querySelector(".tabs").addEventListener("click", handleTabClick);
 }
 
