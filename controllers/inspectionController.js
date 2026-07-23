@@ -85,8 +85,21 @@ async function scheduleInspection(req, res) {
     }
 }
 
+// GET /inspections/scheduled
+async function getScheduledInspections(req, res) {
+    try {
+        const officerID = req.user.officerID;
+        const inspections = await inspectionModel.getScheduledInspections(officerID);
+        res.status(200).json({ inspections: inspections });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving scheduled inspections." });
+    }
+}
+
 module.exports = {
     logInspection,
     updateInspection,
     scheduleInspection,
+    getScheduledInspections,
 };
