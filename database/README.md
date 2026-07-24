@@ -47,6 +47,7 @@ Sample Data Included
 3 customers, 6 stall owners, 3 operators, 3 NEA officers (15 users total)
 3 hawker centres, 6 stalls (2 per centre)
 18 menu items across 6 stalls (3 per stall, covering Chinese, Malay, and Indian cuisines)
+12 priced add-ons across 6 stalls (2 per stall, category = 'add-on', e.g. extra chicken, papadum)
 3 orders with order items, payments (PayNow/NETS/Cash), and varied statuses
 3 feedback entries, 3 likes, 3 complaints (with different statuses)
 7 rental agreements (including 1 expired + renewed for history)
