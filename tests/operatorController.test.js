@@ -142,3 +142,56 @@ describe("getMyStalls", () => {
         expect(res.status).toHaveBeenCalledWith(500);
     });
 });
+
+describe("getAccount", () => {
+    const req = { user: { userID: 10 } };
+    const activeAccount = {
+        email: "james@email.com",
+        firstName: "James",
+        lastName: "Tan",
+        phone: "91234567",
+        isActive: 1,
+        passwordHash: "should-never-be-returned",
+        profilePictureURL: null,
+    };
+
+    test("returns the operator's own profile without the password hash", async () => {
+        operatorModel.getAccountByUserID.mockResolvedValue(activeAccount);
+        const res = mockRes();
+
+        await operatorController.getAccount(req, res);
+
+        expect(operatorModel.getAccountByUserID).toHaveBeenCalledWith(10);
+        expect(res.status).toHaveBeenCalledWith(200);
+        const payload = res.json.mock.calls[0][0];
+        expect(payload).toMatchObject({ email: "james@email.com", firstName: "James", phone: "91234567" });
+        expect(payload).not.toHaveProperty("passwordHash");
+    });
+
+    test("404s when the account does not exist", async () => {
+        operatorModel.getAccountByUserID.mockResolvedValue(null);
+        const res = mockRes();
+
+        await operatorController.getAccount(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    test("403s when the account is soft-deleted (isActive = 0)", async () => {
+        operatorModel.getAccountByUserID.mockResolvedValue({ ...activeAccount, isActive: 0 });
+        const res = mockRes();
+
+        await operatorController.getAccount(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+    });
+
+    test("500s when the database call fails", async () => {
+        operatorModel.getAccountByUserID.mockRejectedValue(new Error("connection lost"));
+        const res = mockRes();
+
+        await operatorController.getAccount(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+    });
+});
