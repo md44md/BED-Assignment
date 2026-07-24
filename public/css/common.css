@@ -549,6 +549,19 @@ a.home-card:active { transform: translateY(1px); }
 /* ---------- Quantity input (menu browsing) ---------- */
 .qty-input { width: 64px; text-align: center; padding: 6px 8px; }
 
+/* ---------- Payment QR placeholder (checkout) ---------- */
+.qr-placeholder {
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    gap: 10px; margin-top: 12px;
+}
+.qr-placeholder[hidden] { display: none; }
+.qr-placeholder__img {
+    width: 320px; height: 320px; object-fit: contain;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: #fff; padding: 10px;
+}
+.qr-placeholder__text { margin: 0; }
+
 /* ---------- Like button (menu browsing) ---------- */
 .btn-like {
     display: inline-flex; align-items: center; gap: 6px;

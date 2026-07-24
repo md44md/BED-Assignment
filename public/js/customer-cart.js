@@ -51,6 +51,13 @@ function renderCartItemHtml(item) {
     `;
 }
 
+// Both images are generic/sample QR graphics, not tied to any real account
+// or gateway (see credit.html for sources) - no real payment is processed.
+const QR_INFO = {
+    NETS: { image: "/images/nets-qr.png", alt: "NETS QR code", text: "Tap or scan at the stall's NETS terminal to pay." },
+    PayNow: { image: "/images/paynow-qr.png", alt: "Sample PayNow QR code", text: "Scan with your banking app to pay." },
+};
+
 function renderCartStall(cart) {
     const section = document.createElement("article");
     section.className = "cart-stall";
@@ -66,23 +73,12 @@ function renderCartStall(cart) {
                 </select>
                 <button type="button" class="btn btn--primary btn--sm" data-action="checkout">Checkout</button>
             </div>
-            <div class="form-grid nets-billing" hidden>
-                <div class="field">
-                    <label class="field__label">Card number</label>
-                    <input type="text" class="input nets-card-number" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric" autocomplete="cc-number" />
-                </div>
-                <div class="field">
-                    <label class="field__label">Expiry (MM/YY)</label>
-                    <input type="text" class="input nets-card-expiry" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp" />
-                </div>
-                <div class="field">
-                    <label class="field__label">CVV</label>
-                    <input type="text" class="input nets-card-cvv" placeholder="123" maxlength="4" inputmode="numeric" autocomplete="cc-csc" />
-                </div>
-                <div class="field field--full">
-                    <label class="field__label">Cardholder name</label>
-                    <input type="text" class="input nets-card-name" placeholder="Name on card" autocomplete="cc-name" />
-                </div>
+            <!-- Shown when NETS or PayNow is selected. Cosmetic only - no real payment
+                 gateway is integrated (see ticket assumptions: "records the method and
+                 status only"), so this doesn't actually charge anyone. -->
+            <div class="qr-placeholder" hidden>
+                <img class="qr-placeholder__img" src="" alt="" />
+                <p class="qr-placeholder__text hint"></p>
             </div>
         </div>
     `;
@@ -118,53 +114,26 @@ async function loadCart() {
     }
 }
 
-/* ---------- Payment method (NETS card details) ---------- */
+/* ---------- Payment method (QR placeholder) ---------- */
 
-// NETS is an online card payment, so it needs card details up front — the
-// other methods (Cash, PayNow) are settled at the stall, so no extra fields.
+// NETS/PayNow show a QR placeholder to scan/tap at the stall - Cash is
+// settled at the stall directly, so no extra UI.
 function handlePaymentMethodChange(event) {
     const select = event.target.closest(".payment-method");
     if (!select) return;
     const stallSection = select.closest(".cart-stall");
-    stallSection.querySelector(".nets-billing").hidden = select.value !== "NETS";
-}
+    const placeholder = stallSection.querySelector(".qr-placeholder");
+    const info = QR_INFO[select.value];
 
-// Reads + validates the NETS card fields for one stall's checkout.
-// Returns the billing info object, or null (after showing an error) if invalid.
-function readNetsBillingInfo(stallSection) {
-    const msg = $("#cart-message");
-    const cardNumber = stallSection.querySelector(".nets-card-number").value.replace(/\s+/g, "");
-    const expiryDate = stallSection.querySelector(".nets-card-expiry").value.trim();
-    const cvv = stallSection.querySelector(".nets-card-cvv").value.trim();
-    const cardHolderName = stallSection.querySelector(".nets-card-name").value.trim();
-
-    if (!/^\d{16}$/.test(cardNumber)) {
-        showMessage(msg, "error", "NETS card number must be 16 digits.");
-        return null;
+    placeholder.hidden = !info;
+    if (!info) {
+        placeholder.querySelector(".qr-placeholder__img").removeAttribute("src");
+        return;
     }
 
-    const expiryMatch = /^(0[1-9]|1[0-2])\/(\d{2})$/.exec(expiryDate);
-    if (!expiryMatch) {
-        showMessage(msg, "error", "NETS card expiry must be in MM/YY format.");
-        return null;
-    }
-    const expiry = new Date(2000 + Number(expiryMatch[2]), Number(expiryMatch[1]), 1);
-    if (expiry <= new Date()) {
-        showMessage(msg, "error", "NETS card has expired.");
-        return null;
-    }
-
-    if (!/^\d{3,4}$/.test(cvv)) {
-        showMessage(msg, "error", "NETS CVV must be 3 or 4 digits.");
-        return null;
-    }
-
-    if (cardHolderName.length < 2) {
-        showMessage(msg, "error", "Cardholder name is required.");
-        return null;
-    }
-
-    return { cardNumber, expiryDate, cvv, cardHolderName };
+    placeholder.querySelector(".qr-placeholder__img").src = info.image;
+    placeholder.querySelector(".qr-placeholder__img").alt = info.alt;
+    placeholder.querySelector(".qr-placeholder__text").textContent = info.text;
 }
 
 /* ---------- Remove item / checkout (delegated) ---------- */
@@ -180,13 +149,11 @@ async function handleRemove(cartItemID) {
     }
 }
 
-async function handleCheckout(cartID, paymentMethod, billingInfo) {
+async function handleCheckout(cartID, paymentMethod) {
     const msg = $("#cart-message");
     clearMessage(msg);
     try {
-        const body = { cartID, paymentMethod };
-        if (billingInfo) body.billingInfo = billingInfo;
-        const data = await api("/orders", { method: "POST", body, auth: true });
+        const data = await api("/orders", { method: "POST", body: { cartID, paymentMethod }, auth: true });
         await loadCart();
         showMessage(
             msg,
@@ -212,14 +179,8 @@ async function handleResultsClick(event) {
         const stallSection = btn.closest(".cart-stall");
         const paymentMethod = stallSection.querySelector(".payment-method").value;
 
-        let billingInfo;
-        if (paymentMethod === "NETS") {
-            billingInfo = readNetsBillingInfo(stallSection);
-            if (!billingInfo) return;
-        }
-
         btn.disabled = true;
-        await handleCheckout(Number(stallSection.dataset.cartId), paymentMethod, billingInfo);
+        await handleCheckout(Number(stallSection.dataset.cartId), paymentMethod);
         btn.disabled = false;
     }
 }
