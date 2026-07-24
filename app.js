@@ -12,7 +12,7 @@ const stallOwnerController = require("./controllers/stallOwnerController");
 const customerController = require("./controllers/customerController");
 const officerController = require("./controllers/officerController");
 const operatorController = require("./controllers/operatorController");
-const { validateRegister, validateLogin } = require("./middlewares/userValidation");
+const { validateRegister, validateLogin, validateChangeEmail } = require("./middlewares/userValidation");
 const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection, validateUpdateInspection, validateScheduleInspection } = require("./middlewares/inspectionValidation");
 const cartController = require("./controllers/cartController");
@@ -76,6 +76,23 @@ app.get("/operators/account", verifyJWT, operatorController.getAccount);
 
 // Route for profile picture upload (shared across all roles)
 app.put("/account/picture", verifyJWT, uploadProfilePicture, userController.uploadProfilePicture);
+
+// Route for changing the account email (shared across all roles)
+app.put("/account/email",
+    /*
+        #swagger.tags = ['Account']
+        #swagger.summary = 'Change the logged-in user\'s email address'
+        #swagger.description = 'Any logged-in role. Confirms the current password, rejects an unchanged or already-taken email (email is unique across all accounts), then updates Users.email.'
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { newEmail: 'new@example.com', currentPassword: 'Password123!' } }
+        #swagger.responses[200] = { description: 'Email updated; the new email is returned.' }
+        #swagger.responses[400] = { description: 'Invalid body, or the new email is unchanged.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no token) or the current password is incorrect.' }
+        #swagger.responses[403] = { description: 'Forbidden (invalid token).' }
+        #swagger.responses[404] = { description: 'Account not found.' }
+        #swagger.responses[409] = { description: 'Email is already in use.' }
+        #swagger.responses[500] = { description: 'Error updating email.' }
+    */
+    verifyJWT, validateChangeEmail, userController.changeEmail);
 
 // Routes for officer inspections
 app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.logInspection);

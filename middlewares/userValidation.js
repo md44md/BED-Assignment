@@ -49,6 +49,22 @@ const loginSchema = Joi.object({
     }),
 });
 
+// Schema for changing the account email (requires the current password to confirm)
+const changeEmailSchema = Joi.object({
+    newEmail: Joi.string().email().max(255).required().messages({
+        "string.base": "Email must be a string",
+        "string.empty": "Email cannot be empty",
+        "string.email": "Email must be a valid email address",
+        "string.max": "Email cannot exceed 255 characters",
+        "any.required": "Email is required",
+    }),
+    currentPassword: Joi.string().required().messages({
+        "string.base": "Password must be a string",
+        "string.empty": "Password cannot be empty",
+        "any.required": "Current password is required",
+    }),
+});
+
 // Middleware to validate registration body
 function validateRegister(req, res, next) {
     const { error } = registerSchema.validate(req.body, { abortEarly: false });
@@ -73,7 +89,20 @@ function validateLogin(req, res, next) {
     next();
 }
 
+// Middleware to validate change-email body
+function validateChangeEmail(req, res, next) {
+    const { error } = changeEmailSchema.validate(req.body, { abortEarly: false });
+
+    if (error) {
+        const errorMessage = error.details.map((detail) => detail.message).join(", ");
+        return res.status(400).json({ error: errorMessage });
+    }
+
+    next();
+}
+
 module.exports = {
     validateRegister,
     validateLogin,
+    validateChangeEmail,
 };
