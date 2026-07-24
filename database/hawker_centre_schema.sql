@@ -389,6 +389,7 @@ CREATE TABLE Feedback (
     orderID    INT NOT NULL REFERENCES Orders(orderID),   -- must have ordered to review
     rating     INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comments   VARCHAR(2000),
+    wasFiltered BIT DEFAULT 0,                            -- 1 if profanity filter changed the comment
     createdAt  DATETIME DEFAULT GETDATE(),
     UNIQUE (customerID, stallID)                          -- one review per customer per stall
 );
