@@ -1990,6 +1990,102 @@
         }
       }
     },
+    "/hawker-centres/nearby": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/hawker-centres/directions": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "startLat",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "startLng",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "endLat",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "endLng",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "routeType",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "502": {
+            "description": "Bad Gateway"
+          }
+        }
+      }
+    },
     "/stalls": {
       "get": {
         "description": "",
@@ -2155,6 +2251,39 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/stallowners/queue/abandon": {
+      "post": {
+        "tags": [
+          "Queue"
+        ],
+        "summary": "Mark uncollected orders as abandoned",
+        "description": "Stall owner only. Marks the stall\\'s still-active orders (pending/preparing/ready) that were placed over 45 minutes ago as \"abandoned\", clearing them from the active order board for food-waste tracking. This sweep also runs automatically whenever the queue board is loaded.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sweep done; returns the count and the abandoned orders (count may be 0)."
+          },
+          "401": {
+            "description": "Unauthorized (no token)."
+          },
+          "403": {
+            "description": "Forbidden (not a stall owner)."
+          },
+          "404": {
+            "description": "No stall found for this account."
+          },
+          "500": {
+            "description": "Error abandoning stale orders."
           }
         }
       }
