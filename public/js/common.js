@@ -49,6 +49,15 @@ function setPicture(profilePictureURL) {
     }
     renderHeaderAvatar();
 }
+// Update the cached session email after a successful email change, so the header
+// (and every other page) shows the new address immediately — no re-login needed.
+function setEmail(email) {
+    if (email) {
+        localStorage.setItem(EMAIL_KEY, email);
+    }
+    const emailEl = $("#session-email");
+    if (emailEl && email) emailEl.textContent = email;
+}
 function saveSession(token, email, role, profilePictureURL) {
     localStorage.setItem(TOKEN_KEY, token);
     if (email) localStorage.setItem(EMAIL_KEY, email);

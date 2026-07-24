@@ -90,6 +90,40 @@ async function handleUploadPicture() {
     }
 }
 
+/* ---------- Change email ---------- */
+
+async function handleChangeEmail() {
+    const newEmail = $("#new-email-input").value.trim();
+    const currentPassword = $("#current-password-input").value;
+    const msg = $("#change-email-message");
+    clearMessage(msg);
+
+    if (!newEmail || !currentPassword) {
+        showMessage(msg, "error", "Please enter your new email and current password.");
+        return;
+    }
+
+    const btn = $("#change-email-btn");
+    btn.disabled = true;
+    try {
+        const data = await api("/account/email", {
+            method: "PUT",
+            auth: true,
+            body: { newEmail, currentPassword },
+        });
+        setEmail(data.email); // updates the header + cached session email immediately, no re-login needed
+        showMessage(msg, "success", data.message || "Email updated.");
+        $("#current-password-input").value = "";
+        loadProfile();
+    } catch (err) {
+        // A 401 here means "wrong current password", not an expired session, so
+        // show it inline rather than bouncing the user to the login page.
+        showMessage(msg, "error", err.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
 async function loadProfile() {
     const msg = $("#profile-message");
     clearMessage(msg);
@@ -140,6 +174,7 @@ function init() {
     $("#logout-btn").addEventListener("click", handleLogout);
     $("#delete-account-btn").addEventListener("click", handleDeleteAccount);
     $("#picture-upload-btn").addEventListener("click", handleUploadPicture);
+    $("#change-email-btn").addEventListener("click", handleChangeEmail);
 
     loadProfile();
 }

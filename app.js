@@ -12,12 +12,13 @@ const stallOwnerController = require("./controllers/stallOwnerController");
 const customerController = require("./controllers/customerController");
 const officerController = require("./controllers/officerController");
 const operatorController = require("./controllers/operatorController");
-const { validateRegister, validateLogin } = require("./middlewares/userValidation");
+const { validateRegister, validateLogin, validateChangeEmail } = require("./middlewares/userValidation");
 const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection, validateUpdateInspection, validateScheduleInspection } = require("./middlewares/inspectionValidation");
 const cartController = require("./controllers/cartController");
 const { validateAddItem, validateCartItemId } = require("./middlewares/cartValidation");
 const orderController = require("./controllers/orderController");
+const { validateSubmitOrder, validateOrderId } = require("./middlewares/orderValidation");
 const { validateSubmitOrder, validateOrderIdParam } = require("./middlewares/orderValidation");
 const hygieneGradeController = require("./controllers/hygieneGradeController");
 const { validateIssueGrade, validateUpdateGrade } = require("./middlewares/hygieneGradeValidation");
@@ -34,6 +35,8 @@ const rentalAgreementController = require("./controllers/rentalAgreementControll
 const promotionController = require("./controllers/promotionController");
 const { validatePromotion, validatePromotionId } = require("./middlewares/promotionValidation");
 const userController = require("./controllers/userController");
+const hawkerCentreController = require("./controllers/hawkerCentreController");
+const { validateNearbyQuery, validateDirectionsQuery } = require("./middlewares/hawkerCentreValidation");
 const queueController = require("./controllers/queueController");
 const salesAnalyticsController = require("./controllers/salesAnalyticsController")
 const { verifyJWT } = require("./middlewares/auth");
@@ -54,34 +57,152 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.post("/stallowners/register", validateRegister, stallOwnerController.register);
 app.post("/stallowners/login", validateLogin, stallOwnerController.login);
 app.post("/stallowners/logout", stallOwnerController.logout);
-app.delete("/stallowners/account", verifyJWT, stallOwnerController.deleteAccount);
-app.get("/stallowners/account", verifyJWT, stallOwnerController.getAccount);
+app.delete("/stallowners/account",
+    /*
+        #swagger.tags = ['Account']
+        #swagger.summary = 'Delete my account (stall owner)'
+        #swagger.description = 'Soft-deletes the signed-in stall owner\'s account (isActive = 0), removing it from active use while preserving linked records for referential integrity.'
+        #swagger.responses[200] = { description: 'Account deleted.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a stall owner).' }
+        #swagger.responses[500] = { description: 'Error deleting account.' }
+    */
+    verifyJWT, stallOwnerController.deleteAccount);
+app.get("/stallowners/account",
+    /*
+        #swagger.tags = ['Account']
+        #swagger.summary = 'View my account profile (stall owner)'
+        #swagger.description = 'Returns the signed-in stall owner\'s own profile (never another user\'s, never the password hash). A soft-deleted account is refused even with a still-valid token.'
+        #swagger.responses[200] = { description: 'The stall owner\'s profile.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a stall owner, or the account is disabled).' }
+        #swagger.responses[404] = { description: 'Account not found.' }
+        #swagger.responses[500] = { description: 'Error retrieving account.' }
+    */
+    verifyJWT, stallOwnerController.getAccount);
 
 // Routes for customer auth
 app.post("/customers/register", validateRegister, customerController.register);
 app.post("/customers/login", validateLogin, customerController.login);
 app.post("/customers/logout", customerController.logout);
-app.delete("/customers/account", verifyJWT, customerController.deleteAccount);
-app.get("/customers/account", verifyJWT, customerController.getAccount);
+app.delete("/customers/account",
+    /*
+        #swagger.tags = ['Account']
+        #swagger.summary = 'Delete my account (customer)'
+        #swagger.description = 'Soft-deletes the signed-in customer\'s account (isActive = 0), removing it from active use while preserving linked orders/reviews for referential integrity.'
+        #swagger.responses[200] = { description: 'Account deleted.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer).' }
+        #swagger.responses[500] = { description: 'Error deleting account.' }
+    */
+    verifyJWT, customerController.deleteAccount);
+app.get("/customers/account",
+    /*
+        #swagger.tags = ['Account']
+        #swagger.summary = 'View my account profile (customer)'
+        #swagger.description = 'Returns the signed-in customer\'s own profile (never another user\'s, never the password hash). A soft-deleted account is refused even with a still-valid token.'
+        #swagger.responses[200] = { description: 'The customer\'s profile.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer, or the account is disabled).' }
+        #swagger.responses[404] = { description: 'Account not found.' }
+        #swagger.responses[500] = { description: 'Error retrieving account.' }
+    */
+    verifyJWT, customerController.getAccount);
 
 // Routes for officer auth
 app.post("/officers/login", validateLogin, officerController.login);
 app.post("/officers/logout", officerController.logout);
-app.get("/officers/account", verifyJWT, officerController.getAccount);
+app.get("/officers/account",
+    /*
+        #swagger.tags = ['Account']
+        #swagger.summary = 'View my account profile (NEA officer)'
+        #swagger.description = 'Returns the signed-in officer\'s own profile (never another user\'s, never the password hash). A soft-deleted account is refused even with a still-valid token.'
+        #swagger.responses[200] = { description: 'The officer\'s profile.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not an officer, or the account is disabled).' }
+        #swagger.responses[404] = { description: 'Account not found.' }
+        #swagger.responses[500] = { description: 'Error retrieving account.' }
+    */
+    verifyJWT, officerController.getAccount);
 
 // Routes for operator auth
 app.post("/operators/login", validateLogin, operatorController.login);
 app.post("/operators/logout", operatorController.logout);
-app.get("/operators/account", verifyJWT, operatorController.getAccount);
+app.get("/operators/account",
+    /*
+        #swagger.tags = ['Account']
+        #swagger.summary = 'View my account profile (operator)'
+        #swagger.description = 'Returns the signed-in operator\'s own profile (never another user\'s, never the password hash). A soft-deleted account is refused even with a still-valid token.'
+        #swagger.responses[200] = { description: 'The operator\'s profile.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not an operator, or the account is disabled).' }
+        #swagger.responses[404] = { description: 'Account not found.' }
+        #swagger.responses[500] = { description: 'Error retrieving account.' }
+    */
+    verifyJWT, operatorController.getAccount);
 
 // Route for profile picture upload (shared across all roles)
 app.put("/account/picture", verifyJWT, uploadProfilePicture, userController.uploadProfilePicture);
 
+// Route for changing the account email (shared across all roles)
+app.put("/account/email",
+    /*
+        #swagger.tags = ['Account']
+        #swagger.summary = 'Change the logged-in user\'s email address'
+        #swagger.description = 'Any logged-in role. Confirms the current password, rejects an unchanged or already-taken email (email is unique across all accounts), then updates Users.email.'
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { newEmail: 'new@example.com', currentPassword: 'Password123!' } }
+        #swagger.responses[200] = { description: 'Email updated; the new email is returned.' }
+        #swagger.responses[400] = { description: 'Invalid body, or the new email is unchanged.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no token) or the current password is incorrect.' }
+        #swagger.responses[403] = { description: 'Forbidden (invalid token).' }
+        #swagger.responses[404] = { description: 'Account not found.' }
+        #swagger.responses[409] = { description: 'Email is already in use.' }
+        #swagger.responses[500] = { description: 'Error updating email.' }
+    */
+    verifyJWT, validateChangeEmail, userController.changeEmail);
+
 // Routes for officer inspections
 app.post("/inspections", verifyJWT, validateLogInspection, inspectionController.logInspection);
-app.put("/inspections/:id", verifyJWT, validateUpdateInspection, inspectionController.updateInspection);
-app.post("/inspections/schedule", verifyJWT, validateScheduleInspection, inspectionController.scheduleInspection);
-app.get("/inspections/scheduled", verifyJWT, inspectionController.getScheduledInspections);
+app.put("/inspections/:id",
+    /*
+        #swagger.tags = ['Inspections']
+        #swagger.summary = 'Correct or update a logged inspection'
+        #swagger.description = 'NEA officer updates an existing inspection record with a corrected score, remarks and/or inspection date, to keep official inspection data accurate.'
+        #swagger.parameters['id'] = { in: 'path', required: true, type: 'integer', description: 'ID of the inspection to update.' }
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { score: 85, remarks: 'Re-checked; minor issues resolved.', inspectionDate: '2026-07-20' } }
+        #swagger.responses[200] = { description: 'Inspection updated; the updated record is returned.' }
+        #swagger.responses[400] = { description: 'Inspection ID is not a number, or the body failed validation.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not an officer).' }
+        #swagger.responses[404] = { description: 'Inspection not found.' }
+        #swagger.responses[500] = { description: 'Error updating inspection.' }
+    */
+    verifyJWT, validateUpdateInspection, inspectionController.updateInspection);
+app.post("/inspections/schedule",
+    /*
+        #swagger.tags = ['Inspections']
+        #swagger.summary = 'Schedule an inspection'
+        #swagger.description = 'NEA officer schedules an upcoming inspection for a specific stall on a chosen date, so they can plan their workload. The date cannot be in the past (scheduling for later today is allowed).'
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { stallID: 1, scheduledDate: '2026-08-15' } }
+        #swagger.responses[201] = { description: 'Inspection scheduled; the new record is returned.' }
+        #swagger.responses[400] = { description: 'Validation failed, or the scheduled date is in the past.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not an officer).' }
+        #swagger.responses[404] = { description: 'Stall not found.' }
+        #swagger.responses[500] = { description: 'Error scheduling inspection.' }
+    */
+    verifyJWT, validateScheduleInspection, inspectionController.scheduleInspection);
+app.get("/inspections/scheduled",
+    /*
+        #swagger.tags = ['Inspections']
+        #swagger.summary = 'View my upcoming scheduled inspections'
+        #swagger.description = 'Returns the signed-in officer\'s scheduled (not yet completed) inspections, earliest date first, for planning.'
+        #swagger.responses[200] = { description: 'The officer\'s scheduled inspections (empty list when none).' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not an officer).' }
+        #swagger.responses[500] = { description: 'Error retrieving scheduled inspections.' }
+    */
+    verifyJWT, inspectionController.getScheduledInspections);
 
 // Routes for customer cart
 app.get("/cart", verifyJWT, cartController.getCart);
@@ -91,6 +212,7 @@ app.delete("/cart/items/:cartItemID", verifyJWT, validateCartItemId, cartControl
 // Routes for orders
 app.post("/orders", verifyJWT, validateSubmitOrder, orderController.submitOrder);
 app.get("/orders", verifyJWT, orderController.getMyOrders);
+app.post("/orders/:orderID/reorder", verifyJWT, validateOrderId, orderController.reorder);
 app.get("/orders/:orderID/receipt", verifyJWT, validateOrderIdParam, orderController.getOrderReceipt);
 app.get("/orders/:orderID/receipt/pdf", verifyJWT, validateOrderIdParam, orderController.getOrderReceiptPdf);
 
@@ -156,10 +278,96 @@ app.delete("/menuitems/:id/like", verifyJWT, validateMenuItemId, menuItemControl
 app.get("/rental-agreements", verifyJWT, rentalAgreementController.getRentalAgreements);
 
 // Routes for stall owner promotion management (set up / edit / see / delete)
-app.get("/promotions", verifyJWT, promotionController.getPromotions);
-app.post("/promotions", verifyJWT, validatePromotion, promotionController.createPromotion);
-app.put("/promotions/:id", verifyJWT, validatePromotionId, validatePromotion, promotionController.updatePromotion);
-app.delete("/promotions/:id", verifyJWT, validatePromotionId, promotionController.deletePromotion);
+app.get("/promotions",
+    /*
+        #swagger.tags = ['Promotions']
+        #swagger.summary = 'View my stall\'s promotions'
+        #swagger.description = 'Lists every promotion belonging to the signed-in stall owner\'s stall, newest first.'
+        #swagger.responses[200] = { description: 'The stall\'s promotions (empty list when none exist).' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a stall owner).' }
+        #swagger.responses[404] = { description: 'No stall found for this account.' }
+        #swagger.responses[500] = { description: 'Error retrieving promotions.' }
+    */
+    verifyJWT, promotionController.getPromotions);
+app.post("/promotions",
+    /*
+        #swagger.tags = ['Promotions']
+        #swagger.summary = 'Create a promotion'
+        #swagger.description = 'Creates a promotion for the signed-in owner\'s stall, then emails every customer who has ordered from that stall before. startDate/endDate are optional; discountType is percentage, fixed or points.'
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { title: 'Weekday Special', description: '10% off all mains', discountType: 'percentage', discountValue: 10, startDate: '2026-08-01', endDate: '2026-08-31' } }
+        #swagger.responses[201] = { description: 'Promotion created; the new promotion plus a notifiedCustomers count is returned.' }
+        #swagger.responses[400] = { description: 'Validation failed, or the end date is before the start date.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a stall owner).' }
+        #swagger.responses[404] = { description: 'No stall found for this account.' }
+        #swagger.responses[500] = { description: 'Error creating promotion.' }
+    */
+    verifyJWT, validatePromotion, promotionController.createPromotion);
+app.put("/promotions/:id",
+    /*
+        #swagger.tags = ['Promotions']
+        #swagger.summary = 'Edit a promotion (also activate/deactivate)'
+        #swagger.description = 'Updates a promotion the signed-in owner owns. Passing isActive toggles it on or off, so activation goes through this same route.'
+        #swagger.parameters['id'] = { in: 'path', required: true, type: 'integer', description: 'ID of the promotion to edit.' }
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { title: 'Weekday Special', description: '15% off all mains', discountType: 'percentage', discountValue: 15, isActive: true } }
+        #swagger.responses[200] = { description: 'Promotion updated; the updated promotion is returned.' }
+        #swagger.responses[400] = { description: 'Invalid ID/body, or the end date is before the start date.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a stall owner, or not this owner\'s promotion).' }
+        #swagger.responses[404] = { description: 'Promotion not found.' }
+        #swagger.responses[500] = { description: 'Error updating promotion.' }
+    */
+    verifyJWT, validatePromotionId, validatePromotion, promotionController.updatePromotion);
+app.delete("/promotions/:id",
+    /*
+        #swagger.tags = ['Promotions']
+        #swagger.summary = 'Delete a promotion'
+        #swagger.description = 'Deletes a promotion the signed-in owner owns.'
+        #swagger.parameters['id'] = { in: 'path', required: true, type: 'integer', description: 'ID of the promotion to delete.' }
+        #swagger.responses[200] = { description: 'Promotion deleted.' }
+        #swagger.responses[400] = { description: 'Invalid promotion ID.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a stall owner, or not this owner\'s promotion).' }
+        #swagger.responses[404] = { description: 'Promotion not found.' }
+        #swagger.responses[500] = { description: 'Error deleting promotion.' }
+    */
+    verifyJWT, validatePromotionId, promotionController.deletePromotion);
+
+// Route for customers to find hawker centres near them (geocoded via OneMap)
+app.get("/hawker-centres/nearby",
+    /*
+        #swagger.tags = ['Hawker Centres']
+        #swagger.summary = 'Find hawker centres near me'
+        #swagger.description = 'Returns every hawker centre ranked by distance from the customer\'s current location (nearest first). Each centre is geocoded via the OneMap search API; a centre OneMap cannot locate is still returned but with null coordinates/distance.'
+        #swagger.parameters['lat'] = { in: 'query', required: true, type: 'number', description: 'Customer\'s current latitude (from the browser).' }
+        #swagger.parameters['lng'] = { in: 'query', required: true, type: 'number', description: 'Customer\'s current longitude (from the browser).' }
+        #swagger.responses[200] = { description: 'Hawker centres with coordinates and distanceKm, nearest first.' }
+        #swagger.responses[400] = { description: 'Missing or out-of-range lat/lng.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer).' }
+        #swagger.responses[500] = { description: 'Error retrieving nearby hawker centres.' }
+    */
+    verifyJWT, validateNearbyQuery, hawkerCentreController.getNearbyHawkerCentres);
+// Route for customers to get directions from their location to a centre (OneMap routing)
+app.get("/hawker-centres/directions",
+    /*
+        #swagger.tags = ['Hawker Centres']
+        #swagger.summary = 'Get directions to a hawker centre'
+        #swagger.description = 'Proxies OneMap\'s routing service (which requires an authenticated token, kept server-side) to return the distance, travel time and route line from the customer\'s location to a chosen centre.'
+        #swagger.parameters['startLat'] = { in: 'query', required: true, type: 'number', description: 'Customer\'s latitude.' }
+        #swagger.parameters['startLng'] = { in: 'query', required: true, type: 'number', description: 'Customer\'s longitude.' }
+        #swagger.parameters['endLat'] = { in: 'query', required: true, type: 'number', description: 'Destination centre\'s latitude.' }
+        #swagger.parameters['endLng'] = { in: 'query', required: true, type: 'number', description: 'Destination centre\'s longitude.' }
+        #swagger.parameters['routeType'] = { in: 'query', required: false, type: 'string', description: 'Travel mode: walk (default), drive or cycle.' }
+        #swagger.responses[200] = { description: 'Route summary: distanceMeters, timeSeconds and an encoded route geometry.' }
+        #swagger.responses[400] = { description: 'Missing/invalid coordinates or routeType.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer).' }
+        #swagger.responses[502] = { description: 'OneMap routing unavailable (or ONEMAP credentials not configured).' }
+        #swagger.responses[500] = { description: 'Error retrieving directions.' }
+    */
+    verifyJWT, validateDirectionsQuery, hawkerCentreController.getDirections);
 
 // Public: list all stalls (used by the front-end stall picker, no auth)
 app.get("/stalls", stallController.getStalls);
@@ -174,6 +382,18 @@ app.put("/stalls/status", verifyJWT, stallController.updateStallStatus);
 // Stall owner only: view current queue and advance it (serve current customer)
 app.get("/stallowners/queue", verifyJWT, queueController.getQueue);
 app.post("/stallowners/queue/advance", verifyJWT, queueController.advanceQueue);
+app.post("/stallowners/queue/abandon",
+    /*
+        #swagger.tags = ['Queue']
+        #swagger.summary = 'Mark uncollected orders as abandoned'
+        #swagger.description = 'Stall owner only. Marks the stall\'s still-active orders (pending/preparing/ready) that were placed over 45 minutes ago as "abandoned", clearing them from the active order board for food-waste tracking. This sweep also runs automatically whenever the queue board is loaded.'
+        #swagger.responses[200] = { description: 'Sweep done; returns the count and the abandoned orders (count may be 0).' }
+        #swagger.responses[401] = { description: 'Unauthorized (no token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a stall owner).' }
+        #swagger.responses[404] = { description: 'No stall found for this account.' }
+        #swagger.responses[500] = { description: 'Error abandoning stale orders.' }
+    */
+    verifyJWT, queueController.abandonStale);
 
 // Routes for hygiene grades
 // Public: customers viewing a stall's hygiene grades (no auth)

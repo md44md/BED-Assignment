@@ -38,6 +38,7 @@ function verifyJWT(req, res, next) {
             // Stall owner queue management
             "GET /stallowners/queue": ["stallOwner"],
             "POST /stallowners/queue/advance": ["stallOwner"],
+            "POST /stallowners/queue/abandon": ["stallOwner"],
 
             // Stall owner account deletion / profile view
             "DELETE /stallowners/account": ["stallOwner"],
@@ -57,6 +58,7 @@ function verifyJWT(req, res, next) {
             // Customer order routes
             "POST /orders": ["customer"],
             "GET /orders": ["customer"],
+            "POST /orders/[0-9]+/reorder": ["customer"],
             "GET /orders/[0-9]+/receipt": ["customer"],
             "GET /orders/[0-9]+/receipt/pdf": ["customer"],
 
@@ -85,6 +87,10 @@ function verifyJWT(req, res, next) {
             "DELETE /customers/account": ["customer"],
             "GET /customers/account": ["customer"],
 
+            // Customer nearby hawker centres (OneMap geocoding) + directions (OneMap routing)
+            "GET /hawker-centres/nearby": ["customer"],
+            "GET /hawker-centres/directions": ["customer"],
+
             // NEA officer hygiene grade routes
             "POST /hygiene-grades": ["neaOfficer"],
             "PUT /hygiene-grades/[0-9]+": ["neaOfficer"],
@@ -109,6 +115,9 @@ function verifyJWT(req, res, next) {
 
             // Profile picture upload (any logged-in role)
             "PUT /account/picture": ["customer", "stallOwner", "operator", "neaOfficer"],
+
+            // Change account email (any logged-in role)
+            "PUT /account/email": ["customer", "stallOwner", "operator", "neaOfficer"],
         };
 
         // req.path is the path WITHOUT the query string. req.url would include it, so a

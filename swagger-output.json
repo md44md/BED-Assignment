@@ -118,7 +118,11 @@
     },
     "/stallowners/account": {
       "delete": {
-        "description": "",
+        "tags": [
+          "Account"
+        ],
+        "summary": "Delete my account (stall owner)",
+        "description": "Soft-deletes the signed-in stall owner\\'s account (isActive = 0), removing it from active use while preserving linked records for referential integrity.",
         "parameters": [
           {
             "name": "authorization",
@@ -128,21 +132,25 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Account deleted."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not a stall owner)."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error deleting account."
           }
         }
       },
       "get": {
-        "description": "",
+        "tags": [
+          "Account"
+        ],
+        "summary": "View my account profile (stall owner)",
+        "description": "Returns the signed-in stall owner\\'s own profile (never another user\\'s, never the password hash). A soft-deleted account is refused even with a still-valid token.",
         "parameters": [
           {
             "name": "authorization",
@@ -152,19 +160,19 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "The stall owner's profile."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not a stall owner, or the account is disabled)."
           },
           "404": {
-            "description": "Not Found"
+            "description": "Account not found."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error retrieving account."
           }
         }
       }
@@ -268,7 +276,11 @@
     },
     "/customers/account": {
       "delete": {
-        "description": "",
+        "tags": [
+          "Account"
+        ],
+        "summary": "Delete my account (customer)",
+        "description": "Soft-deletes the signed-in customer\\'s account (isActive = 0), removing it from active use while preserving linked orders/reviews for referential integrity.",
         "parameters": [
           {
             "name": "authorization",
@@ -278,21 +290,25 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Account deleted."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not a customer)."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error deleting account."
           }
         }
       },
       "get": {
-        "description": "",
+        "tags": [
+          "Account"
+        ],
+        "summary": "View my account profile (customer)",
+        "description": "Returns the signed-in customer\\'s own profile (never another user\\'s, never the password hash). A soft-deleted account is refused even with a still-valid token.",
         "parameters": [
           {
             "name": "authorization",
@@ -302,19 +318,19 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "The customer's profile."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not a customer, or the account is disabled)."
           },
           "404": {
-            "description": "Not Found"
+            "description": "Account not found."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error retrieving account."
           }
         }
       }
@@ -373,7 +389,11 @@
     },
     "/officers/account": {
       "get": {
-        "description": "",
+        "tags": [
+          "Account"
+        ],
+        "summary": "View my account profile (NEA officer)",
+        "description": "Returns the signed-in officer\\'s own profile (never another user\\'s, never the password hash). A soft-deleted account is refused even with a still-valid token.",
         "parameters": [
           {
             "name": "authorization",
@@ -383,19 +403,19 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "The officer's profile."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not an officer, or the account is disabled)."
           },
           "404": {
-            "description": "Not Found"
+            "description": "Account not found."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error retrieving account."
           }
         }
       }
@@ -454,7 +474,11 @@
     },
     "/operators/account": {
       "get": {
-        "description": "",
+        "tags": [
+          "Account"
+        ],
+        "summary": "View my account profile (operator)",
+        "description": "Returns the signed-in operator\\'s own profile (never another user\\'s, never the password hash). A soft-deleted account is refused even with a still-valid token.",
         "parameters": [
           {
             "name": "authorization",
@@ -464,19 +488,19 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "The operator's profile."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not an operator, or the account is disabled)."
           },
           "404": {
-            "description": "Not Found"
+            "description": "Account not found."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error retrieving account."
           }
         }
       }
@@ -506,6 +530,63 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/account/email": {
+      "put": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Change the logged-in user\\'s email address",
+        "description": "Any logged-in role. Confirms the current password, rejects an unchanged or already-taken email (email is unique across all accounts), then updates Users.email.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "newEmail": {
+                  "type": "string",
+                  "example": "new@example.com"
+                },
+                "currentPassword": {
+                  "type": "string",
+                  "example": "Password123!"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email updated; the new email is returned."
+          },
+          "400": {
+            "description": "Invalid body, or the new email is unchanged."
+          },
+          "401": {
+            "description": "Unauthorized (no token) or the current password is incorrect."
+          },
+          "403": {
+            "description": "Forbidden (invalid token)."
+          },
+          "404": {
+            "description": "Account not found."
+          },
+          "409": {
+            "description": "Email is already in use."
+          },
+          "500": {
+            "description": "Error updating email."
           }
         }
       }
@@ -565,13 +646,18 @@
     },
     "/inspections/{id}": {
       "put": {
-        "description": "",
+        "tags": [
+          "Inspections"
+        ],
+        "summary": "Correct or update a logged inspection",
+        "description": "NEA officer updates an existing inspection record with a corrected score, remarks and/or inspection date, to keep official inspection data accurate.",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "integer",
+            "description": "ID of the inspection to update."
           },
           {
             "name": "authorization",
@@ -581,17 +667,21 @@
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "score": {
-                  "example": "any"
+                  "type": "number",
+                  "example": 85
                 },
                 "remarks": {
-                  "example": "any"
+                  "type": "string",
+                  "example": "Re-checked; minor issues resolved."
                 },
                 "inspectionDate": {
-                  "example": "any"
+                  "type": "string",
+                  "example": "2026-07-20"
                 }
               }
             }
@@ -599,22 +689,106 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Inspection updated; the updated record is returned."
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Inspection ID is not a number, or the body failed validation."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not an officer)."
           },
           "404": {
-            "description": "Not Found"
+            "description": "Inspection not found."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error updating inspection."
+          }
+        }
+      }
+    },
+    "/inspections/schedule": {
+      "post": {
+        "tags": [
+          "Inspections"
+        ],
+        "summary": "Schedule an inspection",
+        "description": "NEA officer schedules an upcoming inspection for a specific stall on a chosen date, so they can plan their workload. The date cannot be in the past (scheduling for later today is allowed).",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "stallID": {
+                  "type": "number",
+                  "example": 1
+                },
+                "scheduledDate": {
+                  "type": "string",
+                  "example": "2026-08-15"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Inspection scheduled; the new record is returned."
+          },
+          "400": {
+            "description": "Validation failed, or the scheduled date is in the past."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not an officer)."
+          },
+          "404": {
+            "description": "Stall not found."
+          },
+          "500": {
+            "description": "Error scheduling inspection."
+          }
+        }
+      }
+    },
+    "/inspections/scheduled": {
+      "get": {
+        "tags": [
+          "Inspections"
+        ],
+        "summary": "View my upcoming scheduled inspections",
+        "description": "Returns the signed-in officer\\'s scheduled (not yet completed) inspections, earliest date first, for planning.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The officer's scheduled inspections (empty list when none)."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not an officer)."
+          },
+          "500": {
+            "description": "Error retrieving scheduled inspections."
           }
         }
       }
@@ -1483,6 +1657,435 @@
         }
       }
     },
+    "/promotions": {
+      "get": {
+        "tags": [
+          "Promotions"
+        ],
+        "summary": "View my stall\\'s promotions",
+        "description": "Lists every promotion belonging to the signed-in stall owner\\'s stall, newest first.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The stall's promotions (empty list when none exist)."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not a stall owner)."
+          },
+          "404": {
+            "description": "No stall found for this account."
+          },
+          "500": {
+            "description": "Error retrieving promotions."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Promotions"
+        ],
+        "summary": "Create a promotion",
+        "description": "Creates a promotion for the signed-in owner\\'s stall, then emails every customer who has ordered from that stall before. startDate/endDate are optional; discountType is percentage, fixed or points.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "Weekday Special"
+                },
+                "description": {
+                  "type": "string",
+                  "example": "10% off all mains"
+                },
+                "discountType": {
+                  "type": "string",
+                  "example": "percentage"
+                },
+                "discountValue": {
+                  "type": "number",
+                  "example": 10
+                },
+                "startDate": {
+                  "type": "string",
+                  "example": "2026-08-01"
+                },
+                "endDate": {
+                  "type": "string",
+                  "example": "2026-08-31"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Promotion created; the new promotion plus a notifiedCustomers count is returned."
+          },
+          "400": {
+            "description": "Validation failed, or the end date is before the start date."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not a stall owner)."
+          },
+          "404": {
+            "description": "No stall found for this account."
+          },
+          "500": {
+            "description": "Error creating promotion."
+          }
+        }
+      }
+    },
+    "/promotions/{id}": {
+      "put": {
+        "tags": [
+          "Promotions"
+        ],
+        "summary": "Edit a promotion (also activate/deactivate)",
+        "description": "Updates a promotion the signed-in owner owns. Passing isActive toggles it on or off, so activation goes through this same route.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the promotion to edit."
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "example": "Weekday Special"
+                },
+                "description": {
+                  "type": "string",
+                  "example": "15% off all mains"
+                },
+                "discountType": {
+                  "type": "string",
+                  "example": "percentage"
+                },
+                "discountValue": {
+                  "type": "number",
+                  "example": 15
+                },
+                "isActive": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Promotion updated; the updated promotion is returned."
+          },
+          "400": {
+            "description": "Invalid ID/body, or the end date is before the start date."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not a stall owner, or not this owner's promotion)."
+          },
+          "404": {
+            "description": "Promotion not found."
+          },
+          "500": {
+            "description": "Error updating promotion."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Promotions"
+        ],
+        "summary": "Delete a promotion",
+        "description": "Deletes a promotion the signed-in owner owns.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the promotion to delete."
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Promotion deleted."
+          },
+          "400": {
+            "description": "Invalid promotion ID."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not a stall owner, or not this owner's promotion)."
+          },
+          "404": {
+            "description": "Promotion not found."
+          },
+          "500": {
+            "description": "Error deleting promotion."
+          }
+        }
+      }
+    },
+    "/hawker-centres/nearby": {
+      "get": {
+        "tags": [
+          "Hawker Centres"
+        ],
+        "summary": "Find hawker centres near me",
+        "description": "Returns every hawker centre ranked by distance from the customer\\'s current location (nearest first). Each centre is geocoded via the OneMap search API; a centre OneMap cannot locate is still returned but with null coordinates/distance.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "type": "number",
+            "description": "Customer's current latitude (from the browser)."
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "required": true,
+            "type": "number",
+            "description": "Customer's current longitude (from the browser)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hawker centres with coordinates and distanceKm, nearest first."
+          },
+          "400": {
+            "description": "Missing or out-of-range lat/lng."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not a customer)."
+          },
+          "500": {
+            "description": "Error retrieving nearby hawker centres."
+          }
+        }
+      }
+    },
+    "/hawker-centres/directions": {
+      "get": {
+        "tags": [
+          "Hawker Centres"
+        ],
+        "summary": "Get directions to a hawker centre",
+        "description": "Proxies OneMap\\'s routing service (which requires an authenticated token, kept server-side) to return the distance, travel time and route line from the customer\\'s location to a chosen centre.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "startLat",
+            "in": "query",
+            "required": true,
+            "type": "number",
+            "description": "Customer's latitude."
+          },
+          {
+            "name": "startLng",
+            "in": "query",
+            "required": true,
+            "type": "number",
+            "description": "Customer's longitude."
+          },
+          {
+            "name": "endLat",
+            "in": "query",
+            "required": true,
+            "type": "number",
+            "description": "Destination centre's latitude."
+          },
+          {
+            "name": "endLng",
+            "in": "query",
+            "required": true,
+            "type": "number",
+            "description": "Destination centre's longitude."
+          },
+          {
+            "name": "routeType",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "description": "Travel mode: walk (default), drive or cycle."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Route summary: distanceMeters, timeSeconds and an encoded route geometry."
+          },
+          "400": {
+            "description": "Missing/invalid coordinates or routeType."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not a customer)."
+          },
+          "500": {
+            "description": "Error retrieving directions."
+          },
+          "502": {
+            "description": "OneMap routing unavailable (or ONEMAP credentials not configured)."
+          }
+        }
+      }
+    },
+    "/hawker-centres/nearby": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/hawker-centres/directions": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "startLat",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "startLng",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "endLat",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "endLng",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "routeType",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "502": {
+            "description": "Bad Gateway"
+          }
+        }
+      }
+    },
     "/stalls": {
       "get": {
         "description": "",
@@ -1648,6 +2251,39 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/stallowners/queue/abandon": {
+      "post": {
+        "tags": [
+          "Queue"
+        ],
+        "summary": "Mark uncollected orders as abandoned",
+        "description": "Stall owner only. Marks the stall\\'s still-active orders (pending/preparing/ready) that were placed over 45 minutes ago as \"abandoned\", clearing them from the active order board for food-waste tracking. This sweep also runs automatically whenever the queue board is loaded.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sweep done; returns the count and the abandoned orders (count may be 0)."
+          },
+          "401": {
+            "description": "Unauthorized (no token)."
+          },
+          "403": {
+            "description": "Forbidden (not a stall owner)."
+          },
+          "404": {
+            "description": "No stall found for this account."
+          },
+          "500": {
+            "description": "Error abandoning stale orders."
           }
         }
       }

@@ -51,6 +51,9 @@ function renderCartItemHtml(item) {
     `;
 }
 
+// GST is charged at 9% of the subtotal (matches the backend calculation in
+// controllers/orderController.js) so the customer sees the real total before checkout.
+const GST_RATE = 0.09;
 // Both images are generic/sample QR graphics, not tied to any real account
 // or gateway (see credit.html for sources) - no real payment is processed.
 const QR_INFO = {
@@ -59,14 +62,21 @@ const QR_INFO = {
 };
 
 function renderCartStall(cart) {
+    const gstAmount = Math.round(cart.subtotal * GST_RATE * 100) / 100;
+    const totalAmount = Math.round((cart.subtotal + gstAmount) * 100) / 100;
+
     const section = document.createElement("article");
     section.className = "cart-stall";
     section.dataset.cartId = cart.cartID;
     section.innerHTML = `
         <div class="cart-stall__title">${cart.stallName}</div>
         <div class="cart-stall__items">${cart.items.map(renderCartItemHtml).join("")}</div>
+        <div class="order-summary">
+            <div class="order-summary__row"><span>Subtotal</span><span>${formatCurrency(cart.subtotal)}</span></div>
+            <div class="order-summary__row"><span>GST (9%)</span><span>${formatCurrency(gstAmount)}</span></div>
+            <div class="order-summary__row order-summary__row--total"><span>Total</span><span>${formatCurrency(totalAmount)}</span></div>
+        </div>
         <div class="cart-stall__footer">
-            <span class="cart-stall__subtotal">Subtotal: ${formatCurrency(cart.subtotal)}</span>
             <div class="form-row">
                 <select class="input payment-method">
                     ${PAYMENT_METHODS.map((m) => `<option value="${m}">${m}</option>`).join("")}

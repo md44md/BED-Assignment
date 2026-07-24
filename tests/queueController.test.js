@@ -41,6 +41,9 @@ const servedRow = { orderID: 8, customerID: 1, queueNumber: 43, status: "complet
 beforeEach(() => {
     jest.clearAllMocks();
     stallModel.getStallByOwnerID.mockResolvedValue({ stallID: 1, stallName: "Stall 1" });
+    // getQueue now runs a stale-order sweep before reading the board; default it to a
+    // no-op so the existing getQueue tests are unaffected.
+    orderModel.abandonStaleOrders.mockResolvedValue([]);
     // Silence the controller's console.error in expected-failure tests.
     jest.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -62,6 +65,14 @@ describe("getQueue", () => {
 
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ current: queue[0], queue });
+    });
+
+    test("sweeps stale orders for the stall before reading the board", async () => {
+        orderModel.getCurrentQueue.mockResolvedValue([]);
+
+        await queueController.getQueue(mockReq, mockRes());
+
+        expect(orderModel.abandonStaleOrders).toHaveBeenCalledWith(1);
     });
 
     test("returns current: null and an empty queue when nobody is waiting", async () => {
@@ -211,6 +222,61 @@ describe("advanceQueue", () => {
         const res = mockRes();
 
         await queueController.advanceQueue(mockReq, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+    });
+});
+
+describe("abandonStale", () => {
+    const abandonedRows = [
+        { orderID: 8, customerID: 1, queueNumber: 43, status: "abandoned" },
+        { orderID: 9, customerID: 2, queueNumber: 44, status: "abandoned" },
+    ];
+
+    test("marks stale orders abandoned and returns the count and orders", async () => {
+        orderModel.abandonStaleOrders.mockResolvedValue(abandonedRows);
+        const res = mockRes();
+
+        await queueController.abandonStale(mockReq, res);
+
+        expect(orderModel.abandonStaleOrders).toHaveBeenCalledWith(1);
+        expect(res.status).toHaveBeenCalledWith(200);
+        const body = res.json.mock.calls[0][0];
+        expect(body.count).toBe(2);
+        expect(body.abandoned).toEqual([
+            { orderID: 8, customerID: 1, queueNumber: 43, status: "abandoned" },
+            { orderID: 9, customerID: 2, queueNumber: 44, status: "abandoned" },
+        ]);
+    });
+
+    test("returns count 0 with a message when nothing is old enough", async () => {
+        orderModel.abandonStaleOrders.mockResolvedValue([]);
+        const res = mockRes();
+
+        await queueController.abandonStale(mockReq, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        const body = res.json.mock.calls[0][0];
+        expect(body.count).toBe(0);
+        expect(body.abandoned).toEqual([]);
+        expect(body.message).toMatch(/no orders/i);
+    });
+
+    test("404s when the account has no stall, without sweeping", async () => {
+        stallModel.getStallByOwnerID.mockResolvedValue(null);
+        const res = mockRes();
+
+        await queueController.abandonStale(mockReq, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(orderModel.abandonStaleOrders).not.toHaveBeenCalled();
+    });
+
+    test("500s when the sweep fails", async () => {
+        orderModel.abandonStaleOrders.mockRejectedValue(new Error("connection lost"));
+        const res = mockRes();
+
+        await queueController.abandonStale(mockReq, res);
 
         expect(res.status).toHaveBeenCalledWith(500);
     });
