@@ -191,3 +191,56 @@ describe("deleteAccount", () => {
         expect(res.json).toHaveBeenCalledWith({ error: "Error deleting account." });
     });
 });
+
+describe("getAccount", () => {
+    const req = { user: { userID: 4 } };
+    const activeAccount = {
+        email: "diana@email.com",
+        firstName: "Diana",
+        lastName: "Koh",
+        phone: "94567890",
+        isActive: 1,
+        passwordHash: "should-never-be-returned",
+        profilePictureURL: null,
+    };
+
+    test("returns the stall owner's own profile without the password hash", async () => {
+        stallOwnerModel.getAccountByUserID.mockResolvedValue(activeAccount);
+        const res = mockRes();
+
+        await stallOwnerController.getAccount(req, res);
+
+        expect(stallOwnerModel.getAccountByUserID).toHaveBeenCalledWith(4);
+        expect(res.status).toHaveBeenCalledWith(200);
+        const payload = res.json.mock.calls[0][0];
+        expect(payload).toMatchObject({ email: "diana@email.com", firstName: "Diana", phone: "94567890" });
+        expect(payload).not.toHaveProperty("passwordHash");
+    });
+
+    test("404s when the account does not exist", async () => {
+        stallOwnerModel.getAccountByUserID.mockResolvedValue(null);
+        const res = mockRes();
+
+        await stallOwnerController.getAccount(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    test("403s when the account is soft-deleted (isActive = 0)", async () => {
+        stallOwnerModel.getAccountByUserID.mockResolvedValue({ ...activeAccount, isActive: 0 });
+        const res = mockRes();
+
+        await stallOwnerController.getAccount(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+    });
+
+    test("500s when the database call fails", async () => {
+        stallOwnerModel.getAccountByUserID.mockRejectedValue(new Error("connection lost"));
+        const res = mockRes();
+
+        await stallOwnerController.getAccount(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+    });
+});
