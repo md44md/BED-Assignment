@@ -60,6 +60,7 @@ function verifyJWT(req, res, next) {
             "GET /orders": ["customer"],
             "POST /orders/[0-9]+/reorder": ["customer"],
             "GET /orders/[0-9]+/receipt": ["customer"],
+            "GET /orders/[0-9]+/receipt/pdf": ["customer"],
 
             // Customer feedback routes
             "POST /feedback": ["customer"],
