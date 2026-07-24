@@ -214,6 +214,7 @@ app.post("/orders", verifyJWT, validateSubmitOrder, orderController.submitOrder)
 app.get("/orders", verifyJWT, orderController.getMyOrders);
 app.post("/orders/:orderID/reorder", verifyJWT, validateOrderId, orderController.reorder);
 app.get("/orders/:orderID/receipt", verifyJWT, validateOrderIdParam, orderController.getOrderReceipt);
+app.get("/orders/:orderID/receipt/pdf", verifyJWT, validateOrderIdParam, orderController.getOrderReceiptPdf);
 
 // Routes for feedback
 app.post("/feedback", verifyJWT, validateSubmitFeedback, feedbackController.submitFeedback);
