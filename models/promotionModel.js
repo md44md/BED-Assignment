@@ -6,7 +6,7 @@ async function getStallByOwnerID(stallOwnerID) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = "SELECT stallID FROM Stall WHERE stallOwnerID = @stallOwnerID";
+        const query = "SELECT stallID, stallName FROM Stall WHERE stallOwnerID = @stallOwnerID";
         const request = connection.request();
         request.input("stallOwnerID", sql.Int, stallOwnerID);
         const result = await request.query(query);
@@ -16,6 +16,39 @@ async function getStallByOwnerID(stallOwnerID) {
         }
 
         return result.recordset[0];
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Repeat customers of a stall — everyone who has placed an order there before,
+// with the contact details needed to email them about a new promotion. Guest
+// orders (NULL customerID) are dropped by the INNER JOIN; soft-deleted customers
+// are excluded so we don't email closed accounts.
+async function getCustomersByStallID(stallID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT DISTINCT c.customerID, c.firstName, u.email
+            FROM Orders o
+            INNER JOIN Customer c ON o.customerID = c.customerID
+            INNER JOIN Users u ON c.userID = u.userID
+            WHERE o.stallID = @stallID AND c.isActive = 1
+        `;
+        const request = connection.request();
+        request.input("stallID", sql.Int, stallID);
+        const result = await request.query(query);
+        return result.recordset;
     } catch (error) {
         console.error("Database error:", error);
         throw error;
@@ -201,6 +234,7 @@ async function deletePromotion(id) {
 
 module.exports = {
     getStallByOwnerID,
+    getCustomersByStallID,
     getPromotionsByStallID,
     getPromotionById,
     createPromotion,
