@@ -681,6 +681,31 @@ async function handleServeNext() {
     }
 }
 
+// Clear uncollected orders (older than 45 min) off the board. The board also
+// self-clears on load, but this lets the owner trigger and see the sweep on demand.
+async function handleClearStale() {
+    const msg = $("#queue-message");
+    clearMessage(msg);
+
+    const btn = $("#clear-stale-btn");
+    btn.disabled = true;
+    try {
+        const data = await api("/stallowners/queue/abandon", { method: "POST", auth: true });
+        showMessage(
+            msg,
+            "success",
+            data.count
+                ? `${data.count} uncollected order(s) cleared from the board.`
+                : "No orders were old enough to clear."
+        );
+        loadQueue();
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
 /* ---------- Stall status toggle ---------- */
 
 // Maps each status to an existing tag colour so it reuses the same visual
@@ -1050,6 +1075,7 @@ function init() {
     $("#complaints-results").addEventListener("click", handleComplaintsResultsClick);
     $("#queue-refresh-btn").addEventListener("click", loadQueue);
     $("#serve-next-btn").addEventListener("click", handleServeNext);
+    $("#clear-stale-btn").addEventListener("click", handleClearStale);
     $("#analytics-refresh-btn").addEventListener("click", loadSalesAnalytics);
     $("#stall-status-row").addEventListener("click", handleStallStatusClick);
     $("#promotions-refresh-btn").addEventListener("click", loadPromotions);
