@@ -50,6 +50,45 @@ afterEach(() => {
     jest.restoreAllMocks();
 });
 
+describe("getMyOrders", () => {
+    // req.user.customerID is set by verifyJWT from the logged-in customer's token.
+    const req = { user: { customerID: 1 } };
+
+    test("returns the logged-in customer's own orders", async () => {
+        const orders = [
+            { orderID: 42, status: "completed", items: [] },
+            { orderID: 17, status: "preparing", items: [] },
+        ];
+        orderModel.getOrdersByCustomer.mockResolvedValue(orders);
+        const res = mockRes();
+
+        await orderController.getMyOrders(req, res);
+
+        expect(orderModel.getOrdersByCustomer).toHaveBeenCalledWith(1);
+        expect(res.json).toHaveBeenCalledWith(orders);
+    });
+
+    test("returns an empty array when the customer has no orders", async () => {
+        orderModel.getOrdersByCustomer.mockResolvedValue([]);
+        const res = mockRes();
+
+        await orderController.getMyOrders(req, res);
+
+        expect(res.json).toHaveBeenCalledWith([]);
+        expect(res.status).not.toHaveBeenCalledWith(404);
+    });
+
+    test("500s when the database call fails", async () => {
+        orderModel.getOrdersByCustomer.mockRejectedValue(new Error("connection lost"));
+        const res = mockRes();
+
+        await orderController.getMyOrders(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({ error: "Error retrieving orders." });
+    });
+});
+
 describe("getOrderReceipt", () => {
     test("returns the itemized breakdown, splitting base items from priced add-ons", async () => {
         const withAddon = {

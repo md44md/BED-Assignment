@@ -18,8 +18,7 @@ const { validateLogInspection, validateUpdateInspection, validateScheduleInspect
 const cartController = require("./controllers/cartController");
 const { validateAddItem, validateCartItemId } = require("./middlewares/cartValidation");
 const orderController = require("./controllers/orderController");
-const { validateSubmitOrder, validateOrderId } = require("./middlewares/orderValidation");
-const { validateSubmitOrder, validateOrderIdParam } = require("./middlewares/orderValidation");
+const { validateSubmitOrder, validateOrderId, validateOrderIdParam } = require("./middlewares/orderValidation");
 const hygieneGradeController = require("./controllers/hygieneGradeController");
 const { validateIssueGrade, validateUpdateGrade } = require("./middlewares/hygieneGradeValidation");
 const stallController = require("./controllers/stallController");
