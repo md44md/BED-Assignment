@@ -63,14 +63,14 @@ async function getFeedbackByCustomerAndStall(customerID, stallID) {
 }
 
 // Insert a new feedback row, return the new feedbackID
-async function createFeedback(customerID, stallID, orderID, rating, comments) {
+async function createFeedback(customerID, stallID, orderID, rating, comments, wasFiltered) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
         const query = `
-            INSERT INTO Feedback (customerID, stallID, orderID, rating, comments)
+            INSERT INTO Feedback (customerID, stallID, orderID, rating, comments, wasFiltered)
             OUTPUT INSERTED.feedbackID
-            VALUES (@customerID, @stallID, @orderID, @rating, @comments)
+            VALUES (@customerID, @stallID, @orderID, @rating, @comments, @wasFiltered)
         `;
         const request = connection.request();
         request.input("customerID", sql.Int, customerID);
@@ -78,6 +78,7 @@ async function createFeedback(customerID, stallID, orderID, rating, comments) {
         request.input("orderID", sql.Int, orderID);
         request.input("rating", sql.Int, rating);
         request.input("comments", sql.VarChar(2000), comments);
+        request.input("wasFiltered", sql.Bit, wasFiltered ? 1 : 0);
         const result = await request.query(query);
 
         return result.recordset[0].feedbackID;
@@ -187,15 +188,16 @@ async function getFeedbackByStall(stallID) {
 }
 
 // Update the rating/comments on an existing feedback row
-async function updateFeedback(feedbackID, rating, comments) {
+async function updateFeedback(feedbackID, rating, comments, wasFiltered) {
     let connection;
     try {
         connection = await sql.connect(dbConfig);
-        const query = "UPDATE Feedback SET rating = @rating, comments = @comments WHERE feedbackID = @feedbackID";
+        const query = "UPDATE Feedback SET rating = @rating, comments = @comments, wasFiltered = @wasFiltered WHERE feedbackID = @feedbackID";
         const request = connection.request();
         request.input("feedbackID", sql.Int, feedbackID);
         request.input("rating", sql.Int, rating);
         request.input("comments", sql.VarChar(2000), comments);
+        request.input("wasFiltered", sql.Bit, wasFiltered ? 1 : 0);
         await request.query(query);
     } catch (error) {
         console.error("Database error:", error);
