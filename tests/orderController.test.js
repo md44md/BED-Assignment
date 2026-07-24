@@ -1,15 +1,20 @@
-// Unit tests for the order controller's itemized receipt endpoint.
-// The model is mocked so no database connection is needed.
+// Unit tests for the order controller's itemized receipt endpoints.
+// The model and PDF service are mocked so no database connection or real PDFShift
+// call is needed.
 
 jest.mock("../models/orderModel");
+jest.mock("../services/pdfService");
 
 const orderModel = require("../models/orderModel");
+const pdfService = require("../services/pdfService");
 const orderController = require("../controllers/orderController");
 
 function mockRes() {
     const res = {};
     res.status = jest.fn().mockReturnValue(res);
     res.json = jest.fn().mockReturnValue(res);
+    res.send = jest.fn().mockReturnValue(res);
+    res.setHeader = jest.fn();
     return res;
 }
 
@@ -92,6 +97,78 @@ describe("getOrderReceipt", () => {
         const res = mockRes();
 
         await orderController.getOrderReceipt(mockReq(1), res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+    });
+});
+
+describe("getOrderReceiptPdf", () => {
+    test("streams back a PDF with the right headers", async () => {
+        orderModel.getOrderReceipt.mockResolvedValue(receiptRow);
+        pdfService.convertHtmlToPdf.mockResolvedValue({ ok: true, buffer: Buffer.from("fake-pdf-bytes") });
+        const res = mockRes();
+
+        await orderController.getOrderReceiptPdf(mockReq(1), res);
+
+        expect(res.setHeader).toHaveBeenCalledWith("Content-Type", "application/pdf");
+        expect(res.setHeader).toHaveBeenCalledWith("Content-Disposition", 'attachment; filename="receipt-1.pdf"');
+        expect(res.send).toHaveBeenCalledWith(Buffer.from("fake-pdf-bytes"));
+        expect(res.status).not.toHaveBeenCalledWith(404);
+        expect(res.status).not.toHaveBeenCalledWith(403);
+    });
+
+    test("passes the escaped stall name and item name into the HTML sent to PDFShift", async () => {
+        const withUnsafeText = {
+            ...receiptRow,
+            stallName: "Tian Tian <script>alert(1)</script>",
+            items: [{ ...receiptRow.items[0], addons: '"><img src=x onerror=alert(1)>' }],
+        };
+        orderModel.getOrderReceipt.mockResolvedValue(withUnsafeText);
+        pdfService.convertHtmlToPdf.mockResolvedValue({ ok: true, buffer: Buffer.from("pdf") });
+        const res = mockRes();
+
+        await orderController.getOrderReceiptPdf(mockReq(1), res);
+
+        const html = pdfService.convertHtmlToPdf.mock.calls[0][0];
+        expect(html).not.toContain("<script>alert(1)</script>");
+        expect(html).not.toContain("<img src=x onerror=alert(1)>");
+    });
+
+    test("404s when the order does not exist", async () => {
+        orderModel.getOrderReceipt.mockResolvedValue(null);
+        const res = mockRes();
+
+        await orderController.getOrderReceiptPdf(mockReq(999), res);
+
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(pdfService.convertHtmlToPdf).not.toHaveBeenCalled();
+    });
+
+    test("403s when the order belongs to a different customer", async () => {
+        orderModel.getOrderReceipt.mockResolvedValue(receiptRow);
+        const res = mockRes();
+
+        await orderController.getOrderReceiptPdf(mockReq(1, 2), res);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(pdfService.convertHtmlToPdf).not.toHaveBeenCalled();
+    });
+
+    test("502s when the PDF service fails", async () => {
+        orderModel.getOrderReceipt.mockResolvedValue(receiptRow);
+        pdfService.convertHtmlToPdf.mockResolvedValue({ ok: false, error: "Invalid API Key" });
+        const res = mockRes();
+
+        await orderController.getOrderReceiptPdf(mockReq(1), res);
+
+        expect(res.status).toHaveBeenCalledWith(502);
+    });
+
+    test("500s when the database call fails", async () => {
+        orderModel.getOrderReceipt.mockRejectedValue(new Error("connection lost"));
+        const res = mockRes();
+
+        await orderController.getOrderReceiptPdf(mockReq(1), res);
 
         expect(res.status).toHaveBeenCalledWith(500);
     });

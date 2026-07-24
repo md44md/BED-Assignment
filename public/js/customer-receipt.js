@@ -5,7 +5,8 @@
    Reads ?orderID= from the URL (linked from customer-orders.js).
 
    Talks to the back-end API (needs a customer JWT):
-     GET /orders/:orderID/receipt
+     GET /orders/:orderID/receipt       — itemized breakdown (JSON)
+     GET /orders/:orderID/receipt/pdf   — same receipt as a downloadable PDF
    Relies on helpers from common.js (loaded first).
    ============================================================ */
 
@@ -88,6 +89,10 @@ function renderReceipt(receipt) {
                 <span class="tag tag--historical">${receipt.status}</span>
             </div>
 
+            <div class="order-card__meta">
+                <button type="button" id="download-pdf-btn" class="btn btn--secondary btn--sm">Download PDF</button>
+            </div>
+
             <div class="panel__head panel__head--sub">
                 <h3 class="panel__title panel__title--sm">Items</h3>
             </div>
@@ -125,6 +130,52 @@ function renderReceipt(receipt) {
     };
     splitInput.addEventListener("input", updateSplit);
     updateSplit();
+
+    $("#download-pdf-btn").addEventListener("click", () => downloadReceiptPdf(receipt.orderID));
+}
+
+/* ---------- Download PDF ---------- */
+
+// Not using the shared api() helper here: it always parses the response as JSON, but a
+// successful PDF response is raw binary, so this fetches directly and only parses JSON
+// on the error path (the back-end's error responses are always JSON).
+async function downloadReceiptPdf(orderID) {
+    const msg = $("#receipt-message");
+    clearMessage(msg);
+    const btn = $("#download-pdf-btn");
+    btn.disabled = true;
+
+    try {
+        const token = getToken();
+        const res = await fetch(`/orders/${orderID}/receipt/pdf`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+            let message = `Request failed (${res.status}).`;
+            try {
+                const body = await res.json();
+                message = body.error || message;
+            } catch {
+                /* non-JSON error body */
+            }
+            throw makeError(message, res.status);
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `receipt-${orderID}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 /* ---------- Load receipt ---------- */
