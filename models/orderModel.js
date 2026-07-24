@@ -240,6 +240,57 @@ async function getOrdersByCustomer(customerID) {
     }
 }
 
+// Get one order's full itemized receipt: order + fee breakdown + line items, each tagged
+// with its menu category so the caller can separate priced add-ons from base dishes/drinks.
+// Returns null if the order doesn't exist (ownership is checked by the caller, which needs
+// customerID from the returned row to do it).
+async function getOrderReceipt(orderID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+
+        const orderRequest = connection.request();
+        orderRequest.input("orderID", sql.Int, orderID);
+        const orderResult = await orderRequest.query(`
+            SELECT o.orderID, o.customerID, o.stallID, s.stallName, o.queueNumber, o.status,
+                   o.paymentMethod, o.paymentStatus, o.subtotal, o.packagingFee,
+                   o.gstAmount, o.totalAmount, o.createdAt
+            FROM Orders o
+            JOIN Stall s ON o.stallID = s.stallID
+            WHERE o.orderID = @orderID
+        `);
+
+        if (orderResult.recordset.length === 0) {
+            return null;
+        }
+        const order = orderResult.recordset[0];
+
+        const itemsRequest = connection.request();
+        itemsRequest.input("orderID", sql.Int, orderID);
+        const itemsResult = await itemsRequest.query(`
+            SELECT oi.orderItemID, oi.menuItemID, oi.itemName, oi.unitPrice,
+                   oi.quantity, oi.addons, oi.itemTotal, mi.category
+            FROM OrderItem oi
+            JOIN MenuItem mi ON oi.menuItemID = mi.menuItemID
+            WHERE oi.orderID = @orderID
+            ORDER BY oi.orderItemID
+        `);
+
+        return { ...order, items: itemsResult.recordset };
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 // Get today's active queue for a stall (not yet completed/abandoned), lowest queue number first.
 // The head of this list is the "current customer"; the rest are those waiting behind them.
 async function getCurrentQueue(stallID) {
@@ -365,6 +416,7 @@ module.exports = {
     getNextQueueNumber,
     submitOrder,
     getOrdersByCustomer,
+    getOrderReceipt,
     getCurrentQueue,
     advanceQueue,
 };

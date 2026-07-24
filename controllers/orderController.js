@@ -74,7 +74,52 @@ async function getMyOrders(req, res) {
     }
 }
 
+// GET /orders/:orderID/receipt
+async function getOrderReceipt(req, res) {
+    try {
+        const orderID = parseInt(req.params.orderID);
+
+        const receipt = await orderModel.getOrderReceipt(orderID);
+        if (!receipt) {
+            return res.status(404).json({ error: "Order not found." });
+        }
+
+        // req.user.customerID is set by verifyJWT from the logged-in customer's token
+        if (receipt.customerID !== req.user.customerID) {
+            return res.status(403).json({ error: "Access denied. This order does not belong to you." });
+        }
+
+        // Split line items into base dishes/drinks vs priced add-ons so the receipt can
+        // show "base price" and "optional add-ons" as separate breakdown totals.
+        const addonItems = receipt.items.filter((item) => item.category === "add-on");
+        const baseItems = receipt.items.filter((item) => item.category !== "add-on");
+        const sumItemTotal = (items) => items.reduce((sum, item) => sum + Number(item.itemTotal), 0);
+
+        res.json({
+            orderID: receipt.orderID,
+            stallName: receipt.stallName,
+            queueNumber: receipt.queueNumber,
+            status: receipt.status,
+            paymentMethod: receipt.paymentMethod,
+            paymentStatus: receipt.paymentStatus,
+            createdAt: receipt.createdAt,
+            items: baseItems,
+            addons: addonItems,
+            baseItemsTotal: sumItemTotal(baseItems),
+            addonsTotal: sumItemTotal(addonItems),
+            subtotal: receipt.subtotal,
+            packagingFee: receipt.packagingFee,
+            gstAmount: receipt.gstAmount,
+            totalAmount: receipt.totalAmount,
+        });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving receipt." });
+    }
+}
+
 module.exports = {
     submitOrder,
     getMyOrders,
+    getOrderReceipt,
 };

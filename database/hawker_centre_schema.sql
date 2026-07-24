@@ -164,6 +164,24 @@ INSERT INTO MenuItem (stallID, name, description, price, category, isAvailable) 
     (6, 'Mee Rebus',             'Yellow noodles in thick spicy gravy',       4.50, 'main',    1),
     (6, 'Bandung',               'Rose syrup with milk',                      1.80, 'drink',   1);
 
+-- Priced add-ons (category = 'add-on'): optional extras a customer can add to their cart
+-- alongside a main dish. Unlike OrderItem.addons (a free-text note), these are ordinary
+-- MenuItem rows with their own price, so they appear as their own itemized line on the
+-- receipt. menuItemID 19+ so the hardcoded IDs above (1-18) stay unchanged.
+INSERT INTO MenuItem (stallID, name, description, price, category, isAvailable) VALUES
+    (1, 'Extra Chicken',        'Additional serving of chicken',             2.50, 'add-on', 1),
+    (1, 'Extra Rice',           'Additional serving of fragrant rice',       1.00, 'add-on', 1),
+    (2, 'Extra Mutton',         'Additional serving of mutton',              3.00, 'add-on', 1),
+    (2, 'Papadum',              'Crispy lentil cracker',                     0.80, 'add-on', 1),
+    (3, 'Extra Cockles',        'Additional serving of cockles',             1.50, 'add-on', 1),
+    (3, 'Fried Egg',            'Add a fried egg',                           0.80, 'add-on', 1),
+    (4, 'Extra Curry Gravy',    'Additional serving of curry gravy',         0.80, 'add-on', 1),
+    (4, 'Papadum',              'Crispy lentil cracker',                     0.80, 'add-on', 1),
+    (5, 'Extra Noodles',        'Additional serving of noodles',             1.50, 'add-on', 1),
+    (5, 'Pork Wontons (3pc)',   'Additional pork wontons',                   2.00, 'add-on', 1),
+    (6, 'Extra Ikan Bilis',     'Additional serving of ikan bilis & peanuts', 1.00, 'add-on', 1),
+    (6, 'Fried Egg',            'Add a fried egg',                           0.80, 'add-on', 1);
+
 -- One menu item can belong to many cuisines
 CREATE TABLE MenuItemCuisine (
     menuItemID  INT NOT NULL REFERENCES MenuItem(menuItemID),
