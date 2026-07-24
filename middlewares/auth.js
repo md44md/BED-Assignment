@@ -107,6 +107,9 @@ function verifyJWT(req, res, next) {
 
             // Profile picture upload (any logged-in role)
             "PUT /account/picture": ["customer", "stallOwner", "operator", "neaOfficer"],
+
+            // Change account email (any logged-in role)
+            "PUT /account/email": ["customer", "stallOwner", "operator", "neaOfficer"],
         };
 
         // req.path is the path WITHOUT the query string. req.url would include it, so a
