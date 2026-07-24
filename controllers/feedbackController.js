@@ -1,5 +1,6 @@
 const feedbackModel = require("../models/feedbackModel");
 const stallModel = require("../models/stallModel");
+const { filterProfanity } = require("../services/profanityService");
 
 // POST /feedback
 async function submitFeedback(req, res) {
@@ -31,7 +32,12 @@ async function submitFeedback(req, res) {
             });
         }
 
-        const feedbackID = await feedbackModel.createFeedback(order.customerID, order.stallID, orderID, rating, comments);
+        // Run the comment through the profanity filter before storing it. This
+        // never throws - on a PurgoMalum outage it returns the original text with
+        // filtered=false, so a review always saves.
+        const { cleaned, filtered } = await filterProfanity(comments);
+
+        const feedbackID = await feedbackModel.createFeedback(order.customerID, order.stallID, orderID, rating, cleaned, filtered);
 
         res.status(201).json({
             message: "Feedback submitted successfully.",
@@ -59,7 +65,10 @@ async function editFeedback(req, res) {
             return res.status(403).json({ error: "Access denied. This feedback does not belong to you." });
         }
 
-        await feedbackModel.updateFeedback(feedbackID, rating, comments);
+        // Same profanity filtering as on submit, applied to the edited comment.
+        const { cleaned, filtered } = await filterProfanity(comments);
+
+        await feedbackModel.updateFeedback(feedbackID, rating, cleaned, filtered);
 
         res.status(200).json({ message: "Feedback updated successfully." });
     } catch (error) {
