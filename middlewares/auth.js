@@ -83,6 +83,10 @@ function verifyJWT(req, res, next) {
             "DELETE /customers/account": ["customer"],
             "GET /customers/account": ["customer"],
 
+            // Customer nearby hawker centres (OneMap geocoding) + directions (OneMap routing)
+            "GET /hawker-centres/nearby": ["customer"],
+            "GET /hawker-centres/directions": ["customer"],
+
             // NEA officer hygiene grade routes
             "POST /hygiene-grades": ["neaOfficer"],
             "PUT /hygiene-grades/[0-9]+": ["neaOfficer"],

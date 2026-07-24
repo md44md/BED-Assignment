@@ -34,6 +34,8 @@ const rentalAgreementController = require("./controllers/rentalAgreementControll
 const promotionController = require("./controllers/promotionController");
 const { validatePromotion, validatePromotionId } = require("./middlewares/promotionValidation");
 const userController = require("./controllers/userController");
+const hawkerCentreController = require("./controllers/hawkerCentreController");
+const { validateNearbyQuery, validateDirectionsQuery } = require("./middlewares/hawkerCentreValidation");
 const queueController = require("./controllers/queueController");
 const salesAnalyticsController = require("./controllers/salesAnalyticsController")
 const { verifyJWT } = require("./middlewares/auth");
@@ -175,6 +177,11 @@ app.get("/promotions", verifyJWT, promotionController.getPromotions);
 app.post("/promotions", verifyJWT, validatePromotion, promotionController.createPromotion);
 app.put("/promotions/:id", verifyJWT, validatePromotionId, validatePromotion, promotionController.updatePromotion);
 app.delete("/promotions/:id", verifyJWT, validatePromotionId, promotionController.deletePromotion);
+
+// Route for customers to find hawker centres near them (geocoded via OneMap)
+app.get("/hawker-centres/nearby", verifyJWT, validateNearbyQuery, hawkerCentreController.getNearbyHawkerCentres);
+// Route for customers to get directions from their location to a centre (OneMap routing)
+app.get("/hawker-centres/directions", verifyJWT, validateDirectionsQuery, hawkerCentreController.getDirections);
 
 // Public: list all stalls (used by the front-end stall picker, no auth)
 app.get("/stalls", stallController.getStalls);
