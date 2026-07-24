@@ -46,6 +46,27 @@
             <div id="picture-message" class="message" role="status" aria-live="polite" hidden></div>
         </section>
 
+        <section class="panel" aria-labelledby="email-heading">
+            <div class="panel__head">
+                <h2 id="email-heading" class="panel__title">Change email</h2>
+                <p class="panel__lead">
+                    Update the email you use to log in. Confirm your current password to make the change.
+                </p>
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label class="field__label" for="new-email-input">New email address</label>
+                    <input type="email" class="input" id="new-email-input" autocomplete="email" placeholder="you@example.com" />
+                </div>
+                <div class="field">
+                    <label class="field__label" for="current-password-input">Current password</label>
+                    <input type="password" class="input" id="current-password-input" autocomplete="current-password" />
+                </div>
+                <button id="change-email-btn" type="button" class="btn btn--secondary btn--sm">Update email</button>
+            </div>
+            <div id="change-email-message" class="message" role="status" aria-live="polite" hidden></div>
+        </section>
+
         <section class="panel" aria-labelledby="danger-heading">
             <div class="panel__head">
                 <h2 id="danger-heading" class="panel__title">Danger zone</h2>
