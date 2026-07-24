@@ -240,6 +240,8 @@ async function getOrdersByCustomer(customerID) {
     }
 }
 
+// Get a single order (with its items) by ID — used to rebuild a cart on reorder
+async function getOrderWithItemsById(orderID) {
 // Get one order's full itemized receipt: order + fee breakdown + line items, each tagged
 // with its menu category so the caller can separate priced add-ons from base dishes/drinks.
 // Returns null if the order doesn't exist (ownership is checked by the caller, which needs
@@ -252,6 +254,8 @@ async function getOrderReceipt(orderID) {
         const orderRequest = connection.request();
         orderRequest.input("orderID", sql.Int, orderID);
         const orderResult = await orderRequest.query(`
+            SELECT orderID, customerID, stallID FROM Orders WHERE orderID = @orderID
+        `);
             SELECT o.orderID, o.customerID, o.stallID, s.stallName, o.queueNumber, o.status,
                    o.paymentMethod, o.paymentStatus, o.subtotal, o.packagingFee,
                    o.gstAmount, o.totalAmount, o.createdAt
@@ -268,6 +272,9 @@ async function getOrderReceipt(orderID) {
         const itemsRequest = connection.request();
         itemsRequest.input("orderID", sql.Int, orderID);
         const itemsResult = await itemsRequest.query(`
+            SELECT menuItemID, itemName, quantity, addons
+            FROM OrderItem
+            WHERE orderID = @orderID
             SELECT oi.orderItemID, oi.menuItemID, oi.itemName, oi.unitPrice,
                    oi.quantity, oi.addons, oi.itemTotal, mi.category
             FROM OrderItem oi
@@ -416,6 +423,7 @@ module.exports = {
     getNextQueueNumber,
     submitOrder,
     getOrdersByCustomer,
+    getOrderWithItemsById,
     getOrderReceipt,
     getCurrentQueue,
     advanceQueue,

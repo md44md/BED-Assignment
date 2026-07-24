@@ -28,6 +28,8 @@ function validateSubmitOrder(req, res, next) {
 }
 
 // Middleware to validate the :orderID route param
+function validateOrderId(req, res, next) {
+    const id = parseInt(req.params.orderID, 10);
 function validateOrderIdParam(req, res, next) {
     const id = parseInt(req.params.orderID);
 
@@ -40,5 +42,6 @@ function validateOrderIdParam(req, res, next) {
 
 module.exports = {
     validateSubmitOrder,
+    validateOrderId,
     validateOrderIdParam,
 };

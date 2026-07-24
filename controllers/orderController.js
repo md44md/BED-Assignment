@@ -1,4 +1,6 @@
 const orderModel = require("../models/orderModel");
+const cartModel = require("../models/cartModel");
+const menuItemModel = require("../models/menuItemModel");
 
 // POST /orders
 async function submitOrder(req, res) {
@@ -74,6 +76,59 @@ async function getMyOrders(req, res) {
     }
 }
 
+// POST /orders/:orderID/reorder
+// Re-adds every item from a past order into the customer's cart for that stall.
+// Items that no longer exist or are unavailable are skipped and reported back.
+async function reorder(req, res) {
+    try {
+        const orderID = parseInt(req.params.orderID, 10);
+        const customerID = req.user.customerID;
+
+        const order = await orderModel.getOrderWithItemsById(orderID);
+        if (!order) {
+            return res.status(404).json({ error: "Order not found." });
+        }
+        if (order.customerID !== customerID) {
+            return res.status(403).json({ error: "Access denied. This order does not belong to you." });
+        }
+
+        let cart = await cartModel.getCartByCustomerAndStall(customerID, order.stallID);
+        if (!cart) {
+            cart = await cartModel.createCart(customerID, order.stallID);
+        }
+
+        const addedItems = [];
+        const skippedItems = [];
+
+        for (const item of order.items) {
+            const menuItem = await menuItemModel.getMenuItemById(item.menuItemID);
+            if (!menuItem || !menuItem.isAvailable) {
+                skippedItems.push(item.itemName);
+                continue;
+            }
+
+            const existingItem = await cartModel.getCartItem(cart.cartID, item.menuItemID);
+            if (existingItem) {
+                await cartModel.updateCartItemQuantity(existingItem.cartItemID, existingItem.quantity + item.quantity);
+            } else {
+                await cartModel.addCartItem(cart.cartID, item.menuItemID, item.quantity, item.addons);
+            }
+            addedItems.push(item.itemName);
+        }
+
+        if (addedItems.length === 0) {
+            return res.status(409).json({ error: "None of the items from this order are available anymore." });
+        }
+
+        res.status(200).json({
+            message: "Items added to cart.",
+            cartID: cart.cartID,
+            addedItems,
+            skippedItems,
+        });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error reordering." });
 // GET /orders/:orderID/receipt
 async function getOrderReceipt(req, res) {
     try {
@@ -121,5 +176,6 @@ async function getOrderReceipt(req, res) {
 module.exports = {
     submitOrder,
     getMyOrders,
+    reorder,
     getOrderReceipt,
 };

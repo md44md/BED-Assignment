@@ -606,8 +606,6 @@ a.home-card:active { transform: translateY(1px); }
     margin-top: 16px;
     flex-wrap: wrap;
 }
-.cart-stall__subtotal { font-weight: 700; font-size: 1.05rem; }
-
 /* ---------- Past orders ---------- */
 .order-card {
     padding: 18px;

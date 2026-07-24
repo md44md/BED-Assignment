@@ -18,6 +18,7 @@ const { validateLogInspection, validateUpdateInspection, validateScheduleInspect
 const cartController = require("./controllers/cartController");
 const { validateAddItem, validateCartItemId } = require("./middlewares/cartValidation");
 const orderController = require("./controllers/orderController");
+const { validateSubmitOrder, validateOrderId } = require("./middlewares/orderValidation");
 const { validateSubmitOrder, validateOrderIdParam } = require("./middlewares/orderValidation");
 const hygieneGradeController = require("./controllers/hygieneGradeController");
 const { validateIssueGrade, validateUpdateGrade } = require("./middlewares/hygieneGradeValidation");
@@ -211,6 +212,7 @@ app.delete("/cart/items/:cartItemID", verifyJWT, validateCartItemId, cartControl
 // Routes for orders
 app.post("/orders", verifyJWT, validateSubmitOrder, orderController.submitOrder);
 app.get("/orders", verifyJWT, orderController.getMyOrders);
+app.post("/orders/:orderID/reorder", verifyJWT, validateOrderId, orderController.reorder);
 app.get("/orders/:orderID/receipt", verifyJWT, validateOrderIdParam, orderController.getOrderReceipt);
 
 // Routes for feedback

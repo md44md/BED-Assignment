@@ -57,6 +57,7 @@ function verifyJWT(req, res, next) {
             // Customer order routes
             "POST /orders": ["customer"],
             "GET /orders": ["customer"],
+            "POST /orders/[0-9]+/reorder": ["customer"],
             "GET /orders/[0-9]+/receipt": ["customer"],
 
             // Customer feedback routes
