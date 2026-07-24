@@ -18,8 +18,7 @@ const { validateLogInspection, validateUpdateInspection, validateScheduleInspect
 const cartController = require("./controllers/cartController");
 const { validateAddItem, validateCartItemId } = require("./middlewares/cartValidation");
 const orderController = require("./controllers/orderController");
-const { validateSubmitOrder, validateOrderId } = require("./middlewares/orderValidation");
-const { validateSubmitOrder, validateOrderIdParam } = require("./middlewares/orderValidation");
+const { validateSubmitOrder, validateOrderId, validateOrderIdParam } = require("./middlewares/orderValidation");
 const hygieneGradeController = require("./controllers/hygieneGradeController");
 const { validateIssueGrade, validateUpdateGrade } = require("./middlewares/hygieneGradeValidation");
 const stallController = require("./controllers/stallController");
@@ -210,16 +209,76 @@ app.post("/cart/items", verifyJWT, validateAddItem, cartController.addItemToCart
 app.delete("/cart/items/:cartItemID", verifyJWT, validateCartItemId, cartController.removeItem);
 
 // Routes for orders
-app.post("/orders", verifyJWT, validateSubmitOrder, orderController.submitOrder);
-app.get("/orders", verifyJWT, orderController.getMyOrders);
+app.post("/orders",
+    /*
+        #swagger.tags = ['Orders']
+        #swagger.summary = 'Submit a cart as an order'
+        #swagger.description = 'Customer only. Turns one of the signed-in customer\'s carts into an order: creates the order, its line items and a payment record in a single transaction, generates a daily per-stall queue number, and clears that cart. paymentMethod is Cash, NETS or PayNow.'
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { cartID: 3, paymentMethod: 'NETS' } }
+        #swagger.responses[201] = { description: 'Order placed; returns orderID, queueNumber and totalAmount.' }
+        #swagger.responses[400] = { description: 'Validation error (missing cartID or invalid paymentMethod).' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer).' }
+        #swagger.responses[404] = { description: 'Cart not found or empty.' }
+        #swagger.responses[500] = { description: 'Error submitting order.' }
+    */
+    verifyJWT, validateSubmitOrder, orderController.submitOrder);
+app.get("/orders",
+    /*
+        #swagger.tags = ['Orders']
+        #swagger.summary = 'View my past orders'
+        #swagger.description = 'Customer only. Returns the signed-in customer\'s own orders (scoped by customerID from the JWT), newest first, each with its line items, totals, status, queue number and payment details.'
+        #swagger.responses[200] = { description: 'The customer\'s orders (empty array if none).' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer).' }
+        #swagger.responses[500] = { description: 'Error retrieving orders.' }
+    */
+    verifyJWT, orderController.getMyOrders);
 app.post("/orders/:orderID/reorder", verifyJWT, validateOrderId, orderController.reorder);
 app.get("/orders/:orderID/receipt", verifyJWT, validateOrderIdParam, orderController.getOrderReceipt);
 app.get("/orders/:orderID/receipt/pdf", verifyJWT, validateOrderIdParam, orderController.getOrderReceiptPdf);
 
 // Routes for feedback
-app.post("/feedback", verifyJWT, validateSubmitFeedback, feedbackController.submitFeedback);
-app.post("/feedback/edit", verifyJWT, validateEditFeedback, feedbackController.editFeedback);
-app.get("/feedback", verifyJWT, feedbackController.getMyFeedback);
+app.post("/feedback",
+    /*
+        #swagger.tags = ['Feedback']
+        #swagger.summary = 'Submit a rating and review for a stall'
+        #swagger.description = 'Customer only. Leaves a star rating (1-5) and optional comment for a stall the customer has a completed, paid order with. One review per customer per stall. The comment is run through a profanity filter before it is stored.'
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { orderID: 5, rating: 5, comments: 'Great chicken rice!' } }
+        #swagger.responses[201] = { description: 'Feedback submitted; returns the new feedbackID.' }
+        #swagger.responses[400] = { description: 'Validation error, or order not completed/paid.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer, or order does not belong to you).' }
+        #swagger.responses[404] = { description: 'Order not found.' }
+        #swagger.responses[409] = { description: 'You have already reviewed this stall.' }
+        #swagger.responses[500] = { description: 'Error submitting feedback.' }
+    */
+    verifyJWT, validateSubmitFeedback, feedbackController.submitFeedback);
+app.post("/feedback/edit",
+    /*
+        #swagger.tags = ['Feedback']
+        #swagger.summary = 'Edit my existing review'
+        #swagger.description = 'Customer only. Updates the rating and/or comment on a review the signed-in customer owns. The updated comment is run through the profanity filter before it is stored.'
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { feedbackID: 4, rating: 4, comments: 'Changed my mind, still good.' } }
+        #swagger.responses[200] = { description: 'Feedback updated successfully.' }
+        #swagger.responses[400] = { description: 'Validation error.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer, or review does not belong to you).' }
+        #swagger.responses[404] = { description: 'Feedback not found.' }
+        #swagger.responses[500] = { description: 'Error updating feedback.' }
+    */
+    verifyJWT, validateEditFeedback, feedbackController.editFeedback);
+app.get("/feedback",
+    /*
+        #swagger.tags = ['Feedback']
+        #swagger.summary = 'View my own reviews'
+        #swagger.description = 'Customer only. Returns the signed-in customer\'s own reviews, each with the stall name, newest first. Used by the feedback page to let a customer pick a review to edit.'
+        #swagger.responses[200] = { description: 'The customer\'s reviews (empty array if none).' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer).' }
+        #swagger.responses[500] = { description: 'Error retrieving feedback.' }
+    */
+    verifyJWT, feedbackController.getMyFeedback);
 
 // Routes for complaints
 app.post("/complaint", verifyJWT, validateCreateComplaint, complaintController.createComplaint);
@@ -270,9 +329,43 @@ app.put("/menuitems/:id", verifyJWT, uploadMenuItemImage, validateMenuItemId, va
 app.delete("/menuitems/:id", verifyJWT, validateMenuItemId, menuItemController.deleteMenuItem);
 
 // Routes for customer menu item likes
-app.get("/menuitems/likes", verifyJWT, menuItemController.getMyLikedMenuItems);
-app.post("/menuitems/:id/like", verifyJWT, validateMenuItemId, menuItemController.likeMenuItem);
-app.delete("/menuitems/:id/like", verifyJWT, validateMenuItemId, menuItemController.unlikeMenuItem);
+app.get("/menuitems/likes",
+    /*
+        #swagger.tags = ['Menu Item Likes']
+        #swagger.summary = 'View which menu items I have liked'
+        #swagger.description = 'Customer only. Returns the IDs of the menu items the signed-in customer has liked, so the front-end can mark them as liked on the public stall menu.'
+        #swagger.responses[200] = { description: 'Object with a likedMenuItemIDs array.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer).' }
+        #swagger.responses[500] = { description: 'Error retrieving your liked menu items.' }
+    */
+    verifyJWT, menuItemController.getMyLikedMenuItems);
+app.post("/menuitems/:id/like",
+    /*
+        #swagger.tags = ['Menu Item Likes']
+        #swagger.summary = 'Like a menu item'
+        #swagger.description = 'Customer only. Records a like for a menu item (one like per customer per item; liking again is a no-op). Returns the item\'s new like count.'
+        #swagger.responses[200] = { description: 'Liked; returns { liked: true, likeCount }.' }
+        #swagger.responses[400] = { description: 'Invalid menu item ID.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer).' }
+        #swagger.responses[404] = { description: 'Menu item not found.' }
+        #swagger.responses[500] = { description: 'Error liking menu item.' }
+    */
+    verifyJWT, validateMenuItemId, menuItemController.likeMenuItem);
+app.delete("/menuitems/:id/like",
+    /*
+        #swagger.tags = ['Menu Item Likes']
+        #swagger.summary = 'Unlike a menu item'
+        #swagger.description = 'Customer only. Removes the signed-in customer\'s like from a menu item. Returns the item\'s new like count.'
+        #swagger.responses[200] = { description: 'Unliked; returns { liked: false, likeCount }.' }
+        #swagger.responses[400] = { description: 'Invalid menu item ID.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a customer).' }
+        #swagger.responses[404] = { description: 'Menu item not found.' }
+        #swagger.responses[500] = { description: 'Error unliking menu item.' }
+    */
+    verifyJWT, validateMenuItemId, menuItemController.unlikeMenuItem);
 
 // Route for viewing rental agreements
 app.get("/rental-agreements", verifyJWT, rentalAgreementController.getRentalAgreements);
@@ -374,7 +467,18 @@ app.get("/stalls", stallController.getStalls);
 // Public: browse a stall's menu (no auth)
 app.get("/stalls/:stallID/menu", stallController.getStallMenu);
 // Public: browse a stall's ratings/reviews (no auth)
-app.get("/stalls/:stallID/feedback", feedbackController.getStallReviews);
+app.get("/stalls/:stallID/feedback",
+    /*
+        #swagger.tags = ['Feedback']
+        #swagger.summary = 'View a stall\'s ratings and reviews (public)'
+        #swagger.description = 'Public, no login required. Returns a stall\'s average rating, review count and individual reviews (rating, comment, reviewer name and timestamp), newest first, so anyone browsing can read reviews before deciding where to eat.'
+        #swagger.security = []
+        #swagger.responses[200] = { description: 'Object with averageRating, reviewCount and a reviews array.' }
+        #swagger.responses[400] = { description: 'Stall ID must be a number.' }
+        #swagger.responses[404] = { description: 'Stall not found.' }
+        #swagger.responses[500] = { description: 'Error retrieving stall feedback.' }
+    */
+    feedbackController.getStallReviews);
 // Stall owner only: toggle own stall's status (open/busy/closed)
 app.put("/stalls/status", verifyJWT, stallController.updateStallStatus);
 
