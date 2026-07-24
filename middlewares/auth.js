@@ -88,6 +88,10 @@ function verifyJWT(req, res, next) {
             "PUT /hygiene-grades/[0-9]+": ["neaOfficer"],
             "DELETE /hygiene-grades/[0-9]+": ["neaOfficer"],
 
+            // NEA officer complaint oversight routes
+            "GET /officers/complaints": ["neaOfficer"],
+            "PUT /officers/complaints/[0-9]+/status": ["neaOfficer"],
+
             // Operator sales analytics route
             "GET /stalls/[0-9]+/sales-analytics": ["operator"],
 
@@ -105,7 +109,10 @@ function verifyJWT(req, res, next) {
             "PUT /account/picture": ["customer", "stallOwner", "operator", "neaOfficer"],
         };
 
-        const requestedEndpoint = `${req.method} ${req.url}`;
+        // req.path is the path WITHOUT the query string. req.url would include it, so a
+        // filtered request like /officers/complaints?status=open would fail to match its
+        // allow-list entry and be rejected with a 403.
+        const requestedEndpoint = `${req.method} ${req.path}`;
         const userRole = decoded.role;
 
         const authorizedRole = Object.entries(authorizedRoles).find(

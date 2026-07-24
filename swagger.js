@@ -43,6 +43,7 @@ const routes = [
     "./controllers/stallController.js",
     "./controllers/feedbackController.js",
     "./controllers/complaintController.js",
+    "./controllers/officerComplaintController.js",
     "./controllers/menuItemController.js",
     "./controllers/rentalAgreementController.js",
     "./controllers/queueController.js",
