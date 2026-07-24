@@ -38,6 +38,7 @@ function verifyJWT(req, res, next) {
             // Stall owner queue management
             "GET /stallowners/queue": ["stallOwner"],
             "POST /stallowners/queue/advance": ["stallOwner"],
+            "POST /stallowners/queue/abandon": ["stallOwner"],
 
             // Stall owner account deletion / profile view
             "DELETE /stallowners/account": ["stallOwner"],

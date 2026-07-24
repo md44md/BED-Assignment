@@ -24,6 +24,10 @@ async function getQueue(req, res) {
             return res.status(404).json({ error: "No stall found for this account." });
         }
 
+        // Automatically clear uncollected orders (>45 min old) off the board before
+        // reading it, so the queue an owner sees is always up to date.
+        await orderModel.abandonStaleOrders(stall.stallID);
+
         const queue = await orderModel.getCurrentQueue(stall.stallID);
 
         res.status(200).json({
@@ -96,7 +100,34 @@ async function advanceQueue(req, res) {
     }
 }
 
+// POST /stallowners/queue/abandon  (stall owner only)
+// Marks the stall's uncollected orders (still active after 45 minutes) as abandoned,
+// clearing them from the active order board for food-waste tracking. This also runs
+// automatically whenever the queue board is loaded (see getQueue).
+async function abandonStale(req, res) {
+    try {
+        const stall = await stallModel.getStallByOwnerID(req.user.stallOwnerID);
+        if (!stall) {
+            return res.status(404).json({ error: "No stall found for this account." });
+        }
+
+        const abandoned = await orderModel.abandonStaleOrders(stall.stallID);
+
+        res.status(200).json({
+            message: abandoned.length
+                ? `${abandoned.length} uncollected order(s) marked as abandoned.`
+                : "No orders were old enough to abandon.",
+            count: abandoned.length,
+            abandoned: abandoned.map(toQueueOrder),
+        });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error abandoning stale orders." });
+    }
+}
+
 module.exports = {
     getQueue,
     advanceQueue,
+    abandonStale,
 };

@@ -2,6 +2,9 @@ const sql = require("mssql");
 const crypto = require("crypto");
 const dbConfig = require("../dbConfig");
 
+// An active order is treated as abandoned once it has gone uncollected for this long.
+const ABANDON_AFTER_MINUTES = 45;
+
 // Get a cart by its ID (used to confirm ownership before checkout)
 async function getCartById(cartID) {
     let connection;
@@ -359,6 +362,42 @@ async function advanceQueue(stallID) {
     }
 }
 
+// Mark a stall's still-active orders (pending/preparing/ready) that were placed over
+// ABANDON_AFTER_MINUTES ago as 'abandoned', clearing them off the active order board.
+// Scoped to today's orders (the same active-board set that getCurrentQueue reads).
+// Returns the rows that were abandoned (empty array when none were old enough).
+async function abandonStaleOrders(stallID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            UPDATE Orders
+            SET status = 'abandoned', updatedAt = GETDATE()
+            OUTPUT INSERTED.orderID, INSERTED.customerID, INSERTED.queueNumber, INSERTED.status
+            WHERE stallID = @stallID
+              AND status IN ('pending', 'preparing', 'ready')
+              AND CAST(createdAt AS DATE) = CAST(GETDATE() AS DATE)
+              AND createdAt <= DATEADD(MINUTE, -@minutes, GETDATE())
+        `;
+        const request = connection.request();
+        request.input("stallID", sql.Int, stallID);
+        request.input("minutes", sql.Int, ABANDON_AFTER_MINUTES);
+        const result = await request.query(query);
+        return result.recordset;
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getCartById,
     getCartItemsForOrder,
@@ -367,4 +406,5 @@ module.exports = {
     getOrdersByCustomer,
     getCurrentQueue,
     advanceQueue,
+    abandonStaleOrders,
 };

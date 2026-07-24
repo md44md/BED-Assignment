@@ -196,6 +196,18 @@ app.put("/stalls/status", verifyJWT, stallController.updateStallStatus);
 // Stall owner only: view current queue and advance it (serve current customer)
 app.get("/stallowners/queue", verifyJWT, queueController.getQueue);
 app.post("/stallowners/queue/advance", verifyJWT, queueController.advanceQueue);
+app.post("/stallowners/queue/abandon",
+    /*
+        #swagger.tags = ['Queue']
+        #swagger.summary = 'Mark uncollected orders as abandoned'
+        #swagger.description = 'Stall owner only. Marks the stall\'s still-active orders (pending/preparing/ready) that were placed over 45 minutes ago as "abandoned", clearing them from the active order board for food-waste tracking. This sweep also runs automatically whenever the queue board is loaded.'
+        #swagger.responses[200] = { description: 'Sweep done; returns the count and the abandoned orders (count may be 0).' }
+        #swagger.responses[401] = { description: 'Unauthorized (no token).' }
+        #swagger.responses[403] = { description: 'Forbidden (not a stall owner).' }
+        #swagger.responses[404] = { description: 'No stall found for this account.' }
+        #swagger.responses[500] = { description: 'Error abandoning stale orders.' }
+    */
+    verifyJWT, queueController.abandonStale);
 
 // Routes for hygiene grades
 // Public: customers viewing a stall's hygiene grades (no auth)
