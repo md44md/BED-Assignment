@@ -126,7 +126,10 @@ function handlePaymentMethodChange(event) {
     const info = QR_INFO[select.value];
 
     placeholder.hidden = !info;
-    if (!info) return;
+    if (!info) {
+        placeholder.querySelector(".qr-placeholder__img").removeAttribute("src");
+        return;
+    }
 
     placeholder.querySelector(".qr-placeholder__img").src = info.image;
     placeholder.querySelector(".qr-placeholder__img").alt = info.alt;
