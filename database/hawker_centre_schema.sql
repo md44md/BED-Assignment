@@ -194,11 +194,12 @@ CREATE TABLE Promotion (
     description   VARCHAR(1000),
     discountType  VARCHAR(20),
     discountValue DECIMAL(10,2),
-    startDate     DATE NOT NULL,
-    endDate       DATE NOT NULL,
+    startDate     DATE NULL,
+    endDate       DATE NULL,
+    isActive      BIT DEFAULT 1,
     createdAt     DATETIME DEFAULT GETDATE()
 );
--- discountType can be: 'percentage', 'fixed'
+-- discountType can be: 'percentage', 'fixed', 'points'
 
 INSERT INTO Promotion (stallID, title, description, discountType, discountValue, startDate, endDate) VALUES
     (1, 'Weekday Special',  '10% off all mains on weekdays',         'percentage', 10.00, '2025-01-01', '2025-12-31'),
