@@ -1,6 +1,8 @@
 const sql = require("mssql");
 const dbConfig = require("../dbConfig");
 
+// CUSTOMERS
+
 // Get an order's ownership/stall/status info (used to check feedback eligibility)
 async function getOrderForFeedback(orderID) {
     let connection;
@@ -153,6 +155,37 @@ async function getFeedbackByCustomer(customerID) {
     }
 }
 
+// Get all feedback for a stall, newest first, with the reviewer's name joined in
+async function getFeedbackByStall(stallID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT f.feedbackID, f.rating, f.comments, f.createdAt, c.firstName, c.lastName
+            FROM Feedback f
+            JOIN Customer c ON c.customerID = f.customerID
+            WHERE f.stallID = @stallID
+            ORDER BY f.createdAt DESC
+        `;
+        const request = connection.request();
+        request.input("stallID", sql.Int, stallID);
+        const result = await request.query(query);
+
+        return result.recordset;
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 // Update the rating/comments on an existing feedback row
 async function updateFeedback(feedbackID, rating, comments) {
     let connection;
@@ -178,11 +211,78 @@ async function updateFeedback(feedbackID, rating, comments) {
     }
 }
 
+// STALL OWNERS
+
+// Get all feedback/ratings left for a stall (used by stall owners to review satisfaction)
+async function getFeedbackByStallID(stallID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT f.feedbackID, f.customerID, cu.firstName, cu.lastName, f.orderID, f.rating, f.comments, f.createdAt
+            FROM Feedback f
+            JOIN Customer cu ON cu.customerID = f.customerID
+            WHERE f.stallID = @stallID
+            ORDER BY f.createdAt DESC
+        `;
+        const request = connection.request();
+        request.input("stallID", sql.Int, stallID);
+        const result = await request.query(query);
+
+        return result.recordset;
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
+// Satisfaction summary for a stall: total review count and average rating
+async function getSatisfactionSummaryByStallID(stallID) {
+    let connection;
+    try {
+        connection = await sql.connect(dbConfig);
+        const query = `
+            SELECT
+                COUNT(feedbackID) AS totalReviews,
+                ISNULL(AVG(CAST(rating AS DECIMAL(3,2))), 0) AS averageRating
+            FROM Feedback
+            WHERE stallID = @stallID
+        `;
+        const request = connection.request();
+        request.input("stallID", sql.Int, stallID);
+        const result = await request.query(query);
+
+        return result.recordset[0];
+    } catch (error) {
+        console.error("Database error:", error);
+        throw error;
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Error closing connection:", err);
+            }
+        }
+    }
+}
+
 module.exports = {
     getOrderForFeedback,
     getFeedbackByCustomerAndStall,
     createFeedback,
     getFeedbackById,
     getFeedbackByCustomer,
+    getFeedbackByStall,
     updateFeedback,
+    getFeedbackByStallID,
+    getSatisfactionSummaryByStallID,
 };

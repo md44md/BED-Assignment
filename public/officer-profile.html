@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HCMS - Officer Profile</title>
+    <link rel="stylesheet" href="/css/common.css" />
+    <!-- Keep the page hidden until the auth guard confirms a session, so an
+         unauthenticated visitor never sees a flash of the profile. -->
+    <style>body.auth-pending { visibility: hidden; }</style>
+</head>
+<body class="auth-pending">
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand__text">
+                <span class="brand__title">Hawker Centre Management System</span>
+                <span class="brand__subtitle">My Profile</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a class="session-btn" href="/officer-dashboard.html">← Console</a>
+            <button id="logout-btn" type="button" class="session-btn">
+                <span class="session-btn__dot" aria-hidden="true"></span>
+                <span id="session-email"></span>
+                <span class="session-btn__label">· Log out</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="layout">
+        <section class="panel" aria-labelledby="profile-heading">
+            <div class="panel__head">
+                <h2 id="profile-heading" class="panel__title">My Profile</h2>
+                <p class="panel__lead">Your registered account details.</p>
+            </div>
+            <div id="profile-message" class="message" role="status" aria-live="polite" hidden></div>
+            <div id="profile-results" class="results"></div>
+
+            <div class="form-row">
+                <div class="field">
+                    <label class="field__label" for="picture-input">Update profile picture</label>
+                    <input type="file" class="input" id="picture-input" accept="image/*" />
+                </div>
+                <button id="picture-upload-btn" type="button" class="btn btn--secondary btn--sm">Upload</button>
+            </div>
+            <div id="picture-message" class="message" role="status" aria-live="polite" hidden></div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Hawker Centre Management System · NEA Officer Role Access</p>
+    </footer>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/officer-profile.js"></script>
+</body>
+</html>

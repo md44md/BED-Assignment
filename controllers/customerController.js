@@ -77,6 +77,7 @@ async function login(req, res) {
         res.status(200).json({
             message: "Login successful.",
             token: token,
+            profilePictureURL: user.profilePictureURL,
         });
     } catch (error) {
         console.error("Controller error:", error);
@@ -101,9 +102,37 @@ async function deleteAccount(req, res) {
     }
 }
 
+// GET /customers/account
+async function getAccount(req, res) {
+    try {
+        const account = await customerModel.getAccountByUserID(req.user.userID);
+        if (!account) {
+            return res.status(404).json({ error: "Account not found." });
+        }
+
+        // A soft-deleted account shouldn't be viewable even with a still-valid token.
+        if (!account.isActive) {
+            return res.status(403).json({ error: "Account is disabled." });
+        }
+
+        res.status(200).json({
+            email: account.email,
+            firstName: account.firstName,
+            lastName: account.lastName,
+            phone: account.phone,
+            isVerified: account.isVerified,
+            profilePictureURL: account.profilePictureURL,
+        });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving account." });
+    }
+}
+
 module.exports = {
     register,
     login,
     logout,
     deleteAccount,
+    getAccount,
 };

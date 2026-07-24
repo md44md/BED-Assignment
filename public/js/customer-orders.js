@@ -105,6 +105,10 @@ function renderOrder(order) {
             <div class="order-summary__row order-summary__row--total"><span>Total</span><span>${formatCurrency(order.totalAmount)}</span></div>
             <div class="order-card__meta">Paid by ${order.paymentMethod} · Payment ${order.paymentStatus}</div>
         </div>
+
+        <div class="order-card__meta" style="margin-top: 12px;">
+            <a class="btn btn--secondary btn--sm" href="/customer-receipt.html?orderID=${order.orderID}">View Receipt</a>
+        </div>
     `;
     return card;
 }

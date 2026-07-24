@@ -1,4 +1,5 @@
 const feedbackModel = require("../models/feedbackModel");
+const stallModel = require("../models/stallModel");
 
 // POST /feedback
 async function submitFeedback(req, res) {
@@ -78,8 +79,62 @@ async function getMyFeedback(req, res) {
     }
 }
 
+// GET /stalls/:stallID/feedback  (public)
+// Lets a customer check a stall's ratings/reviews before deciding to order.
+async function getStallReviews(req, res) {
+    try {
+        const stallID = parseInt(req.params.stallID, 10);
+        if (isNaN(stallID)) {
+            return res.status(400).json({ error: "Stall ID must be a number." });
+        }
+
+        const stall = await stallModel.getStallById(stallID);
+        if (!stall) {
+            return res.status(404).json({ error: "Stall not found." });
+        }
+
+        const reviews = await feedbackModel.getFeedbackByStall(stallID);
+        const averageRating = reviews.length
+            ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10) / 10
+            : null;
+
+        res.status(200).json({
+            averageRating: averageRating,
+            reviewCount: reviews.length,
+            reviews: reviews,
+        });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving stall feedback." });
+    }
+}
+
+// GET /feedback/stall (stall owner only)
+async function getStallFeedback(req, res) {
+    try {
+        const stall = await stallModel.getStallByOwnerID(req.user.stallOwnerID);
+        if (!stall) {
+            return res.status(404).json({ error: "No stall found for this account." });
+        }
+
+        const summary = await feedbackModel.getSatisfactionSummaryByStallID(stall.stallID);
+        const feedback = await feedbackModel.getFeedbackByStallID(stall.stallID);
+
+        res.status(200).json({
+            summary: summary,
+            count: feedback.length,
+            feedback: feedback,
+        });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving stall feedback." });
+    }
+}
+
 module.exports = {
     submitFeedback,
     editFeedback,
     getMyFeedback,
+    getStallReviews,
+    getStallFeedback,
 };

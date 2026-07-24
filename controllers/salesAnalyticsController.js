@@ -31,6 +31,33 @@ async function getSalesAnalytics(req, res) {
     }
 }
 
+// GET /sales-analytics
+async function getMySalesAnalytics(req, res) {
+    try {
+        const stallOwnerID = req.user.stallOwnerID
+
+        const stall = await salesAnalyticsModel.getStallOwnedByOwner(stallOwnerID);
+        if (!stall) {
+            return res.status(404).json({ error: "No stall found for this account." });
+        }
+
+        const summary = await salesAnalyticsModel.getSalesSummaryByStallID(stall.stallID);
+        const popularItems = await salesAnalyticsModel.getPopularItemsByStallID(stall.stallID);
+        const peakHours = await salesAnalyticsModel.getPeakHoursByStallID(stall.stallID);
+
+        res.status(200).json({
+            stall: stall,
+            summary: summary,
+            popularItems: popularItems,
+            peakHours: peakHours,
+        });
+    } catch (error) {
+        console.error("Controller error:", error);
+        res.status(500).json({ error: "Error retrieving sales analytics." });
+    }
+}
+
 module.exports = {
     getSalesAnalytics,
+    getMySalesAnalytics
 };

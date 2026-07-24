@@ -1,0 +1,182 @@
+/* ============================================================
+   Customer profile page.
+   Protected page: no valid session -> redirect to the login page.
+   Relies on helpers from common.js (loaded first).
+   ============================================================ */
+
+"use strict";
+
+const LOGIN_URL = "/customer-login.html";
+
+/* ---------- Auth guard / logout ---------- */
+
+function goToLogin() {
+    clearSession();
+    window.location.replace(LOGIN_URL);
+}
+
+function handleLogout() {
+    clearSession();
+    window.location.href = LOGIN_URL;
+}
+
+// If any authed call reports the session is gone (401/403), bring back to login.
+function handleAuthFailure(err) {
+    if (err.status === 401 || err.status === 403) {
+        goToLogin();
+        return true;
+    }
+    return false;
+}
+
+/* ---------- Profile ---------- */
+
+function renderProfile(account) {
+    const results = $("#profile-results");
+    results.innerHTML = "";
+    const card = document.createElement("article");
+    card.className = "item-card";
+    card.innerHTML = `
+        <div class="item-card__body">
+            <img class="session-avatar" style="width:64px;height:64px;margin-bottom:8px;"
+                 src="${account.profilePictureURL || DEFAULT_AVATAR}" alt="Profile picture" />
+            <div class="item-card__row">
+                <span class="item-card__title">${account.firstName} ${account.lastName}</span>
+                ${account.isVerified ? '<span class="tag tag--available">Verified</span>' : '<span class="tag tag--unavailable">Not verified</span>'}
+            </div>
+            <div class="item-card__meta">Email: ${account.email}</div>
+            <div class="item-card__meta">Phone: ${account.phone || "—"}</div>
+        </div>
+    `;
+    results.appendChild(card);
+}
+
+/* ---------- Profile picture upload ---------- */
+
+async function handleUploadPicture() {
+    const fileInput = $("#picture-input");
+    const file = fileInput.files[0];
+    const msg = $("#picture-message");
+    clearMessage(msg);
+
+    if (!file) {
+        showMessage(msg, "error", "Please choose an image first.");
+        return;
+    }
+
+    const btn = $("#picture-upload-btn");
+    btn.disabled = true;
+
+    const formData = new FormData();
+    formData.append("image", file); // field name must match multer's upload.single("image")
+
+    try {
+        const res = await fetch("/account/picture", {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${getToken()}` },
+            body: formData,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || data.message || "Upload failed.");
+
+        setPicture(data.profilePictureURL); // updates the header avatar immediately, no re-login needed
+        showMessage(msg, "success", data.message || "Profile picture updated.");
+        fileInput.value = "";
+        loadProfile();
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+/* ---------- Change email ---------- */
+
+async function handleChangeEmail() {
+    const newEmail = $("#new-email-input").value.trim();
+    const currentPassword = $("#current-password-input").value;
+    const msg = $("#change-email-message");
+    clearMessage(msg);
+
+    if (!newEmail || !currentPassword) {
+        showMessage(msg, "error", "Please enter your new email and current password.");
+        return;
+    }
+
+    const btn = $("#change-email-btn");
+    btn.disabled = true;
+    try {
+        const data = await api("/account/email", {
+            method: "PUT",
+            auth: true,
+            body: { newEmail, currentPassword },
+        });
+        setEmail(data.email); // updates the header + cached session email immediately, no re-login needed
+        showMessage(msg, "success", data.message || "Email updated.");
+        $("#current-password-input").value = "";
+        loadProfile();
+    } catch (err) {
+        // A 401 here means "wrong current password", not an expired session, so
+        // show it inline rather than bouncing the user to the login page.
+        showMessage(msg, "error", err.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function loadProfile() {
+    const msg = $("#profile-message");
+    clearMessage(msg);
+    try {
+        const account = await api("/customers/account", { auth: true });
+        renderProfile(account);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+/* ---------- Delete account ---------- */
+
+async function handleDeleteAccount() {
+    const confirmed = window.confirm("Are you sure you want to delete your account? This cannot be undone.");
+    if (!confirmed) return;
+
+    const msg = $("#delete-account-message");
+    clearMessage(msg);
+    const btn = $("#delete-account-btn");
+    btn.disabled = true;
+    try {
+        const data = await api("/customers/account", { method: "DELETE", auth: true });
+        showMessage(msg, "success", data.message || "Account deleted successfully.");
+        setTimeout(() => {
+            clearSession();
+            window.location.href = LOGIN_URL;
+        }, 1500);
+    } catch (err) {
+        showMessage(msg, "error", err.message);
+        btn.disabled = false;
+    }
+}
+
+/* ---------- Init ---------- */
+
+function init() {
+    if (!isLoggedIn() || getRole() !== "customer") {
+        goToLogin();
+        return;
+    }
+
+    document.body.classList.remove("auth-pending");
+
+    const email = getEmail();
+    if (email) $("#session-email").textContent = email;
+
+    $("#logout-btn").addEventListener("click", handleLogout);
+    $("#delete-account-btn").addEventListener("click", handleDeleteAccount);
+    $("#picture-upload-btn").addEventListener("click", handleUploadPicture);
+    $("#change-email-btn").addEventListener("click", handleChangeEmail);
+
+    loadProfile();
+}
+
+document.addEventListener("DOMContentLoaded", init);

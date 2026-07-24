@@ -17,11 +17,14 @@
                 <span class="brand__subtitle">Stall Owner Dashboard</span>
             </div>
         </div>
-        <button id="logout-btn" type="button" class="session-btn">
-            <span class="session-btn__dot" aria-hidden="true"></span>
-            <span id="session-email"></span>
-            <span class="session-btn__label">· Log out</span>
-        </button>
+        <div class="header-actions">
+            <a class="session-btn" href="/stallowner-profile.html">👤 My Profile</a>
+            <button id="logout-btn" type="button" class="session-btn">
+                <span class="session-btn__dot" aria-hidden="true"></span>
+                <span id="session-email"></span>
+                <span class="session-btn__label">· Log out</span>
+            </button>
+        </div>
     </header>
 
     <main class="layout">
@@ -42,9 +45,11 @@
 
             <div class="tabs" role="tablist">
                 <button class="tab is-active" role="tab" data-tab="menu" aria-selected="true">Menu Items</button>
+                <button class="tab" role="tab" data-tab="queue" aria-selected="false">Queue</button>
                 <button class="tab" role="tab" data-tab="rentals" aria-selected="false">Rental Agreements</button>
-                <button class="tab" role="tab" data-tab="complaints" aria-selected="false">Complaints</button>
+                <button class="tab" role="tab" data-tab="complaints" aria-selected="false">Complaints &amp; Ratings</button>
                 <button class="tab" role="tab" data-tab="analytics" aria-selected="false">Sales Analytics</button>
+                <button class="tab" role="tab" data-tab="promotions" aria-selected="false">Promotions</button>
             </div>
 
             <!-- Menu Items tab -->
@@ -72,7 +77,14 @@
                     <div class="field field--full">
                         <label class="field__label" for="add-description">Description (optional)</label>
                         <input id="add-description" class="input" type="text" maxlength="1000" />
+                    </div>                    
+                    <div class="field field--full">
+                        <label class="field__label" for="add-image">Image</label>
+                        <img id="add-image-preview" class="item-card__image" alt="Menu item image preview"
+                            style="margin-top:0.5rem; display:none;" />
+                        <input type="file" class="input" id="add-image" accept="image/*" />
                     </div>
+
                     <button type="submit" class="btn btn--primary">Add item</button>
                 </form>
 
@@ -84,6 +96,19 @@
 
                 <div id="menu-message" class="message" role="status" aria-live="polite" hidden></div>
                 <div id="menu-results" class="results"></div>
+            </div>
+
+            <!-- Queue tab -->
+            <div id="queue-tab" class="tab-panel" role="tabpanel" hidden>
+                <p class="panel__lead">Serve the current customer and advance the queue. The next customer is emailed automatically when they become current.</p>
+
+                <div class="form-row">
+                    <button id="queue-refresh-btn" type="button" class="btn btn--secondary btn--sm">Refresh</button>
+                    <button id="serve-next-btn" type="button" class="btn btn--primary btn--sm">Serve current &amp; advance</button>
+                </div>
+
+                <div id="queue-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="queue-results" class="results"></div>
             </div>
 
             <!-- Rental Agreements tab -->
@@ -98,34 +123,109 @@
                 <div id="rentals-results" class="results"></div>
             </div>
 
-            <!-- Complaints tab -->
+            <!-- Complaints & Ratings tab -->
             <div id="complaints-tab" class="tab-panel" role="tabpanel" hidden>
-                <div class="empty">
-                    <p><strong>Complaints</strong></p>
-                    <p>View and respond to customer complaints.</p>
-                    <p class="field__help">This feature is coming soon.</p>
-                </div>
-            </div>
+                <p class="panel__lead">Customer complaints and satisfaction ratings for your stall, so you can address concerns and track service quality.</p>
 
+                <div class="form-row">
+                    <button id="complaints-refresh-btn" type="button" class="btn btn--secondary btn--sm">Refresh</button>
+                </div>
+                <div id="complaints-message" class="message" role="status" aria-live="polite" hidden></div>
+
+                <!-- Satisfaction ratings -->
+                <div class="panel__head panel__head--sub">
+                    <h3 class="panel__title panel__title--sm">Satisfaction Ratings</h3>
+                    <p class="panel__lead">Based on customer reviews left after a completed order.</p>
+                </div>
+                <div id="satisfaction-summary-results" class="results"></div>
+                <div id="rating-distribution-results" class="results"></div>
+                <div id="feedback-results" class="results"></div>
+
+                <!-- Complaints -->
+                <div class="panel__head panel__head--sub">
+                    <h3 class="panel__title panel__title--sm">Complaints</h3>
+                    <p class="panel__lead">Update the status as you review and resolve each one.</p>
+                </div>
+                <div id="complaints-results" class="results"></div>
+            </div>
+            
             <!-- Sales Analytics tab -->
             <div id="analytics-tab" class="tab-panel" role="tabpanel" hidden>
-                <div class="empty">
-                    <p><strong>Sales Analytics</strong></p>
-                    <p>Track your stall's sales performance over time.</p>
-                    <p class="field__help">This feature is coming soon.</p>
-                </div>
-            </div>
-        </section>
+                <p class="panel__lead">Your stall's sales performance — popular items and peak hours — from completed orders.</p>
 
-        <section class="panel" aria-labelledby="danger-heading">
-            <div class="panel__head">
-                <h2 id="danger-heading" class="panel__title">Danger zone</h2>
-                <p class="panel__lead">
-                    Deleting your account is permanent — you will no longer be able to log in.
-                </p>
+                <div class="form-row">
+                    <button id="analytics-refresh-btn" type="button" class="btn btn--secondary btn--sm">Refresh</button>
+                </div>
+
+                <div id="analytics-message" class="message" role="status" aria-live="polite" hidden></div>
+
+                <!-- Summary stat cards -->
+                <div id="analytics-summary-results" class="results"></div>
+
+                <!-- Popular items -->
+                <div class="panel__head panel__head--sub">
+                    <h3 class="panel__title panel__title--sm">Popular Items</h3>
+                    <p class="panel__lead">Ranked by quantity sold (completed orders only).</p>
+                </div>
+                <div id="analytics-popular-items-results" class="results"></div>
+
+                <!-- Peak hours -->
+                <div class="panel__head panel__head--sub">
+                    <p class="panel__lead">Order volume by hour of day.</p>
+                </div>
+            <div id="analytics-peak-hours-results" class="results"></div>
             </div>
-            <button id="delete-account-btn" type="button" class="btn btn--danger">Delete my account</button>
-            <div id="delete-account-message" class="message" role="status" aria-live="polite" hidden></div>
+
+            <!-- Promotions tab -->
+            <div id="promotions-tab" class="tab-panel" role="tabpanel" hidden>
+                <p class="panel__lead">Set up loyalty programs or discounts for your stall to encourage repeat customers.</p>
+
+                <div class="form-row">
+                    <button id="promotions-refresh-btn" type="button" class="btn btn--secondary btn--sm">Refresh</button>
+                    <button id="promotions-new-btn" type="button" class="btn btn--primary btn--sm">New promotion</button>
+                </div>
+
+                <!-- Create/edit form, hidden until "New promotion" or "Edit" is clicked -->
+                <form id="promotion-form" class="form-grid" novalidate hidden>
+                    <input type="hidden" id="promotion-id" />
+                    <div class="field">
+                        <label class="field__label" for="promotion-title">Title</label>
+                        <input id="promotion-title" class="input" type="text" maxlength="255" required />
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="promotion-discount-type">Discount type</label>
+                        <select id="promotion-discount-type" class="input" required>
+                            <option value="percentage">Percentage discount</option>
+                            <option value="fixed">Fixed-amount discount</option>
+                            <option value="points">Points-based loyalty</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="promotion-discount-value">Discount value</label>
+                        <input id="promotion-discount-value" class="input" type="number" min="0.01" step="0.01" required />
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="promotion-start-date">Start date (optional)</label>
+                        <input id="promotion-start-date" class="input" type="date" />
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="promotion-end-date">End date (optional)</label>
+                        <input id="promotion-end-date" class="input" type="date" />
+                    </div>
+                    <div class="field field--full">
+                        <label class="field__label" for="promotion-description">Description (optional)</label>
+                        <input id="promotion-description" class="input" type="text" maxlength="1000" />
+                    </div>
+
+                    <div class="item-edit-form__actions">
+                        <button type="submit" class="btn btn--primary">Save promotion</button>
+                        <button type="button" id="promotion-cancel-btn" class="btn btn--secondary">Cancel</button>
+                    </div>
+                </form>
+
+                <div id="promotion-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="promotion-results" class="results"></div>
+            </div>
         </section>
     </main>
 

@@ -21,6 +21,7 @@
 const TOKEN_KEY = "hcms_token";
 const EMAIL_KEY = "hcms_email";
 const ROLE_KEY = "hcms_role";
+const PICTURE_KEY = "hcms_picture";
 
 function getToken() {
     return localStorage.getItem(TOKEN_KEY);
@@ -31,19 +32,71 @@ function getEmail() {
 function getRole() {
     return localStorage.getItem(ROLE_KEY);
 }
+function getPicture() {
+    return localStorage.getItem(PICTURE_KEY);
+}
 function isLoggedIn() {
     return !!getToken();
 }
-function saveSession(token, email, role) {
+// Cache the profile picture URL locally so every page can show it without an
+// extra API call. Call this again (with just the new URL) right after a
+// successful upload so the header updates immediately, no re-login needed.
+function setPicture(profilePictureURL) {
+    if (profilePictureURL) {
+        localStorage.setItem(PICTURE_KEY, profilePictureURL);
+    } else {
+        localStorage.removeItem(PICTURE_KEY);
+    }
+    renderHeaderAvatar();
+}
+// Update the cached session email after a successful email change, so the header
+// (and every other page) shows the new address immediately — no re-login needed.
+function setEmail(email) {
+    if (email) {
+        localStorage.setItem(EMAIL_KEY, email);
+    }
+    const emailEl = $("#session-email");
+    if (emailEl && email) emailEl.textContent = email;
+}
+function saveSession(token, email, role, profilePictureURL) {
     localStorage.setItem(TOKEN_KEY, token);
     if (email) localStorage.setItem(EMAIL_KEY, email);
     if (role) localStorage.setItem(ROLE_KEY, role);
+    setPicture(profilePictureURL);
 }
 function clearSession() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(EMAIL_KEY);
     localStorage.removeItem(ROLE_KEY);
+    localStorage.removeItem(PICTURE_KEY);
 }
+
+/* ---------- Header avatar (auto-rendered on every authenticated page) ----------
+   Every protected page already has #session-email in its header. Rather than
+   editing every page's HTML/JS individually, this hooks into that one shared
+   element and injects the avatar image next to it — one place to maintain. */
+
+// Generic person-silhouette icon, inlined so no extra image asset is needed.
+const DEFAULT_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#cbd5e1"/><circle cx="12" cy="9" r="4" fill="#64748b"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" fill="#64748b"/></svg>'
+);
+
+function renderHeaderAvatar() {
+    const emailEl = $("#session-email");
+    if (!emailEl || !isLoggedIn()) return;
+
+    let img = $("#session-avatar");
+    if (!img) {
+        img = document.createElement("img");
+        img.id = "session-avatar";
+        img.className = "session-avatar";
+        img.alt = "Profile picture";
+        emailEl.parentNode.insertBefore(img, emailEl);
+    }
+    img.src = getPicture() || DEFAULT_AVATAR;
+}
+
+document.addEventListener("DOMContentLoaded", renderHeaderAvatar);
 
 /* ---------- Small DOM helper ---------- */
 
@@ -65,6 +118,24 @@ function formatCurrency(value) {
 function isExpired(expiryDate) {
     const d = new Date(expiryDate);
     return !isNaN(d) && d < new Date(new Date().toDateString());
+}
+
+// Render a 1-5 rating as a filled/empty star string, e.g. renderStars(4) -> "★★★★☆"
+function renderStars(rating) {
+    const filled = Math.round(Number(rating));
+    return "★".repeat(filled) + "☆".repeat(5 - filled);
+}
+
+// Escape text before interpolating it into innerHTML. Needed anywhere we
+// render free text written by someone other than the viewer (e.g. another
+// customer's review comment) so it can't be used for a stored-XSS injection.
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 }
 
 function showMessage(el, type, text) {
