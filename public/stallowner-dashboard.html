@@ -49,6 +49,7 @@
                 <button class="tab" role="tab" data-tab="rentals" aria-selected="false">Rental Agreements</button>
                 <button class="tab" role="tab" data-tab="complaints" aria-selected="false">Complaints &amp; Ratings</button>
                 <button class="tab" role="tab" data-tab="analytics" aria-selected="false">Sales Analytics</button>
+                <button class="tab" role="tab" data-tab="promotions" aria-selected="false">Promotions</button>
             </div>
 
             <!-- Menu Items tab -->
@@ -173,6 +174,58 @@
                     <p class="panel__lead">Order volume by hour of day.</p>
                 </div>
             <div id="analytics-peak-hours-results" class="results"></div>
+            </div>
+
+            <!-- Promotions tab -->
+            <div id="promotions-tab" class="tab-panel" role="tabpanel" hidden>
+                <p class="panel__lead">Set up loyalty programs or discounts for your stall to encourage repeat customers.</p>
+
+                <div class="form-row">
+                    <button id="promotions-refresh-btn" type="button" class="btn btn--secondary btn--sm">Refresh</button>
+                    <button id="promotions-new-btn" type="button" class="btn btn--primary btn--sm">New promotion</button>
+                </div>
+
+                <!-- Create/edit form, hidden until "New promotion" or "Edit" is clicked -->
+                <form id="promotion-form" class="form-grid" novalidate hidden>
+                    <input type="hidden" id="promotion-id" />
+                    <div class="field">
+                        <label class="field__label" for="promotion-title">Title</label>
+                        <input id="promotion-title" class="input" type="text" maxlength="255" required />
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="promotion-discount-type">Discount type</label>
+                        <select id="promotion-discount-type" class="input" required>
+                            <option value="percentage">Percentage discount</option>
+                            <option value="fixed">Fixed-amount discount</option>
+                            <option value="points">Points-based loyalty</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="promotion-discount-value">Discount value</label>
+                        <input id="promotion-discount-value" class="input" type="number" min="0.01" step="0.01" required />
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="promotion-start-date">Start date (optional)</label>
+                        <input id="promotion-start-date" class="input" type="date" />
+                    </div>
+                    <div class="field">
+                        <label class="field__label" for="promotion-end-date">End date (optional)</label>
+                        <input id="promotion-end-date" class="input" type="date" />
+                    </div>
+                    <div class="field field--full">
+                        <label class="field__label" for="promotion-description">Description (optional)</label>
+                        <input id="promotion-description" class="input" type="text" maxlength="1000" />
+                    </div>
+
+                    <div class="item-edit-form__actions">
+                        <button type="submit" class="btn btn--primary">Save promotion</button>
+                        <button type="button" id="promotion-cancel-btn" class="btn btn--secondary">Cancel</button>
+                    </div>
+                </form>
+
+                <div id="promotion-message" class="message" role="status" aria-live="polite" hidden></div>
+                <div id="promotion-results" class="results"></div>
+            </div>
         </section>
     </main>
 
