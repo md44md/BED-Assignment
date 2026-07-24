@@ -30,6 +30,15 @@ function validateSubmitOrder(req, res, next) {
 // Middleware to validate the :orderID route param
 function validateOrderId(req, res, next) {
     const id = parseInt(req.params.orderID, 10);
+
+    if (isNaN(id) || id <= 0) {
+        return res.status(400).json({ error: "Invalid order ID. ID must be a positive number" });
+    }
+
+    next();
+}
+
+// Middleware to validate the :orderID route param
 function validateOrderIdParam(req, res, next) {
     const id = parseInt(req.params.orderID);
 

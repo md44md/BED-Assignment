@@ -110,3 +110,83 @@ describe("emailService.sendQueueNotification", () => {
         expect(body.sender.name).toBe("Hawker Centre Management System");
     });
 });
+
+describe("emailService.sendPasswordResetEmail", () => {
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+        process.env = { ...originalEnv };
+        process.env.BREVO_API_KEY = "test-api-key";
+        process.env.BREVO_SENDER_EMAIL = "sender@example.com";
+        process.env.BREVO_SENDER_NAME = "Hawker Centre Management System";
+        global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+        process.env = originalEnv;
+        jest.resetAllMocks();
+    });
+
+    test("sends the email and reports success", async () => {
+        global.fetch.mockResolvedValue({ ok: true });
+
+        const result = await emailService.sendPasswordResetEmail("alice@email.com", "https://example.com/reset-password.html?token=abc123");
+
+        expect(result).toEqual({ ok: true });
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    test("posts the recipient and reset link to the Brevo API", async () => {
+        global.fetch.mockResolvedValue({ ok: true });
+
+        await emailService.sendPasswordResetEmail("alice@email.com", "https://example.com/reset-password.html?token=abc123");
+
+        const [url, options] = global.fetch.mock.calls[0];
+        expect(url).toBe("https://api.brevo.com/v3/smtp/email");
+        expect(options.method).toBe("POST");
+        expect(options.headers["api-key"]).toBe("test-api-key");
+
+        const body = JSON.parse(options.body);
+        expect(body.to).toEqual([{ email: "alice@email.com" }]);
+        expect(body.subject).toBe("Reset your password");
+        expect(body.htmlContent).toContain("https://example.com/reset-password.html?token=abc123");
+    });
+
+    test("reports failure when the API key is missing, without calling the API", async () => {
+        delete process.env.BREVO_API_KEY;
+
+        const result = await emailService.sendPasswordResetEmail("alice@email.com", "https://example.com/reset-password.html?token=abc123");
+
+        expect(result.ok).toBe(false);
+        expect(result.error).toMatch(/not configured/i);
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    test("reports failure when there is no recipient email", async () => {
+        const result = await emailService.sendPasswordResetEmail(null, "https://example.com/reset-password.html?token=abc123");
+
+        expect(result.ok).toBe(false);
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    test("surfaces the error message Brevo returns when it rejects the request", async () => {
+        global.fetch.mockResolvedValue({
+            ok: false,
+            status: 401,
+            json: async () => ({ message: "Key not found" }),
+        });
+
+        const result = await emailService.sendPasswordResetEmail("alice@email.com", "https://example.com/reset-password.html?token=abc123");
+
+        expect(result).toEqual({ ok: false, error: "Key not found" });
+    });
+
+    test("returns an error instead of throwing when the network fails", async () => {
+        global.fetch.mockRejectedValue(new Error("getaddrinfo ENOTFOUND api.brevo.com"));
+
+        const result = await emailService.sendPasswordResetEmail("alice@email.com", "https://example.com/reset-password.html?token=abc123");
+
+        expect(result.ok).toBe(false);
+        expect(result.error).toBe("getaddrinfo ENOTFOUND api.brevo.com");
+    });
+});

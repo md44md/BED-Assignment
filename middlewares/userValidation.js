@@ -65,6 +65,33 @@ const changeEmailSchema = Joi.object({
     }),
 });
 
+// Schema for requesting a password reset
+const forgotPasswordSchema = Joi.object({
+    email: Joi.string().email().max(255).required().messages({
+        "string.base": "Email must be a string",
+        "string.empty": "Email cannot be empty",
+        "string.email": "Email must be a valid email address",
+        "string.max": "Email cannot exceed 255 characters",
+        "any.required": "Email is required",
+    }),
+});
+
+// Schema for completing a password reset
+const resetPasswordSchema = Joi.object({
+    token: Joi.string().required().messages({
+        "string.base": "Token must be a string",
+        "string.empty": "Token cannot be empty",
+        "any.required": "Token is required",
+    }),
+    password: Joi.string().min(8).max(255).required().messages({
+        "string.base": "Password must be a string",
+        "string.empty": "Password cannot be empty",
+        "string.min": "Password must be at least 8 characters long",
+        "string.max": "Password cannot exceed 255 characters",
+        "any.required": "Password is required",
+    }),
+});
+
 // Middleware to validate registration body
 function validateRegister(req, res, next) {
     const { error } = registerSchema.validate(req.body, { abortEarly: false });
@@ -101,8 +128,34 @@ function validateChangeEmail(req, res, next) {
     next();
 }
 
+// Middleware to validate forgot-password body
+function validateForgotPassword(req, res, next) {
+    const { error } = forgotPasswordSchema.validate(req.body, { abortEarly: false });
+
+    if (error) {
+        const errorMessage = error.details.map((detail) => detail.message).join(", ");
+        return res.status(400).json({ error: errorMessage });
+    }
+
+    next();
+}
+
+// Middleware to validate reset-password body
+function validateResetPassword(req, res, next) {
+    const { error } = resetPasswordSchema.validate(req.body, { abortEarly: false });
+
+    if (error) {
+        const errorMessage = error.details.map((detail) => detail.message).join(", ");
+        return res.status(400).json({ error: errorMessage });
+    }
+
+    next();
+}
+
 module.exports = {
     validateRegister,
     validateLogin,
     validateChangeEmail,
+    validateForgotPassword,
+    validateResetPassword,
 };

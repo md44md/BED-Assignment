@@ -12,14 +12,13 @@ const stallOwnerController = require("./controllers/stallOwnerController");
 const customerController = require("./controllers/customerController");
 const officerController = require("./controllers/officerController");
 const operatorController = require("./controllers/operatorController");
-const { validateRegister, validateLogin, validateChangeEmail } = require("./middlewares/userValidation");
+const { validateRegister, validateLogin, validateChangeEmail, validateForgotPassword, validateResetPassword } = require("./middlewares/userValidation");
 const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection, validateUpdateInspection, validateScheduleInspection } = require("./middlewares/inspectionValidation");
 const cartController = require("./controllers/cartController");
 const { validateAddItem, validateCartItemId } = require("./middlewares/cartValidation");
 const orderController = require("./controllers/orderController");
-const { validateSubmitOrder, validateOrderId } = require("./middlewares/orderValidation");
-const { validateSubmitOrder, validateOrderIdParam } = require("./middlewares/orderValidation");
+const { validateSubmitOrder, validateOrderId, validateOrderIdParam } = require("./middlewares/orderValidation");
 const hygieneGradeController = require("./controllers/hygieneGradeController");
 const { validateIssueGrade, validateUpdateGrade } = require("./middlewares/hygieneGradeValidation");
 const stallController = require("./controllers/stallController");
@@ -84,6 +83,10 @@ app.get("/stallowners/account",
 // Routes for customer auth
 app.post("/customers/register", validateRegister, customerController.register);
 app.post("/customers/login", validateLogin, customerController.login);
+
+// Password reset (public, role-agnostic — works for any account regardless of role)
+app.post("/forgot-password", validateForgotPassword, userController.forgotPassword);
+app.post("/reset-password", validateResetPassword, userController.resetPassword);
 app.post("/customers/logout", customerController.logout);
 app.delete("/customers/account",
     /*

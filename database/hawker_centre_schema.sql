@@ -44,6 +44,19 @@ INSERT INTO Users (email, passwordHash, role) VALUES
     ('nathan@email.com',   '$2b$10$PJMG1ArBZPDlR4XIZgHiqOVpdKeLW6EeuRCyqOxuomsOju9iFSBRG',    'neaOfficer'),
     ('olivia@email.com',   '$2b$10$9FC3jS7v/INpxMS4L70tSuVtK5do/fG73eI6k0HkZC22bLzzBGile',    'neaOfficer');
 
+-- Forgot-password tokens, role-agnostic (works for any Users row). tokenHash stores a
+-- SHA-256 hash of the emailed token, never the raw value - mirrors passwordHash never
+-- storing a plaintext password. Single-use is enforced via usedAt; expiresAt bounds the
+-- window a token is valid for.
+CREATE TABLE PasswordResetToken (
+    tokenID    INT IDENTITY(1,1) PRIMARY KEY,
+    userID     INT NOT NULL REFERENCES Users(userID),
+    tokenHash  VARCHAR(255) NOT NULL,
+    expiresAt  DATETIME NOT NULL,
+    usedAt     DATETIME NULL,
+    createdAt  DATETIME DEFAULT GETDATE()
+);
+
 
 -- ============================================================
 -- SECTION: OPERATOR
