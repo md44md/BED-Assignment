@@ -1,4 +1,6 @@
 const promotionModel = require("../models/promotionModel");
+const notificationModel = require("../models/notificationModel");
+const emailService = require("../services/emailService");
 
 // GET /promotions (stall owner's own promotions)
 async function getPromotions(req, res) {
@@ -29,7 +31,46 @@ async function createPromotion(req, res) {
         }
 
         const newPromotion = await promotionModel.createPromotion(stall.stallID, req.body);
-        res.status(201).json(newPromotion);
+
+        // Notify repeat customers of this stall about the new promotion (third-party
+        // email via Brevo). A delivery failure must NOT fail the create, so each send
+        // is handled and recorded individually, and the request still succeeds.
+        // Runs sequentially so the shared mssql pool isn't closed out from under a
+        // concurrent notification insert (same reason as the other list loaders).
+        const customers = await promotionModel.getCustomersByStallID(stall.stallID);
+        const title = `New promotion at ${stall.stallName}`;
+        const message =
+            `${newPromotion.title}` +
+            `${newPromotion.description ? " — " + newPromotion.description : ""}. ` +
+            `Drop by ${stall.stallName} to take advantage of it.`;
+
+        let notifiedCount = 0;
+        for (const customer of customers) {
+            const emailResult = await emailService.sendPromotionNotification(
+                customer.email,
+                customer.firstName,
+                stall.stallName,
+                newPromotion.title,
+                newPromotion.description
+            );
+            if (emailResult.ok) notifiedCount++;
+
+            try {
+                await notificationModel.createNotification({
+                    customerID: customer.customerID,
+                    orderID: null, // a promotion isn't tied to a specific order
+                    channel: "email",
+                    title,
+                    message,
+                    status: emailResult.ok ? "sent" : "failed",
+                });
+            } catch (recordError) {
+                // Logging the notification is best-effort; the promotion already exists.
+                console.error("Failed to record notification:", recordError);
+            }
+        }
+
+        res.status(201).json({ ...newPromotion, notifiedCustomers: notifiedCount });
     } catch (error) {
         console.error("Controller error:", error);
         res.status(500).json({ error: "Error creating promotion." });

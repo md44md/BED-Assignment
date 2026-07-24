@@ -944,8 +944,9 @@ async function handleSavePromotion(event) {
             await api(`/promotions/${id}`, { method: "PUT", body: payload, auth: true });
             showMessage(msg, "success", "Promotion updated.");
         } else {
-            await api("/promotions", { method: "POST", body: payload, auth: true });
-            showMessage(msg, "success", "Promotion created.");
+            const data = await api("/promotions", { method: "POST", body: payload, auth: true });
+            const notified = data.notifiedCustomers || 0;
+            showMessage(msg, "success", `Promotion created.${notified ? ` ${notified} customer(s) notified by email.` : ""}`);
         }
         hidePromotionForm();
         loadPromotions();
