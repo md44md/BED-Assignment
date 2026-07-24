@@ -26,6 +26,12 @@ function verifyJWT(req, res, next) {
             // Stall owner rental agreements
             "GET /rental-agreements": ["stallOwner"],
 
+            // Stall owner promotion management (set up / edit / see / delete)
+            "GET /promotions": ["stallOwner"],
+            "POST /promotions": ["stallOwner"],
+            "PUT /promotions/[0-9]+": ["stallOwner"],
+            "DELETE /promotions/[0-9]+": ["stallOwner"],
+
             // Stall owner status toggle route
             "PUT /stalls/status": ["stallOwner"],
 

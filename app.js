@@ -30,6 +30,8 @@ const menuItemController = require("./controllers/menuItemController");
 const { validateMenuItem, validateMenuItemId } = require("./middlewares/menuItemValidation")
 const { uploadMenuItemImage, uploadProfilePicture } = require("./middlewares/uploadMiddleware");
 const rentalAgreementController = require("./controllers/rentalAgreementController");
+const promotionController = require("./controllers/promotionController");
+const { validatePromotion, validatePromotionId } = require("./middlewares/promotionValidation");
 const userController = require("./controllers/userController");
 const queueController = require("./controllers/queueController");
 const salesAnalyticsController = require("./controllers/salesAnalyticsController")
@@ -116,6 +118,12 @@ app.delete("/menuitems/:id/like", verifyJWT, validateMenuItemId, menuItemControl
 
 // Route for viewing rental agreements
 app.get("/rental-agreements", verifyJWT, rentalAgreementController.getRentalAgreements);
+
+// Routes for stall owner promotion management (set up / edit / see / delete)
+app.get("/promotions", verifyJWT, promotionController.getPromotions);
+app.post("/promotions", verifyJWT, validatePromotion, promotionController.createPromotion);
+app.put("/promotions/:id", verifyJWT, validatePromotionId, validatePromotion, promotionController.updatePromotion);
+app.delete("/promotions/:id", verifyJWT, validatePromotionId, promotionController.deletePromotion);
 
 // Public: list all stalls (used by the front-end stall picker, no auth)
 app.get("/stalls", stallController.getStalls);

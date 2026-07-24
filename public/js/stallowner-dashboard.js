@@ -47,11 +47,13 @@ function handleTabClick(event) {
     $("#rentals-tab").hidden = target !== "rentals";
     $("#complaints-tab").hidden = target !== "complaints";
     $("#analytics-tab").hidden = target !== "analytics";
+    $("#promotions-tab").hidden = target !== "promotions";
     if (target === "menu") loadMenuItems();
     if (target === "queue") loadQueue();
     if (target === "rentals") loadRentalAgreements();
     if (target === "complaints") loadComplaintsAndRatings();
     if (target === "analytics") loadSalesAnalytics();
+    if (target === "promotions") loadPromotions();
 }
 
 /* ---------- Small helpers specific to menu items ---------- */
@@ -829,6 +831,195 @@ async function loadSalesAnalytics() {
     }
 }
 
+/* ---------- Promotions ---------- */
+
+const DISCOUNT_LABELS = { percentage: "% off", fixed: "$ off", points: "points" };
+
+// Cache of the last-loaded promotions, keyed for the edit/toggle-active
+// handlers below — cheaper than re-parsing values back out of the rendered
+// card DOM (which loses type info like discountType).
+let currentPromotions = [];
+
+function formatDiscount(promo) {
+    const value = Number(promo.discountValue);
+    if (promo.discountType === "percentage") return `${value}% off`;
+    if (promo.discountType === "fixed") return `${formatCurrency(value)} off`;
+    return `${value} ${DISCOUNT_LABELS[promo.discountType] || ""}`;
+}
+
+function renderPromotionCard(promo) {
+    const active = isTruthy(promo.isActive);
+    const card = document.createElement("article");
+    card.className = "item-card";
+    card.dataset.promotionId = promo.promotionID;
+
+    const statusTag = active
+        ? '<span class="tag tag--available">Active</span>'
+        : '<span class="tag tag--unavailable">Inactive</span>';
+
+    card.innerHTML = `
+        <div class="item-card__body" data-view="display">
+            <div class="item-card__row">
+                <span class="item-card__title">${promo.title}</span>
+                ${statusTag}
+            </div>
+            <div class="item-card__meta">${formatDiscount(promo)}</div>
+            <div class="item-card__meta">${formatDate(promo.startDate)} – ${formatDate(promo.endDate)}</div>
+            ${promo.description ? `<div class="item-card__desc">${promo.description}</div>` : ""}
+            <div class="item-card__actions">
+                <button type="button" class="btn btn--secondary btn--sm" data-action="edit">Edit</button>
+                <button type="button" class="btn btn--secondary btn--sm" data-action="toggle-active">
+                    Mark ${active ? "inactive" : "active"}
+                </button>
+                <button type="button" class="btn btn--danger btn--sm" data-action="delete">Delete</button>
+            </div>
+        </div>
+    `;
+    return card;
+}
+
+function renderPromotionList(promotions) {
+    const results = $("#promotion-results");
+    results.innerHTML = "";
+    if (!promotions || promotions.length === 0) {
+        results.innerHTML = '<div class="empty">No promotions yet. Create one above.</div>';
+        return;
+    }
+    for (const promo of promotions) {
+        results.appendChild(renderPromotionCard(promo));
+    }
+}
+
+async function loadPromotions() {
+    const msg = $("#promotion-message");
+    clearMessage(msg);
+    try {
+        const promotions = await api("/promotions", { auth: true });
+        currentPromotions = promotions || [];
+        renderPromotionList(currentPromotions);
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+function showPromotionForm(promo) {
+    const form = $("#promotion-form");
+    form.hidden = false;
+    $("#promotion-id").value = promo ? promo.promotionID : "";
+    $("#promotion-title").value = promo ? promo.title : "";
+    $("#promotion-discount-type").value = promo ? promo.discountType : "percentage";
+    $("#promotion-discount-value").value = promo ? promo.discountValue : "";
+    $("#promotion-start-date").value = promo && promo.startDate ? promo.startDate.slice(0, 10) : "";
+    $("#promotion-end-date").value = promo && promo.endDate ? promo.endDate.slice(0, 10) : "";
+    $("#promotion-description").value = promo ? promo.description || "" : "";
+    form.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function hidePromotionForm() {
+    const form = $("#promotion-form");
+    form.hidden = true;
+    form.reset();
+    $("#promotion-id").value = "";
+}
+
+async function handleSavePromotion(event) {
+    event.preventDefault();
+    const msg = $("#promotion-message");
+    clearMessage(msg);
+
+    const id = $("#promotion-id").value;
+    const payload = {
+        title: $("#promotion-title").value.trim(),
+        description: $("#promotion-description").value.trim(),
+        discountType: $("#promotion-discount-type").value,
+        discountValue: Number($("#promotion-discount-value").value),
+        startDate: $("#promotion-start-date").value || null,
+        endDate: $("#promotion-end-date").value || null,
+    };
+
+    const submitBtn = event.submitter;
+    submitBtn.disabled = true;
+    try {
+        if (id) {
+            await api(`/promotions/${id}`, { method: "PUT", body: payload, auth: true });
+            showMessage(msg, "success", "Promotion updated.");
+        } else {
+            await api("/promotions", { method: "POST", body: payload, auth: true });
+            showMessage(msg, "success", "Promotion created.");
+        }
+        hidePromotionForm();
+        loadPromotions();
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    } finally {
+        submitBtn.disabled = false;
+    }
+}
+
+async function handleDeletePromotion(promotionID) {
+    const ok = window.confirm(`Delete promotion ID ${promotionID}? This cannot be undone.`);
+    if (!ok) return;
+    const msg = $("#promotion-message");
+    clearMessage(msg);
+
+    try {
+        const data = await api(`/promotions/${promotionID}`, { method: "DELETE", auth: true });
+        showMessage(msg, "success", data.message || "Promotion deleted.");
+        loadPromotions();
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+async function handleToggleActive(promo) {
+    const msg = $("#promotion-message");
+    clearMessage(msg);
+
+    try {
+        await api(`/promotions/${promo.promotionID}`, {
+            method: "PUT",
+            body: {
+                title: promo.title,
+                description: promo.description,
+                discountType: promo.discountType,
+                discountValue: promo.discountValue,
+                startDate: promo.startDate,
+                endDate: promo.endDate,
+                isActive: !isTruthy(promo.isActive),
+            },
+            auth: true,
+        });
+        loadPromotions();
+    } catch (err) {
+        if (!handleAuthFailure(err)) showMessage(msg, "error", err.message);
+    }
+}
+
+async function handlePromotionsResultsClick(event) {
+    const btn = event.target.closest("button[data-action]");
+    if (!btn) return;
+    const card = btn.closest(".item-card");
+    const promotionID = Number(card.dataset.promotionId);
+    const promo = currentPromotions.find((p) => p.promotionID === promotionID);
+    if (!promo) return;
+
+    if (btn.dataset.action === "edit") {
+        showPromotionForm(promo);
+    }
+
+    if (btn.dataset.action === "toggle-active") {
+        btn.disabled = true;
+        await handleToggleActive(promo);
+        btn.disabled = false;
+    }
+
+    if (btn.dataset.action === "delete") {
+        btn.disabled = true;
+        await handleDeletePromotion(promotionID);
+        btn.disabled = false;
+    }
+}
+
 /* ---------- Init ---------- */
 
 function init() {
@@ -860,6 +1051,11 @@ function init() {
     $("#serve-next-btn").addEventListener("click", handleServeNext);
     $("#analytics-refresh-btn").addEventListener("click", loadSalesAnalytics);
     $("#stall-status-row").addEventListener("click", handleStallStatusClick);
+    $("#promotions-refresh-btn").addEventListener("click", loadPromotions);
+    $("#promotions-new-btn").addEventListener("click", () => showPromotionForm(null));
+    $("#promotion-cancel-btn").addEventListener("click", hidePromotionForm);
+    $("#promotion-form").addEventListener("submit", handleSavePromotion);
+    $("#promotion-results").addEventListener("click", handlePromotionsResultsClick);
 
     $("#logout-btn").addEventListener("click", handleLogout);
 
