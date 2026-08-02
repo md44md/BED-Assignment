@@ -157,6 +157,9 @@ async function reorder(req, res) {
     } catch (error) {
         console.error("Controller error:", error);
         res.status(500).json({ error: "Error reordering." });
+    }
+}
+
 // GET /orders/:orderID/receipt
 async function getOrderReceipt(req, res) {
     try {

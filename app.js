@@ -12,7 +12,7 @@ const stallOwnerController = require("./controllers/stallOwnerController");
 const customerController = require("./controllers/customerController");
 const officerController = require("./controllers/officerController");
 const operatorController = require("./controllers/operatorController");
-const { validateRegister, validateLogin, validateChangeEmail } = require("./middlewares/userValidation");
+const { validateRegister, validateLogin, validateChangeEmail, validateForgotPassword, validateResetPassword } = require("./middlewares/userValidation");
 const inspectionController = require("./controllers/inspectionController");
 const { validateLogInspection, validateUpdateInspection, validateScheduleInspection } = require("./middlewares/inspectionValidation");
 const cartController = require("./controllers/cartController");
@@ -83,6 +83,32 @@ app.get("/stallowners/account",
 // Routes for customer auth
 app.post("/customers/register", validateRegister, customerController.register);
 app.post("/customers/login", validateLogin, customerController.login);
+
+// Password reset (public, role-agnostic — works for any account regardless of role)
+app.post("/forgot-password",
+    /*
+        #swagger.tags = ['Account']
+        #swagger.security = []
+        #swagger.summary = 'Request a password reset link'
+        #swagger.description = 'Public, role-agnostic (works for any Users row). Always returns the same generic message whether or not the email is registered, so this endpoint cannot be used to enumerate accounts. When a matching active account exists, emails a one-time reset link (valid 1 hour, single-use) via the Brevo third-party API.'
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { email: 'alice@email.com' } }
+        #swagger.responses[200] = { description: 'Generic confirmation message (sent regardless of whether the account exists).' }
+        #swagger.responses[400] = { description: 'Invalid body (missing/malformed email).' }
+        #swagger.responses[500] = { description: 'Error processing password reset request.' }
+    */
+    validateForgotPassword, userController.forgotPassword);
+app.post("/reset-password",
+    /*
+        #swagger.tags = ['Account']
+        #swagger.security = []
+        #swagger.summary = 'Complete a password reset'
+        #swagger.description = 'Public, role-agnostic. Redeems the token from the emailed reset link: verifies it is unused and unexpired, sets the new password, and marks the token used (single-use, atomically with the password update) so the same link can never be redeemed twice.'
+        #swagger.parameters['body'] = { in: 'body', required: true, schema: { token: 'a1b2c3...', password: 'NewPassword123!' } }
+        #swagger.responses[200] = { description: 'Password reset successfully.' }
+        #swagger.responses[400] = { description: 'Invalid body, or the reset link is invalid/expired/already used.' }
+        #swagger.responses[500] = { description: 'Error resetting password.' }
+    */
+    validateResetPassword, userController.resetPassword);
 app.post("/customers/logout", customerController.logout);
 app.delete("/customers/account",
     /*
@@ -235,8 +261,35 @@ app.get("/orders",
     */
     verifyJWT, orderController.getMyOrders);
 app.post("/orders/:orderID/reorder", verifyJWT, validateOrderId, orderController.reorder);
-app.get("/orders/:orderID/receipt", verifyJWT, validateOrderIdParam, orderController.getOrderReceipt);
-app.get("/orders/:orderID/receipt/pdf", verifyJWT, validateOrderIdParam, orderController.getOrderReceiptPdf);
+app.get("/orders/:orderID/receipt",
+    /*
+        #swagger.tags = ['Orders']
+        #swagger.summary = 'Get an itemized receipt for a past order'
+        #swagger.description = 'Customer only, and only for their own order. Returns the order\'s line items split into base dishes/drinks vs priced add-ons, plus the packagingFee/gstAmount/totalAmount breakdown, so a customer can review spending or split the bill with friends.'
+        #swagger.parameters['orderID'] = { in: 'path', required: true, type: 'integer', description: 'ID of the order to fetch the receipt for.' }
+        #swagger.responses[200] = { description: 'Itemized receipt, with items/addons arrays and the fee breakdown.' }
+        #swagger.responses[400] = { description: 'Invalid order ID.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (this order does not belong to you).' }
+        #swagger.responses[404] = { description: 'Order not found.' }
+        #swagger.responses[500] = { description: 'Error retrieving receipt.' }
+    */
+    verifyJWT, validateOrderIdParam, orderController.getOrderReceipt);
+app.get("/orders/:orderID/receipt/pdf",
+    /*
+        #swagger.tags = ['Orders']
+        #swagger.summary = 'Download an itemized receipt as a PDF'
+        #swagger.description = 'Customer only, and only for their own order. Renders the same itemized breakdown as GET /orders/{orderID}/receipt to HTML, converts it to a PDF via the PDFShift third-party API, and streams it back as an attachment.'
+        #swagger.parameters['orderID'] = { in: 'path', required: true, type: 'integer', description: 'ID of the order to generate a receipt PDF for.' }
+        #swagger.responses[200] = { description: 'The receipt as a PDF file (Content-Type: application/pdf).' }
+        #swagger.responses[400] = { description: 'Invalid order ID.' }
+        #swagger.responses[401] = { description: 'Unauthorized (no/invalid token).' }
+        #swagger.responses[403] = { description: 'Forbidden (this order does not belong to you).' }
+        #swagger.responses[404] = { description: 'Order not found.' }
+        #swagger.responses[500] = { description: 'Error generating receipt PDF.' }
+        #swagger.responses[502] = { description: 'The PDFShift conversion failed (e.g. misconfigured or rejected API key).' }
+    */
+    verifyJWT, validateOrderIdParam, orderController.getOrderReceiptPdf);
 
 // Routes for feedback
 app.post("/feedback",
