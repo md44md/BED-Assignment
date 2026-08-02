@@ -38,7 +38,6 @@ function validateOrderId(req, res, next) {
     next();
 }
 
-// Middleware to validate the :orderID route param
 function validateOrderIdParam(req, res, next) {
     const id = parseInt(req.params.orderID);
 
