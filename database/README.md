@@ -24,6 +24,7 @@ The credentials created here (`bed_user` / `YourPassword123`) must match
 | Table | Description |
 |---|---|
 | Users | Base authentication for all roles |
+| PasswordResetToken | Forgot-password reset tokens (hashed, expiring, single-use) |
 | Operator | Hawker centre operator profile |
 | HawkerCentre | Hawker centre information |
 | StallOwner | Vendor profile |

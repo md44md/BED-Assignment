@@ -126,7 +126,69 @@ async function sendPromotionNotification(toEmail, toName, stallName, promotionTi
     }
 }
 
+// Send a "reset your password" email containing a one-time link.
+// Same contract as the other senders: returns { ok, error } and never throws, so a
+// failed email can never crash the forgot-password request.
+async function sendPasswordResetEmail(toEmail, resetLink) {
+    const apiKey = process.env.BREVO_API_KEY;
+    const senderEmail = process.env.BREVO_SENDER_EMAIL;
+    const senderName = process.env.BREVO_SENDER_NAME || "Hawker Centre Management System";
+
+    // Guard: without config we can't call the API. Report it rather than crash.
+    if (!apiKey || !senderEmail) {
+        return { ok: false, error: "Email service is not configured (missing BREVO_API_KEY or BREVO_SENDER_EMAIL)." };
+    }
+    if (!toEmail) {
+        return { ok: false, error: "Customer has no email address on file." };
+    }
+
+    const subject = "Reset your password";
+    const htmlContent = `
+        <p>Hi,</p>
+        <p>We received a request to reset your Hawker Centre Management System password.</p>
+        <p><a href="${resetLink}">Click here to reset your password</a>.</p>
+        <p>This link expires in 1 hour and can only be used once. If you didn't request
+        this, you can safely ignore this email.</p>
+        <p>— Hawker Centre Management System</p>
+    `;
+
+    try {
+        const res = await fetch(BREVO_URL, {
+            method: "POST",
+            headers: {
+                "api-key": apiKey,
+                "content-type": "application/json",
+                accept: "application/json",
+            },
+            body: JSON.stringify({
+                sender: { name: senderName, email: senderEmail },
+                to: [{ email: toEmail }],
+                subject,
+                htmlContent,
+            }),
+        });
+
+        if (!res.ok) {
+            // Brevo returns a JSON error body describing what went wrong
+            let detail = `HTTP ${res.status}`;
+            try {
+                const body = await res.json();
+                if (body && body.message) detail = body.message;
+            } catch {
+                /* non-JSON error body */
+            }
+            return { ok: false, error: detail };
+        }
+
+        return { ok: true };
+    } catch (error) {
+        // Network failure / DNS / timeout
+        return { ok: false, error: error.message };
+    }
+}
+
 module.exports = {
     sendQueueNotification,
     sendPromotionNotification,
+    sendPasswordResetEmail,
 };
