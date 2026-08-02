@@ -85,6 +85,8 @@ app.post("/customers/register", validateRegister, customerController.register);
 app.post("/customers/login", validateLogin, customerController.login);
 
 // Password reset (public, role-agnostic — works for any account regardless of role)
+app.post("/forgot-password", validateForgotPassword, userController.forgotPassword);
+app.post("/reset-password", validateResetPassword, userController.resetPassword);
 app.post("/forgot-password",
     /*
         #swagger.tags = ['Account']
