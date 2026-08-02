@@ -987,7 +987,11 @@
     },
     "/orders": {
       "post": {
-        "description": "",
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Submit a cart as an order",
+        "description": "Customer only. Turns one of the signed-in customer\\'s carts into an order: creates the order, its line items and a payment record in a single transaction, generates a daily per-stall queue number, and clears that cart. paymentMethod is Cash, NETS or PayNow.",
         "parameters": [
           {
             "name": "authorization",
@@ -997,14 +1001,17 @@
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "cartID": {
-                  "example": "any"
+                  "type": "number",
+                  "example": 3
                 },
                 "paymentMethod": {
-                  "example": "any"
+                  "type": "string",
+                  "example": "NETS"
                 }
               }
             }
@@ -1012,7 +1019,79 @@
         ],
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "Order placed; returns orderID, queueNumber and totalAmount."
+          },
+          "400": {
+            "description": "Validation error (missing cartID or invalid paymentMethod)."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not a customer)."
+          },
+          "404": {
+            "description": "Cart not found or empty."
+          },
+          "409": {
+            "description": "Conflict"
+          },
+          "500": {
+            "description": "Error submitting order."
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "View my past orders",
+        "description": "Customer only. Returns the signed-in customer\\'s own orders (scoped by customerID from the JWT), newest first, each with its line items, totals, status, queue number and payment details.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The customer's orders (empty array if none)."
+          },
+          "401": {
+            "description": "Unauthorized (no/invalid token)."
+          },
+          "403": {
+            "description": "Forbidden (not a customer)."
+          },
+          "500": {
+            "description": "Error retrieving orders."
+          }
+        }
+      }
+    },
+    "/orders/{orderID}/reorder": {
+      "post": {
+        "description": "",
+        "produces": [
+          "application/pdf"
+        ],
+        "parameters": [
+          {
+            "name": "orderID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           },
           "400": {
             "description": "Bad Request"
@@ -1031,12 +1110,23 @@
           },
           "500": {
             "description": "Internal Server Error"
+          },
+          "502": {
+            "description": "Bad Gateway"
           }
         }
-      },
+      }
+    },
+    "/orders/{orderID}/receipt": {
       "get": {
         "description": "",
         "parameters": [
+          {
+            "name": "orderID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "authorization",
             "in": "header",
@@ -1047,14 +1137,64 @@
           "200": {
             "description": "OK"
           },
+          "400": {
+            "description": "Bad Request"
+          },
           "401": {
             "description": "Unauthorized"
           },
           "403": {
             "description": "Forbidden"
           },
+          "404": {
+            "description": "Not Found"
+          },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/orders/{orderID}/receipt/pdf": {
+      "get": {
+        "description": "",
+        "produces": [
+          "application/pdf"
+        ],
+        "parameters": [
+          {
+            "name": "orderID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "502": {
+            "description": "Bad Gateway"
           }
         }
       }
@@ -1194,7 +1334,11 @@
     },
     "/feedback": {
       "post": {
-        "description": "",
+        "tags": [
+          "Feedback"
+        ],
+        "summary": "Submit a rating and review for a stall",
+        "description": "Customer only. Leaves a star rating (1-5) and optional comment for a stall the customer has a completed, paid order with. One review per customer per stall. The comment is run through a profanity filter before it is stored.",
         "parameters": [
           {
             "name": "authorization",
@@ -1204,17 +1348,21 @@
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "orderID": {
-                  "example": "any"
+                  "type": "number",
+                  "example": 5
                 },
                 "rating": {
-                  "example": "any"
+                  "type": "number",
+                  "example": 5
                 },
                 "comments": {
-                  "example": "any"
+                  "type": "string",
+                  "example": "Great chicken rice!"
                 }
               }
             }
@@ -1222,30 +1370,34 @@
         ],
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "Feedback submitted; returns the new feedbackID."
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Validation error, or order not completed/paid."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not a customer, or order does not belong to you)."
           },
           "404": {
-            "description": "Not Found"
+            "description": "Order not found."
           },
           "409": {
-            "description": "Conflict"
+            "description": "You have already reviewed this stall."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error submitting feedback."
           }
         }
       },
       "get": {
-        "description": "",
+        "tags": [
+          "Feedback"
+        ],
+        "summary": "View my own reviews",
+        "description": "Customer only. Returns the signed-in customer\\'s own reviews, each with the stall name, newest first. Used by the feedback page to let a customer pick a review to edit.",
         "parameters": [
           {
             "name": "authorization",
@@ -1255,23 +1407,27 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "The customer's reviews (empty array if none)."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not a customer)."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error retrieving feedback."
           }
         }
       }
     },
     "/feedback/edit": {
       "post": {
-        "description": "",
+        "tags": [
+          "Feedback"
+        ],
+        "summary": "Edit my existing review",
+        "description": "Customer only. Updates the rating and/or comment on a review the signed-in customer owns. The updated comment is run through the profanity filter before it is stored.",
         "parameters": [
           {
             "name": "authorization",
@@ -1281,17 +1437,21 @@
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "feedbackID": {
-                  "example": "any"
+                  "type": "number",
+                  "example": 4
                 },
                 "rating": {
-                  "example": "any"
+                  "type": "number",
+                  "example": 4
                 },
                 "comments": {
-                  "example": "any"
+                  "type": "string",
+                  "example": "Changed my mind, still good."
                 }
               }
             }
@@ -1299,22 +1459,22 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Feedback updated successfully."
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Validation error."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not a customer, or review does not belong to you)."
           },
           "404": {
-            "description": "Not Found"
+            "description": "Feedback not found."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error updating feedback."
           }
         }
       }
@@ -1744,7 +1904,11 @@
     },
     "/menuitems/likes": {
       "get": {
-        "description": "",
+        "tags": [
+          "Menu Item Likes"
+        ],
+        "summary": "View which menu items I have liked",
+        "description": "Customer only. Returns the IDs of the menu items the signed-in customer has liked, so the front-end can mark them as liked on the public stall menu.",
         "parameters": [
           {
             "name": "authorization",
@@ -1754,23 +1918,27 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Object with a likedMenuItemIDs array."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not a customer)."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error retrieving your liked menu items."
           }
         }
       }
     },
     "/menuitems/{id}/like": {
       "post": {
-        "description": "",
+        "tags": [
+          "Menu Item Likes"
+        ],
+        "summary": "Like a menu item",
+        "description": "Customer only. Records a like for a menu item (one like per customer per item; liking again is a no-op). Returns the item\\'s new like count.",
         "parameters": [
           {
             "name": "id",
@@ -1786,27 +1954,31 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Liked; returns { liked: true, likeCount }."
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Invalid menu item ID."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not a customer)."
           },
           "404": {
-            "description": "Not Found"
+            "description": "Menu item not found."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error liking menu item."
           }
         }
       },
       "delete": {
-        "description": "",
+        "tags": [
+          "Menu Item Likes"
+        ],
+        "summary": "Unlike a menu item",
+        "description": "Customer only. Removes the signed-in customer\\'s like from a menu item. Returns the item\\'s new like count.",
         "parameters": [
           {
             "name": "id",
@@ -1822,22 +1994,22 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Unliked; returns { liked: false, likeCount }."
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Invalid menu item ID."
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Unauthorized (no/invalid token)."
           },
           "403": {
-            "description": "Forbidden"
+            "description": "Forbidden (not a customer)."
           },
           "404": {
-            "description": "Not Found"
+            "description": "Menu item not found."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error unliking menu item."
           }
         }
       }
@@ -2243,7 +2415,11 @@
     },
     "/stalls/{stallID}/feedback": {
       "get": {
-        "description": "",
+        "tags": [
+          "Feedback"
+        ],
+        "summary": "View a stall\\'s ratings and reviews (public)",
+        "description": "Public, no login required. Returns a stall\\'s average rating, review count and individual reviews (rating, comment, reviewer name and timestamp), newest first, so anyone browsing can read reviews before deciding where to eat.",
         "parameters": [
           {
             "name": "stallID",
@@ -2254,18 +2430,19 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Object with averageRating, reviewCount and a reviews array."
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Stall ID must be a number."
           },
           "404": {
-            "description": "Not Found"
+            "description": "Stall not found."
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Error retrieving stall feedback."
           }
-        }
+        },
+        "security": []
       }
     },
     "/stalls/status": {
